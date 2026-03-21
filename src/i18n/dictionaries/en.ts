@@ -105,6 +105,45 @@ const en = {
     cancelled: "Cancelled",
     rescheduled: "Rescheduled",
     badgeVariants: "These are available badge variants for booking statuses.",
+
+    // Revenue overview
+    revenueOverview: "Revenue Overview",
+    collected: "Collected",
+    outstanding: "Outstanding",
+    monthlyRevenue: "Monthly Revenue",
+    noRevenueData: "No revenue data yet",
+    noRevenueDesc: "Revenue will appear once payments are recorded.",
+
+    // Event pipeline
+    eventPipeline: "Event Pipeline",
+    inquiry: "Inquiry",
+    waitingPayment: "Waiting Payment",
+    ongoing: "Ongoing",
+    completed: "Completed",
+    noEventsInPipeline: "No events in pipeline",
+    noEventsInPipelineDesc: "Create events to see your pipeline here.",
+
+    // Active offerings
+    activeOfferingsCount: "Active Offerings",
+    expiringSoon: "Expiring Soon",
+    pendingBookings: "Pending Bookings",
+
+    // Upcoming events
+    nextEvent: "Next Event",
+    daysAway: "days away",
+    tomorrow: "Tomorrow",
+    today: "Today",
+    viewAll: "View All",
+    noUpcomingEvents: "No upcoming events",
+    noUpcomingEventsDesc: "Your schedule is clear for now.",
+
+    // Financial summary
+    financialSummary: "Financial Summary",
+    paidAmount: "Paid",
+    unpaidAmount: "Unpaid",
+    dpPaidAmount: "DP Paid",
+    conversionRate: "Conversion Rate",
+    avgEventValue: "Avg. Event Value",
   },
 
   // ─── Profile Page ────────────────────────────────────────

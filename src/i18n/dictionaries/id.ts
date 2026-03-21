@@ -109,6 +109,45 @@ const id: Dictionary = {
     rescheduled: "Dijadwalkan Ulang",
     badgeVariants:
       "Ini adalah varian badge yang tersedia untuk status pemesanan.",
+
+    // Revenue overview
+    revenueOverview: "Ringkasan Pendapatan",
+    collected: "Terkumpul",
+    outstanding: "Belum Terkumpul",
+    monthlyRevenue: "Pendapatan Bulanan",
+    noRevenueData: "Belum ada data pendapatan",
+    noRevenueDesc: "Pendapatan akan muncul setelah pembayaran dicatat.",
+
+    // Event pipeline
+    eventPipeline: "Pipeline Acara",
+    inquiry: "Pertanyaan",
+    waitingPayment: "Menunggu Pembayaran",
+    ongoing: "Berlangsung",
+    completed: "Selesai",
+    noEventsInPipeline: "Belum ada acara di pipeline",
+    noEventsInPipelineDesc: "Buat acara untuk melihat pipeline Anda di sini.",
+
+    // Active offerings
+    activeOfferingsCount: "Penawaran Aktif",
+    expiringSoon: "Segera Kedaluwarsa",
+    pendingBookings: "Pemesanan Tertunda",
+
+    // Upcoming events
+    nextEvent: "Acara Berikutnya",
+    daysAway: "hari lagi",
+    tomorrow: "Besok",
+    today: "Hari Ini",
+    viewAll: "Lihat Semua",
+    noUpcomingEvents: "Tidak ada acara mendatang",
+    noUpcomingEventsDesc: "Jadwal Anda kosong untuk saat ini.",
+
+    // Financial summary
+    financialSummary: "Ringkasan Keuangan",
+    paidAmount: "Dibayar",
+    unpaidAmount: "Belum Dibayar",
+    dpPaidAmount: "DP Dibayar",
+    conversionRate: "Rasio Konversi",
+    avgEventValue: "Rata-rata Nilai Acara",
   },
 
   // ─── Profile Page ────────────────────────────────────────
