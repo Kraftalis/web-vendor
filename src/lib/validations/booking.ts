@@ -36,8 +36,21 @@ export const createBookingLinkSchema = z.object({
   expiresInDays: z.number().int().min(1).max(90).default(30),
 });
 
+// ─── Update booking link (vendor side) ──────────────────────
+
+export const updateBookingLinkSchema = z.object({
+  clientName: z.string().max(255).optional().nullable(),
+  clientPhone: z.string().max(50).optional().nullable(),
+  eventDate: z.string().optional().nullable(),
+  eventTime: z.string().max(20).optional().nullable(),
+  eventLocation: z.string().max(2000).optional().nullable(),
+  packageSnapshot: packageSnapshotSchema.optional().nullable(),
+  addOnsSnapshot: z.array(addOnSnapshotSchema).optional().nullable(),
+});
+
 // ─── Inferred types ─────────────────────────────────────────
 
 export type PackageSnapshotData = z.infer<typeof packageSnapshotSchema>;
 export type AddOnSnapshotData = z.infer<typeof addOnSnapshotSchema>;
 export type CreateBookingLinkInput = z.infer<typeof createBookingLinkSchema>;
+export type UpdateBookingLinkInput = z.infer<typeof updateBookingLinkSchema>;

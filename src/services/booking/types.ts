@@ -55,6 +55,18 @@ export interface CreateBookingLinkPayload {
   expiresInDays?: number;
 }
 
+// ─── Update payload ─────────────────────────────────────────
+
+export interface UpdateBookingLinkPayload {
+  clientName?: string | null;
+  clientPhone?: string | null;
+  eventDate?: string | null;
+  eventTime?: string | null;
+  eventLocation?: string | null;
+  packageSnapshot?: PackageSnapshot | null;
+  addOnsSnapshot?: AddOnSnapshot[] | null;
+}
+
 // ─── Create response ────────────────────────────────────────
 
 export interface CreateBookingLinkResponse {

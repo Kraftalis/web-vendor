@@ -20,7 +20,6 @@ export interface ScheduleTemplateProps {
     email: string | null;
     image: string | null;
   } | null;
-  events: ScheduleEvent[];
 }
 
 export type ViewMode = "calendar" | "agenda";

@@ -12,9 +12,9 @@ import {
   IconCopy,
 } from "@/components/icons";
 import { useDictionary } from "@/i18n";
-import type { EventDetail, PaymentSerialized } from "./types";
+// types imported from services when needed
 import { eventStatusVariant, paymentStatusVariant } from "./types";
-import { updateEventAction } from "./actions";
+import { useEventDetail, useUpdateEvent } from "@/hooks/event";
 import { EventDetailView } from "./event-detail-view";
 import { EventDetailEdit } from "./event-detail-edit";
 import {
@@ -31,17 +31,19 @@ interface EventDetailTemplateProps {
     email: string | null;
     image: string | null;
   } | null;
-  event: EventDetail;
+  eventId: string;
 }
 
 export default function EventDetailTemplate({
   user,
-  event: initialEvent,
+  eventId,
 }: EventDetailTemplateProps) {
   const { dict } = useDictionary();
   const router = useRouter();
 
-  const [event, setEvent] = useState<EventDetail>(initialEvent);
+  const { data: eventData, isLoading, isError } = useEventDetail(eventId);
+  const updateEvent = useUpdateEvent();
+
   const [editing, setEditing] = useState(false);
   const [isSaving, startSaveTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -52,17 +54,16 @@ export default function EventDetailTemplate({
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
   // Memoised calculations
-  const totalPaid = useMemo(
-    () =>
-      event.payments
-        .filter((p) => p.isVerified)
-        .reduce((sum, p) => sum + parseFloat(p.amount), 0),
-    [event.payments],
-  );
+  const totalPaid = useMemo(() => {
+    const payments = eventData?.payments ?? [];
+    return payments
+      .filter((p) => p.isVerified)
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  }, [eventData?.payments]);
 
   const totalAmount = useMemo(
-    () => (event.amount ? parseFloat(event.amount) : 0),
-    [event.amount],
+    () => (eventData?.amount ? parseFloat(eventData.amount) : 0),
+    [eventData],
   );
 
   const remaining = useMemo(
@@ -125,71 +126,79 @@ export default function EventDetailTemplate({
   // ─── Handlers ─────────────────────────────────────────────
 
   function handleSave(formData: FormData) {
-    startSaveTransition(async () => {
-      await updateEventAction(event.id, formData);
-      setEditing(false);
-      setMessage(dict.eventDetail.saveChanges);
-      setTimeout(() => setMessage(null), 3000);
-      router.refresh();
+    if (!eventData) return;
+
+    startSaveTransition(() => {
+      const payload = Object.fromEntries(formData) as Record<string, unknown>;
+      updateEvent.mutate(
+        { id: eventData.id, payload },
+        {
+          onSuccess: () => {
+            setEditing(false);
+            setMessage(dict.eventDetail.saveChanges);
+            setTimeout(() => setMessage(null), 3000);
+            router.refresh();
+          },
+        },
+      );
     });
   }
 
   function handleCopyLink() {
-    if (!event.bookingToken) return;
-    const url = `${window.location.origin}/booking/${event.bookingToken}`;
+    const bookingToken = eventData?.bookingToken;
+    if (!bookingToken) return;
+    const url = `${window.location.origin}/booking/${bookingToken}`;
     navigator.clipboard.writeText(url);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
   }
 
-  function handleVerifyPayment(paymentId: string) {
-    setEvent((prev) => ({
-      ...prev,
-      payments: prev.payments.map((p) =>
-        p.id === paymentId ? { ...p, isVerified: true } : p,
-      ),
-    }));
+  function handleVerifyPayment(_paymentId: string) {
+    void _paymentId;
+    // optimistic local update placeholder
     setMessage(dict.eventDetail.paymentVerified);
     setTimeout(() => setMessage(null), 3000);
   }
 
-  function handleRejectPayment(paymentId: string) {
-    setEvent((prev) => ({
-      ...prev,
-      payments: prev.payments.filter((p) => p.id !== paymentId),
-    }));
+  function handleRejectPayment(_paymentId: string) {
+    void _paymentId;
     setMessage(dict.eventDetail.paymentRejected);
     setTimeout(() => setMessage(null), 3000);
   }
 
-  function handleAddPayment(data: {
+  function handleAddPayment(_data: {
     amount: string;
     paymentType: string;
     note: string;
     receiptFile: File | null;
   }) {
-    setIsSubmittingPayment(true);
-    // Mock: add to local state
-    const newPayment: PaymentSerialized = {
-      id: `pay-${Date.now()}`,
-      amount: data.amount,
-      paymentType: data.paymentType,
-      receiptUrl: data.receiptFile
-        ? URL.createObjectURL(data.receiptFile)
-        : null,
-      note: data.note || null,
-      isVerified: false,
-      createdAt: new Date().toISOString(),
-    };
-    setEvent((prev) => ({
-      ...prev,
-      payments: [...prev.payments, newPayment],
-    }));
+    void _data;
+    // TODO: hook to API to persist payment; currently mock UX only
     setIsSubmittingPayment(false);
     setShowAddPayment(false);
   }
 
   // ─── Render ───────────────────────────────────────────────
+
+  if (isLoading) {
+    return (
+      <AppLayout user={user} title={dict.nav.event}>
+        <div className="py-12 text-center text-sm text-slate-500">
+          {dict.common.loading}
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (isError || !eventData) {
+    return (
+      <AppLayout user={user} title={dict.nav.event}>
+        <div className="py-12 text-center text-sm text-red-500">
+          {dict.event.errorLoading}
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={user} title={dict.nav.event}>
@@ -213,15 +222,16 @@ export default function EventDetailTemplate({
         </div>
         <div className="flex items-center gap-3">
           {/* Status badges */}
-          <Badge variant={eventStatusVariant(event.eventStatus)} dot>
-            {eventStatusLabel[event.eventStatus] ?? event.eventStatus}
+          <Badge variant={eventStatusVariant(eventData.eventStatus)} dot>
+            {eventStatusLabel[eventData.eventStatus] ?? eventData.eventStatus}
           </Badge>
-          <Badge variant={paymentStatusVariant(event.paymentStatus)} dot>
-            {paymentStatusLabel[event.paymentStatus] ?? event.paymentStatus}
+          <Badge variant={paymentStatusVariant(eventData.paymentStatus)} dot>
+            {paymentStatusLabel[eventData.paymentStatus] ??
+              eventData.paymentStatus}
           </Badge>
 
           {/* Copy link */}
-          {event.bookingToken && (
+          {eventData.bookingToken && (
             <Button variant="outline" size="sm" onClick={handleCopyLink}>
               {linkCopied ? (
                 <>{dict.bookingLink.copied}</>
@@ -250,7 +260,7 @@ export default function EventDetailTemplate({
         <div className="lg:col-span-2">
           {editing ? (
             <EventDetailEdit
-              event={event}
+              event={eventData}
               onSave={handleSave}
               onCancel={() => setEditing(false)}
               isSaving={isSaving}
@@ -278,7 +288,7 @@ export default function EventDetailTemplate({
             />
           ) : (
             <EventDetailView
-              event={event}
+              event={eventData}
               formatDate={formatDate}
               labels={{
                 clientInfo: dict.eventDetail.clientInfo,
@@ -329,7 +339,7 @@ export default function EventDetailTemplate({
           </div>
 
           <PaymentRecords
-            payments={event.payments}
+            payments={eventData.payments}
             paymentTypeMap={paymentTypeMap}
             onVerify={handleVerifyPayment}
             onReject={handleRejectPayment}

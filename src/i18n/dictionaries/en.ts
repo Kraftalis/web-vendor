@@ -250,6 +250,32 @@ const en = {
     retry: "Retry",
   },
 
+  // ─── Active Offerings ────────────────────────────────────
+  activeOfferings: {
+    title: "Active Offerings",
+    subtitle: "Booking links awaiting client payment",
+    noOfferings: "No active offerings",
+    noOfferingsDesc: "Pending booking links will appear here.",
+    expiresIn: "Expires in",
+    expired: "Expired",
+    days: "days",
+    hours: "hours",
+    minutes: "min",
+    copyLink: "Copy Link",
+    copied: "Copied!",
+    editOffer: "Edit Offering",
+    deleteOffer: "Delete Offering",
+    shareWhatsApp: "Share via WhatsApp",
+    viewLink: "View Booking Page",
+    packageLabel: "Package",
+    addOnsLabel: "Add-ons",
+    totalLabel: "Total",
+    confirmDeleteTitle: "Click again to confirm delete",
+    confirmDeleteDesc: "This action cannot be undone.",
+    deleteLabel: "Delete",
+    cancelLabel: "Cancel",
+  },
+
   // ─── Event Detail Page ───────────────────────────────────
   eventDetail: {
     backToEvents: "Back to Events",
@@ -302,6 +328,7 @@ const en = {
   bookingLink: {
     // Step 1 — configure
     configTitle: "Create Booking Link",
+    editTitle: "Edit Booking Link",
     configDesc:
       "Optionally pre-fill a client name and select which package & add-ons to offer before sharing the link.",
     clientNameLabel: "Client Name (optional)",
@@ -319,6 +346,7 @@ const en = {
     selectAddOnsLabel: "Add-ons to offer (optional)",
     generateButton: "Generate Link",
     generating: "Generating…",
+    updateLink: "Update Booking Link",
     // Step 2 — result
     modalTitle: "Booking Link Ready",
     modalDesc:
@@ -579,6 +607,9 @@ const en = {
     // View toggles
     calendarView: "Calendar",
     listView: "Agenda",
+
+    // Quick actions
+    createBooking: "Create Booking",
 
     // Calendar navigation
     today: "Today",

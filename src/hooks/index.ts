@@ -32,7 +32,13 @@ export {
 } from "./pricing";
 
 // ─── Booking hooks ──────────────────────────────────────────
-export { bookingKeys, useBookingLinks, useCreateBookingLink } from "./booking";
+export {
+  bookingKeys,
+  useBookingLinks,
+  useCreateBookingLink,
+  useUpdateBookingLink,
+  useDeleteBookingLink,
+} from "./booking";
 
 // ─── User hooks ─────────────────────────────────────────────
 export { userKeys, useProfile, useUpdateProfile } from "./user";

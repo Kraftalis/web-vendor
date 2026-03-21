@@ -2,30 +2,57 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { AppLayout } from "@/components/layout";
-import { IconCalendar } from "@/components/icons";
+import { Button } from "@/components/ui";
+import { IconCalendar, IconLink } from "@/components/icons";
 import { useDictionary } from "@/i18n";
+import { useEvents } from "@/hooks/event";
 import type { BadgeVariant } from "@/components/ui";
 import type { ScheduleEvent, ScheduleTemplateProps, ViewMode } from "./types";
 import { toDateKey } from "./types";
 import { CalendarGrid } from "./calendar-grid";
 import { CalendarSidebar } from "./calendar-sidebar";
 import { AgendaView } from "./agenda-view";
+import { BookingLinkModal } from "@/templates/event/event-modals";
 
 export type { ScheduleEvent, ScheduleTemplateProps };
 
-export default function ScheduleTemplate({
-  user,
-  events,
-}: ScheduleTemplateProps) {
+export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   const { dict } = useDictionary();
   const sched = dict.schedule;
   const eventDict = dict.event;
+
+  // Fetch events client-side
+  const { data: rawEvents = [] } = useEvents();
+  const events: ScheduleEvent[] = useMemo(
+    () =>
+      rawEvents.map((e) => ({
+        id: e.id,
+        clientName: e.clientName,
+        eventType: e.eventType,
+        eventDate: e.eventDate,
+        eventTime: e.eventTime,
+        eventLocation: e.eventLocation,
+        packageName: e.packageName,
+        eventStatus: e.eventStatus,
+        paymentStatus: e.paymentStatus,
+      })),
+    [rawEvents],
+  );
 
   const now = useMemo(() => new Date(), []);
   const [viewMode, setViewMode] = useState<ViewMode>("calendar");
   const [currentMonth, setCurrentMonth] = useState(() => now.getMonth());
   const [currentYear, setCurrentYear] = useState(() => now.getFullYear());
   const [selectedDate, setSelectedDate] = useState<Date>(now);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+
+  // Format selected date as YYYY-MM-DD for pre-filling the booking form
+  const selectedDateISO = useMemo(() => {
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const d = String(selectedDate.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }, [selectedDate]);
 
   const monthNames = sched.months.split(",");
   const weekDays = [
@@ -192,11 +219,13 @@ export default function ScheduleTemplate({
             <h1 className="text-2xl font-bold text-gray-900">{sched.title}</h1>
             <p className="mt-1 text-sm text-gray-500">{sched.subtitle}</p>
           </div>
-          <ViewToggle
-            viewMode={viewMode}
-            onChangeView={setViewMode}
-            labels={sched}
-          />
+          <div className="flex items-center gap-3">
+            <ViewToggle
+              viewMode={viewMode}
+              onChangeView={setViewMode}
+              labels={sched}
+            />
+          </div>
         </div>
 
         {viewMode === "calendar" ? (
@@ -232,6 +261,8 @@ export default function ScheduleTemplate({
               upcomingLabel={sched.upcoming}
               noUpcomingLabel={sched.noUpcoming}
               relativeDayLabel={relativeDayLabel}
+              onCreateBooking={() => setShowLinkModal(true)}
+              createBookingLabel={sched.createBooking}
             />
           </div>
         ) : (
@@ -253,6 +284,14 @@ export default function ScheduleTemplate({
           />
         )}
       </div>
+
+      {/* Booking Link Modal — accessible from schedule page */}
+      <BookingLinkModal
+        open={showLinkModal}
+        onClose={() => setShowLinkModal(false)}
+        defaultEventDate={selectedDateISO}
+        labels={dict.bookingLink}
+      />
     </AppLayout>
   );
 }

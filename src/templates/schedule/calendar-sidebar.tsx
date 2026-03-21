@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardBody, Badge } from "@/components/ui";
+import { Card, CardBody, Badge, Button } from "@/components/ui";
 import {
   IconCalendar,
   IconClock,
   IconMapPin,
   IconEye,
+  IconPlus,
 } from "@/components/icons";
 import type { BadgeVariant } from "@/components/ui";
 import type { ScheduleEvent } from "./types";
@@ -95,6 +96,8 @@ interface CalendarSidebarProps {
   upcomingLabel: string;
   noUpcomingLabel: string;
   relativeDayLabel: (dateStr: string) => string;
+  onCreateBooking?: () => void;
+  createBookingLabel?: string;
 }
 
 export function CalendarSidebar({
@@ -109,20 +112,24 @@ export function CalendarSidebar({
   upcomingLabel,
   noUpcomingLabel,
   relativeDayLabel,
+  onCreateBooking,
+  createBookingLabel,
 }: CalendarSidebarProps) {
   return (
     <div className="space-y-4">
       {/* Day detail */}
       <Card>
         <CardBody className="p-4">
-          <h3 className="mb-3 text-sm font-semibold text-gray-900">
-            {selectedDate.toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </h3>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">
+              {selectedDate.toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </h3>
+          </div>
 
           {selectedDateEvents.length === 0 ? (
             <div className="py-6 text-center">
@@ -142,6 +149,19 @@ export function CalendarSidebar({
                 />
               ))}
             </div>
+          )}
+
+          {/* Quick action — create booking for this date */}
+          {onCreateBooking && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3 w-full"
+              onClick={onCreateBooking}
+            >
+              <IconPlus size={14} />
+              {createBookingLabel ?? "Create Booking"}
+            </Button>
           )}
         </CardBody>
       </Card>

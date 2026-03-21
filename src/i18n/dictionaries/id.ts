@@ -254,6 +254,33 @@ const id: Dictionary = {
     retry: "Coba Lagi",
   },
 
+  // ─── Active Offerings ────────────────────────────────────
+  activeOfferings: {
+    title: "Penawaran Aktif",
+    subtitle: "Booking link menunggu pembayaran klien",
+    noOfferings: "Tidak ada penawaran aktif",
+    noOfferingsDesc:
+      "Booking link yang menunggu pembayaran akan muncul di sini.",
+    expiresIn: "Berakhir dalam",
+    expired: "Kedaluwarsa",
+    days: "hari",
+    hours: "jam",
+    minutes: "menit",
+    copyLink: "Salin Link",
+    copied: "Tersalin!",
+    editOffer: "Edit Penawaran",
+    deleteOffer: "Hapus Penawaran",
+    shareWhatsApp: "Bagikan via WhatsApp",
+    viewLink: "Lihat Halaman Booking",
+    packageLabel: "Paket",
+    addOnsLabel: "Add-ons",
+    totalLabel: "Total",
+    confirmDeleteTitle: "Klik lagi untuk konfirmasi hapus",
+    confirmDeleteDesc: "Tindakan ini tidak dapat dibatalkan.",
+    deleteLabel: "Hapus",
+    cancelLabel: "Batal",
+  },
+
   // ─── Event Detail Page ───────────────────────────────────
   eventDetail: {
     backToEvents: "Kembali ke Acara",
@@ -306,6 +333,7 @@ const id: Dictionary = {
   bookingLink: {
     // Step 1 — configure
     configTitle: "Buat Link Booking",
+    editTitle: "Edit Link Booking",
     configDesc:
       "Opsional: isi nama klien dan pilih paket & add-on yang akan ditawarkan sebelum link dibagikan.",
     clientNameLabel: "Nama Klien (opsional)",
@@ -323,6 +351,7 @@ const id: Dictionary = {
     selectAddOnsLabel: "Add-on yang ditawarkan (opsional)",
     generateButton: "Buat Link",
     generating: "Membuat…",
+    updateLink: "Perbarui Link Booking",
     // Step 2 — result
     modalTitle: "Link Booking Siap",
     modalDesc:
@@ -580,6 +609,9 @@ const id: Dictionary = {
     // View toggles
     calendarView: "Kalender",
     listView: "Agenda",
+
+    // Quick actions
+    createBooking: "Buat Booking",
 
     // Calendar navigation
     today: "Hari Ini",

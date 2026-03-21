@@ -3,6 +3,12 @@ export type {
   AddOnSnapshot,
   BookingLinkItem,
   CreateBookingLinkPayload,
+  UpdateBookingLinkPayload,
   CreateBookingLinkResponse,
 } from "./types";
-export { getBookingLinks, createBookingLink } from "./api";
+export {
+  getBookingLinks,
+  createBookingLink,
+  updateBookingLink,
+  deleteBookingLink,
+} from "./api";

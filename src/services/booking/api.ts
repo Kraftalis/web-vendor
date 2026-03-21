@@ -4,6 +4,7 @@ import type {
   BookingLinkItem,
   CreateBookingLinkPayload,
   CreateBookingLinkResponse,
+  UpdateBookingLinkPayload,
 } from "./types";
 
 /**
@@ -26,4 +27,25 @@ export async function createBookingLink(
     payload,
   );
   return data.data!;
+}
+
+/**
+ * Update a booking link (vendor side).
+ */
+export async function updateBookingLink(
+  id: string,
+  payload: UpdateBookingLinkPayload,
+): Promise<BookingLinkItem> {
+  const { data } = await api.patch<ApiResponse<BookingLinkItem>>(
+    `/booking/links/${id}`,
+    payload,
+  );
+  return data.data!;
+}
+
+/**
+ * Delete a booking link (vendor side).
+ */
+export async function deleteBookingLink(id: string): Promise<void> {
+  await api.delete(`/booking/links/${id}`);
 }

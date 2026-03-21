@@ -13,12 +13,15 @@ import {
 } from "@/components/icons";
 import { useDictionary } from "@/i18n";
 import { useEvents } from "@/hooks/event";
+import { useBookingLinks } from "@/hooks/booking";
 import type { EventItem } from "./types";
+import type { BookingLinkItem } from "@/services/booking";
 import { EventStats } from "./event-stats";
 import { EventTable } from "./event-table";
 import { KanbanBoard } from "./kanban-board";
 import { EventListSkeleton } from "./event-list-skeleton";
 import { CreateEventModal, BookingLinkModal } from "./event-modals";
+import { ActiveOfferingsSection } from "./active-offerings-section";
 
 export type { EventItem };
 
@@ -36,6 +39,8 @@ export default function EventListTemplate({ user }: EventListTemplateProps) {
   const { dict } = useDictionary();
 
   const { data: events = [], isLoading, isError, refetch } = useEvents();
+  const { data: bookingLinks = [], isLoading: isLinksLoading } =
+    useBookingLinks();
 
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
@@ -44,6 +49,7 @@ export default function EventListTemplate({ user }: EventListTemplateProps) {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [editingLink, setEditingLink] = useState<BookingLinkItem | null>(null);
 
   const eventStatusLabel: Record<string, string> = {
     INQUIRY: dict.event.statusInquiry,
@@ -141,6 +147,17 @@ export default function EventListTemplate({ user }: EventListTemplateProps) {
               }}
             />
           </div>
+
+          {/* Active Offerings */}
+          <ActiveOfferingsSection
+            links={bookingLinks}
+            isLoading={isLinksLoading}
+            onEdit={(link) => {
+              setEditingLink(link);
+              setShowLinkModal(true);
+            }}
+            labels={dict.activeOfferings}
+          />
 
           {/* Filters + View Toggle */}
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -254,7 +271,11 @@ export default function EventListTemplate({ user }: EventListTemplateProps) {
 
       <BookingLinkModal
         open={showLinkModal}
-        onClose={() => setShowLinkModal(false)}
+        onClose={() => {
+          setShowLinkModal(false);
+          setEditingLink(null);
+        }}
+        editingLink={editingLink}
         labels={dict.bookingLink}
       />
     </AppLayout>

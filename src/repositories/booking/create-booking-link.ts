@@ -1,6 +1,9 @@
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
-import type { CreateBookingLinkInput } from "@/lib/validations/booking";
+import type {
+  CreateBookingLinkInput,
+  UpdateBookingLinkInput,
+} from "@/lib/validations/booking";
 
 /**
  * Create a booking link with snapshot data.
@@ -71,4 +74,80 @@ export async function findBookingLinksByVendor(vendorId: string) {
       },
     },
   });
+}
+
+/**
+ * Find a single booking link by ID (for vendor).
+ */
+export async function findBookingLinkById(id: string) {
+  return prisma.bookingLink.findUnique({
+    where: { id },
+    include: {
+      event: { select: { id: true } },
+    },
+  });
+}
+
+/**
+ * Update a booking link (vendor side — only if no event yet).
+ * Recalculates totalAmount from snapshots.
+ */
+export async function updateBookingLinkById(
+  id: string,
+  input: UpdateBookingLinkInput,
+) {
+  // Calculate total from new snapshots
+  const pkgPrice =
+    input.packageSnapshot !== undefined
+      ? (input.packageSnapshot?.price ?? 0)
+      : undefined;
+  const addOnsTotal =
+    input.addOnsSnapshot !== undefined
+      ? (input.addOnsSnapshot?.reduce(
+          (sum, a) => sum + a.price * (a.quantity ?? 1),
+          0,
+        ) ?? 0)
+      : undefined;
+
+  let totalAmount: number | undefined;
+  if (pkgPrice !== undefined || addOnsTotal !== undefined) {
+    totalAmount = (pkgPrice ?? 0) + (addOnsTotal ?? 0);
+  }
+
+  return prisma.bookingLink.update({
+    where: { id },
+    data: {
+      ...(input.clientName !== undefined && {
+        clientName: input.clientName ?? undefined,
+      }),
+      ...(input.clientPhone !== undefined && {
+        clientPhone: input.clientPhone ?? undefined,
+      }),
+      ...(input.eventDate !== undefined && {
+        eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
+      }),
+      ...(input.eventTime !== undefined && {
+        eventTime: input.eventTime ?? undefined,
+      }),
+      ...(input.eventLocation !== undefined && {
+        eventLocation: input.eventLocation ?? undefined,
+      }),
+      ...(input.packageSnapshot !== undefined && {
+        packageSnapshot: input.packageSnapshot ?? undefined,
+      }),
+      ...(input.addOnsSnapshot !== undefined && {
+        addOnsSnapshot: input.addOnsSnapshot ?? undefined,
+      }),
+      ...(totalAmount !== undefined && {
+        totalAmount: totalAmount > 0 ? totalAmount : undefined,
+      }),
+    },
+  });
+}
+
+/**
+ * Delete a booking link (only if no event yet).
+ */
+export async function deleteBookingLinkById(id: string) {
+  return prisma.bookingLink.delete({ where: { id } });
 }
