@@ -45,5 +45,19 @@ export {
 // ─── User hooks ─────────────────────────────────────────────
 export { userKeys, useProfile, useUpdateProfile } from "./user";
 
+// ─── Finance hooks ──────────────────────────────────────────
+export {
+  financeKeys,
+  useAccounts,
+  useTransactions,
+  useReport,
+  useCreateAccount,
+  useUpdateAccount,
+  useDeleteAccount,
+  useCreateTransaction,
+  useUpdateTransaction,
+  useDeleteTransaction,
+} from "./finance";
+
 // ─── Shared hooks ───────────────────────────────────────────
 export { useConfirmDelete } from "./use-confirm-delete";

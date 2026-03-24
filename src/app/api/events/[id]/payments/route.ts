@@ -16,6 +16,10 @@ import {
   findPaymentsByEvent,
   recalcPaymentStatus,
 } from "@/repositories/event";
+import {
+  findPrimaryAccount,
+  createIncomeFromPayment,
+} from "@/repositories/finance";
 
 const createPaymentSchema = z.object({
   amount: z.number().positive("Amount must be positive."),
@@ -101,6 +105,23 @@ export async function POST(
 
     // Recalculate payment status
     const newStatus = await recalcPaymentStatus(id);
+
+    // Auto-record income in primary finance account (vendor payment is auto-verified)
+    const primaryAccount = await findPrimaryAccount(businessProfileId);
+    if (primaryAccount) {
+      await createIncomeFromPayment({
+        businessProfileId,
+        primaryAccountId: primaryAccount.id,
+        paymentId: payment.id,
+        amount: data.amount,
+        eventId: id,
+        clientName: event.clientName,
+        eventType: event.eventType,
+        paymentType: data.paymentType,
+        receiptUrl: data.receiptUrl ?? null,
+        receiptName: data.receiptName ?? null,
+      });
+    }
 
     return createdResponse({
       id: payment.id,

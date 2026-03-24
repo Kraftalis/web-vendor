@@ -1,23 +1,8 @@
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import PricingTemplate from "@/templates/pricing/pricing-template";
 
-// ─── Page ───────────────────────────────────────────────────
-
-export default async function PricingPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
-  return (
-    <PricingTemplate
-      user={{
-        name: session.user.name ?? null,
-        email: session.user.email ?? null,
-        image: session.user.image ?? null,
-      }}
-    />
-  );
+/**
+ * Redirect /pricing → /finance (pricing is now a tab under finance).
+ */
+export default function PricingPage() {
+  redirect("/finance");
 }

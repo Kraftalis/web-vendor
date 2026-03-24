@@ -10,6 +10,10 @@ import {
   findBusinessProfile,
   upsertBusinessProfile,
 } from "@/repositories/user";
+import {
+  findPrimaryAccount,
+  createDefaultAccount,
+} from "@/repositories/finance";
 
 /**
  * GET /api/user/business-profile
@@ -55,6 +59,12 @@ export async function PUT(request: NextRequest) {
       phoneNumber: body.phoneNumber?.trim() || null,
       socialLinks: body.socialLinks || null,
     });
+
+    // Auto-create the primary finance account if it doesn't exist yet.
+    const existingPrimary = await findPrimaryAccount(profile.id);
+    if (!existingPrimary) {
+      await createDefaultAccount(profile.id);
+    }
 
     // Set the "bp" cookie so middleware knows onboarding is complete.
     const cookieStore = await cookies();

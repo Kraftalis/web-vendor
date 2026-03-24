@@ -6,7 +6,7 @@ import {
   IconHome,
   IconCalendar,
   IconEvent,
-  IconPricing,
+  IconWallet,
   IconSettings,
   IconChevronLeft,
   IconChevronRight,
@@ -35,8 +35,8 @@ const navigation: NavItem[] = [
   { labelKey: "event", href: "/event", icon: IconEvent, groupKey: "main" },
   {
     labelKey: "pricingPackage",
-    href: "/pricing",
-    icon: IconPricing,
+    href: "/finance",
+    icon: IconWallet,
     groupKey: "main",
   },
   {

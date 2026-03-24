@@ -34,9 +34,11 @@ export function proxy(request: NextRequest) {
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-  // If on auth pages and already authenticated, redirect to home
+  // If on auth pages and already authenticated, redirect based on bp status
   if ((isOnLogin || isOnSignUp) && isLoggedIn) {
-    return NextResponse.redirect(new URL("/", request.url));
+    const hasBp = request.cookies.get("bp");
+    const target = hasBp ? "/" : "/onboarding";
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
   // Public routes don't require auth

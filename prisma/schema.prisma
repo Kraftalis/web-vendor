@@ -379,6 +379,7 @@ model Event {
   businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
   bookingLink   BookingLink?
   payments      Payment[]
+  financeTransactions FinanceTransaction[]
 
   @@index([businessProfileId])
   @@index([eventStatus])
@@ -486,6 +487,8 @@ model BusinessProfile {
   bookingLinks BookingLink[]
   packages     Package[]
   addOns       AddOn[]
+  financeAccounts    FinanceAccount[]
+  financeTransactions FinanceTransaction[]
 
   @@index([userId])
   @@map("business_profiles")
@@ -511,4 +514,78 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// ─── Finance / Bookkeeping ──────────────────────────────────────────────────
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+/// Finance account — represents a wallet, bank account, or asset category.
+/// Vendors can track balances across multiple accounts.
+/// e.g. "BCA", "Cash", "Equipment", "Marketing"
+model FinanceAccount {
+  id                String  @id @default(uuid()) @db.Uuid
+  businessProfileId String  @map("business_profile_id") @db.Uuid
+  name              String  @db.VarChar(255) // e.g. "BCA", "Cash", "Equipment"
+  description       String? @db.Text
+  isPrimary         Boolean @default(false) @map("is_primary") // Primary account receives auto-income from bookings
+  sortOrder         Int     @default(0) @map("sort_order")
+  isActive          Boolean @default(true) @map("is_active")
+
+  // Audit fields
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  transactions    FinanceTransaction[]
+
+  @@index([businessProfileId])
+  @@map("finance_accounts")
+}
+
+/// Finance transaction — individual income or expense entry.
+/// Can optionally link to an Event (e.g. "Payment from Client X for Event Y").
+/// eventId link enables automatic revenue tracking from event payments.
+model FinanceTransaction {
+  id                String          @id @default(uuid()) @db.Uuid
+  businessProfileId String          @map("business_profile_id") @db.Uuid
+  accountId         String          @map("account_id") @db.Uuid
+  type              TransactionType // INCOME or EXPENSE
+  category          String          @db.VarChar(100) // e.g. "Event Payment", "Equipment", "Transport", "Marketing"
+  description       String?         @db.Text
+  amount            Decimal         @db.Decimal(14, 2)
+  currency          String          @default("IDR") @db.VarChar(10)
+  transactionDate   DateTime        @map("transaction_date") @db.Date
+  receiptUrl        String?         @map("receipt_url") @db.Text
+  receiptName       String?         @map("receipt_name") @db.VarChar(255)
+
+  // Optional link to an event (for revenue from bookings)
+  eventId           String?         @map("event_id") @db.Uuid
+
+  // Tags for flexible categorization (e.g. ["tax-deductible", "Q1"])
+  tags              String[]        @default([])
+
+  // Notes
+  notes             String?         @db.Text
+
+  // Audit fields
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  account           FinanceAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  event             Event?          @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([businessProfileId])
+  @@index([accountId])
+  @@index([type])
+  @@index([transactionDate])
+  @@index([category])
+  @@index([eventId])
+  @@map("finance_transactions")
 }

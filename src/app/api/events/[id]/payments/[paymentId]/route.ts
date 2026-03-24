@@ -14,6 +14,10 @@ import {
   rejectPayment,
   recalcPaymentStatus,
 } from "@/repositories/event";
+import {
+  findPrimaryAccount,
+  createIncomeFromPayment,
+} from "@/repositories/finance";
 
 interface RouteParams {
   params: Promise<{ id: string; paymentId: string }>;
@@ -58,6 +62,25 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Recalculate event payment status
     const newStatus = await recalcPaymentStatus(id);
+
+    // Auto-record income when vendor verifies a client payment
+    if (action === "verify") {
+      const primaryAccount = await findPrimaryAccount(businessProfileId);
+      if (primaryAccount) {
+        await createIncomeFromPayment({
+          businessProfileId,
+          primaryAccountId: primaryAccount.id,
+          paymentId: updated.id,
+          amount: Number(updated.amount),
+          eventId: id,
+          clientName: event.clientName,
+          eventType: event.eventType,
+          paymentType: updated.paymentType,
+          receiptUrl: updated.receiptUrl,
+          receiptName: updated.receiptName,
+        });
+      }
+    }
 
     return successResponse({
       id: updated.id,
