@@ -68,11 +68,13 @@ export interface PortalEvent {
   id: string;
   clientName: string;
   clientPhone: string;
+  clientPhoneSecondary: string | null;
   clientEmail: string | null;
   eventType: string;
   eventDate: string;
   eventTime: string | null;
   eventLocation: string | null;
+  eventLocationUrl: string | null;
   packageSnapshot: PackageSnapshotData | null;
   addOnsSnapshot: AddOnSnapshotData[] | null;
   amount: string | null;
@@ -98,9 +100,11 @@ export interface BookingLinkFullData {
   };
   clientName: string | null;
   clientPhone: string | null;
+  clientPhoneSecondary: string | null;
   eventDate: string | null;
   eventTime: string | null;
   eventLocation: string | null;
+  eventLocationUrl: string | null;
   packageSnapshot: PackageSnapshotData | null;
   addOnsSnapshot: AddOnSnapshotData[] | null;
   totalAmount: string | null;

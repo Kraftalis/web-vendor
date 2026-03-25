@@ -7,9 +7,9 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import { Button } from "@/components/ui";
+import { Button, Select } from "@/components/ui";
 import { useCreateBookingLink, useUpdateBookingLink } from "@/hooks/booking";
-import { usePricing, useAddOns } from "@/hooks";
+import { usePricing, useAddOns, useEventCategories } from "@/hooks";
 import type {
   Package as PkgType,
   AddOn as AddOnType,
@@ -44,7 +44,7 @@ const INITIAL_STATE: BookingLinkFormState = {
   eventDate: "",
   eventTime: "",
   eventLocation: "",
-  packageMode: "none",
+  packageMode: "existing",
   selectedPkgId: "",
   selectedVariationId: "",
   customPkgName: "",
@@ -68,6 +68,7 @@ function mapPackages(raw: PkgType[]): SourcePackage[] {
       price: p.price,
       currency: p.currency,
       inclusions: p.inclusions,
+      eventCategoryId: p.eventCategory?.id ?? null,
       items: p.items.map((v) => ({
         id: v.id,
         label: v.label,
@@ -117,7 +118,7 @@ function buildEditState(
   const linkAddOns = (link.addOnsSnapshot ?? []) as AddOnSnapshot[];
 
   // Determine package mode & try to resolve existing IDs
-  let packageMode: BookingLinkFormState["packageMode"] = "none";
+  let packageMode: BookingLinkFormState["packageMode"] = "existing";
   let selectedPkgId = "";
   let selectedVariationId = "";
   let customPkgName = "";
@@ -211,6 +212,22 @@ export default function BookingLinkForm({
     [pricingData],
   );
   const addOns = useMemo(() => mapAddOns(addOnsData?.data ?? []), [addOnsData]);
+
+  // Fetch event categories for filtering
+  const { data: eventCategoriesData } = useEventCategories();
+  const eventCategories = useMemo(
+    () => (eventCategoriesData ?? []).filter((c) => c.isActive),
+    [eventCategoriesData],
+  );
+  const [selectedEventCatId, setSelectedEventCatId] = useState("");
+
+  // Filter packages by selected event category
+  const filteredPackages = useMemo(() => {
+    if (!selectedEventCatId) return packages;
+    return packages.filter(
+      (p) => p.eventCategoryId === selectedEventCatId,
+    );
+  }, [packages, selectedEventCatId]);
 
   // Build initial state — for edit mode we need packages/addOns to resolve IDs
   const initialState = useMemo(() => {
@@ -400,7 +417,8 @@ export default function BookingLinkForm({
   const hasData =
     state.clientName.trim() ||
     state.eventDate ||
-    state.packageMode !== "none" ||
+    state.selectedPkgId ||
+    state.customPkgName.trim() ||
     state.selectedAddOnIds.length > 0 ||
     state.customAddOns.length > 0;
 
@@ -471,11 +489,29 @@ export default function BookingLinkForm({
       {/* Divider */}
       <hr className="border-gray-100" />
 
-      {/* Section 2 — Package */}
+      {/* Section 2 — Event Category & Package */}
+      {eventCategories.length > 0 && (
+        <Select
+          label={labels.eventCategory ?? "Event Category"}
+          value={selectedEventCatId}
+          onChange={(e) => {
+            setSelectedEventCatId(e.target.value);
+            // Reset selected package when category changes
+            set("selectedPkgId", "");
+            set("selectedVariationId", "");
+          }}
+          placeholder={labels.selectEventCategory ?? "All event categories"}
+          options={eventCategories.map((c) => ({
+            value: c.id,
+            label: c.name,
+          }))}
+        />
+      )}
+
       <PackageSelector
         packageMode={state.packageMode}
         setPackageMode={(v) => set("packageMode", v)}
-        packages={packages}
+        packages={filteredPackages}
         selectedPkgId={state.selectedPkgId}
         setSelectedPkgId={(v) => set("selectedPkgId", v)}
         selectedVariationId={state.selectedVariationId}

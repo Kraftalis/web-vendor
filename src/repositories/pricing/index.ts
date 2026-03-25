@@ -22,8 +22,4 @@ export {
   createCategory,
   updateCategory,
   deleteCategory,
-  findSubcategoryById,
-  createSubcategory,
-  updateSubcategory,
-  deleteSubcategory,
 } from "./upsert-category";

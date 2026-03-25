@@ -190,10 +190,39 @@ enum PaymentType {
   INSTALLMENT
 }
 
-// ─── Category & Subcategory (Master Data) ───────────────────────────────────
+// ─── Event Category (Per-Vendor) ────────────────────────────────────────────
 
-/// Master categories for vendor services.
+/// Event categories defined by each vendor.
+/// e.g. "Wedding", "Engagement", "Birthday", "Corporate"
+/// Used in event forms instead of hardcoded event types.
+model EventCategory {
+  id                String   @id @default(uuid()) @db.Uuid
+  businessProfileId String   @map("business_profile_id") @db.Uuid
+  name              String   @db.VarChar(255)
+  description       String?  @db.Text
+  sortOrder         Int      @default(0) @map("sort_order")
+  isActive          Boolean  @default(true) @map("is_active")
+
+  // Audit fields
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  packages          Package[]
+
+  @@unique([businessProfileId, name])
+  @@index([businessProfileId])
+  @@index([sortOrder])
+  @@index([isActive])
+  @@map("event_categories")
+}
+
+// ─── Package Category (Master Data) ─────────────────────────────────────────
+
+/// Package categories for organizing vendor service packages.
 /// e.g. "Photography", "Videography", "MUA", "Decoration", "Catering", "WO"
+/// Each vendor's packages can be assigned to a category for filtering.
 model Category {
   id          String   @id @default(uuid()) @db.Uuid
   name        String   @unique @db.VarChar(255) // e.g. "Photography"
@@ -206,37 +235,11 @@ model Category {
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  subcategories Subcategory[]
   packages      Package[]
 
   @@index([sortOrder])
   @@index([isActive])
   @@map("categories")
-}
-
-/// Subcategories within a category.
-/// e.g. Under "Photography": "Wedding", "Pre-wedding", "Graduation", "Family"
-model Subcategory {
-  id          String   @id @default(uuid()) @db.Uuid
-  categoryId  String   @map("category_id") @db.Uuid
-  name        String   @db.VarChar(255) // e.g. "Wedding"
-  description String?  @db.Text
-  sortOrder   Int      @default(0) @map("sort_order")
-  isActive    Boolean  @default(true) @map("is_active")
-
-  // Audit fields
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
-
-  // Relations
-  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  packages    Package[]
-
-  @@unique([categoryId, name])
-  @@index([categoryId])
-  @@index([sortOrder])
-  @@index([isActive])
-  @@map("subcategories")
 }
 
 // ─── Package & Pricing ──────────────────────────────────────────────────────
@@ -250,7 +253,7 @@ model Package {
   id             String  @id @default(uuid()) @db.Uuid
   businessProfileId String @map("business_profile_id") @db.Uuid
   categoryId     String? @map("category_id") @db.Uuid
-  subcategoryId  String? @map("subcategory_id") @db.Uuid
+  eventCategoryId String? @map("event_category_id") @db.Uuid
   name           String  @db.VarChar(255) // e.g. "Paket Wisuda Photoshoot"
   description    String? @db.Text // Free-text summary shown to clients
 
@@ -273,12 +276,12 @@ model Package {
   // Relations
   businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
   category      Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  eventCategory  EventCategory? @relation(fields: [eventCategoryId], references: [id], onDelete: SetNull)
   items         PackageItem[]
 
   @@index([businessProfileId])
   @@index([categoryId])
-  @@index([subcategoryId])
+  @@index([eventCategoryId])
   @@index([isActive])
   @@index([sortOrder])
   @@map("packages")
@@ -346,6 +349,7 @@ model Event {
   // Client info
   clientName    String        @map("client_name") @db.VarChar(255)
   clientPhone   String        @map("client_phone") @db.VarChar(50)
+  clientPhoneSecondary String? @map("client_phone_secondary") @db.VarChar(50)
   clientEmail   String?       @map("client_email") @db.VarChar(320)
 
   // Event details
@@ -353,6 +357,7 @@ model Event {
   eventDate     DateTime      @map("event_date") @db.Date
   eventTime     String?       @map("event_time") @db.VarChar(20)
   eventLocation String?       @map("event_location") @db.Text
+  eventLocationUrl String?    @map("event_location_url") @db.Text
 
   // Snapshot data — independent of master Package/AddOn tables
   // JSON: { name, description, price, currency, variationLabel, inclusions[] }
@@ -403,9 +408,11 @@ model BookingLink {
   // Pre-filled by vendor
   clientName    String?   @map("client_name") @db.VarChar(255)
   clientPhone   String?   @map("client_phone") @db.VarChar(50)
+  clientPhoneSecondary String? @map("client_phone_secondary") @db.VarChar(50)
   eventDate     DateTime? @map("event_date") @db.Date
   eventTime     String?   @map("event_time") @db.VarChar(20)
   eventLocation String?   @map("event_location") @db.Text
+  eventLocationUrl String? @map("event_location_url") @db.Text
 
   // Snapshot of offered package & add-ons (marketplace pattern)
   packageSnapshot Json?   @map("package_snapshot") @db.JsonB
@@ -487,6 +494,7 @@ model BusinessProfile {
   bookingLinks BookingLink[]
   packages     Package[]
   addOns       AddOn[]
+  eventCategories    EventCategory[]
   financeAccounts    FinanceAccount[]
   financeTransactions FinanceTransaction[]
 

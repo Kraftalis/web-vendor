@@ -7,7 +7,6 @@ export type {
   AddOnQueryParams,
   PaginationMeta,
   Category,
-  Subcategory,
   CategoryRef,
   PackageVariationPayload,
   CreatePackagePayload,
@@ -16,8 +15,6 @@ export type {
   UpdateAddOnPayload,
   CreateCategoryPayload,
   UpdateCategoryPayload,
-  CreateSubcategoryPayload,
-  UpdateSubcategoryPayload,
 } from "./types";
 export { getPricing, getAddOns, getCategories } from "./get-pricing";
 export {
@@ -30,7 +27,4 @@ export {
   createCategory,
   updateCategory,
   deleteCategory,
-  createSubcategory,
-  updateSubcategory,
-  deleteSubcategory,
 } from "./upsert-pricing";

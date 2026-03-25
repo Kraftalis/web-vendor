@@ -13,6 +13,15 @@ export {
   useVerifyPayment,
 } from "./event";
 
+// ─── Event Category hooks ───────────────────────────────────
+export {
+  eventCategoryKeys,
+  useEventCategories,
+  useCreateEventCategory,
+  useUpdateEventCategory,
+  useDeleteEventCategory,
+} from "./event-category";
+
 // ─── Pricing hooks ──────────────────────────────────────────
 export {
   pricingKeys,
@@ -28,9 +37,6 @@ export {
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
-  useCreateSubcategory,
-  useUpdateSubcategory,
-  useDeleteSubcategory,
 } from "./pricing";
 
 // ─── Booking hooks ──────────────────────────────────────────

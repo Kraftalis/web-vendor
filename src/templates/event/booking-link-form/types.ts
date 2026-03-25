@@ -13,7 +13,7 @@ export interface BookingLinkFormState {
   eventLocation: string;
 
   // Package (existing or custom)
-  packageMode: "existing" | "custom" | "none";
+  packageMode: "existing" | "custom";
   selectedPkgId: string;
   selectedVariationId: string;
 
@@ -47,6 +47,7 @@ export interface SourcePackage {
   price: string;
   currency: string;
   inclusions: string[];
+  eventCategoryId?: string | null;
   items: SourceVariation[];
 }
 
@@ -72,8 +73,6 @@ export function buildPackageSnapshot(
   state: BookingLinkFormState,
   packages: SourcePackage[],
 ): PackageSnapshot | null {
-  if (state.packageMode === "none") return null;
-
   if (state.packageMode === "custom") {
     const price = parseFloat(state.customPkgPrice) || 0;
     const inclusions = state.customPkgInclusions

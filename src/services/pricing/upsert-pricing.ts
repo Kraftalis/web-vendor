@@ -10,9 +10,6 @@ import type {
   UpdateAddOnPayload,
   CreateCategoryPayload,
   UpdateCategoryPayload,
-  CreateSubcategoryPayload,
-  UpdateSubcategoryPayload,
-  Subcategory,
 } from "./types";
 
 // ─── Package mutations ──────────────────────────────────────
@@ -94,29 +91,4 @@ export async function updateCategory(
 
 export async function deleteCategory(id: string): Promise<void> {
   await api.delete(`/pricing/categories/${id}`);
-}
-
-export async function createSubcategory(
-  payload: CreateSubcategoryPayload,
-): Promise<Subcategory> {
-  const { data } = await api.post<ApiResponse<Subcategory>>(
-    "/pricing/subcategories",
-    payload,
-  );
-  return data.data!;
-}
-
-export async function updateSubcategory(
-  id: string,
-  payload: UpdateSubcategoryPayload,
-): Promise<Subcategory> {
-  const { data } = await api.put<ApiResponse<Subcategory>>(
-    `/pricing/subcategories/${id}`,
-    payload,
-  );
-  return data.data!;
-}
-
-export async function deleteSubcategory(id: string): Promise<void> {
-  await api.delete(`/pricing/subcategories/${id}`);
 }

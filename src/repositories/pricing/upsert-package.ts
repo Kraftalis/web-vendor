@@ -7,7 +7,7 @@ import type {
 const packageInclude = {
   items: { orderBy: { sortOrder: "asc" as const } },
   category: { select: { id: true, name: true } },
-  subcategory: { select: { id: true, name: true } },
+  eventCategory: { select: { id: true, name: true } },
 };
 
 /**
@@ -26,7 +26,7 @@ export async function createPackage(
       price: data.price ?? 0,
       currency: data.currency ?? "IDR",
       categoryId: data.categoryId ?? undefined,
-      subcategoryId: data.subcategoryId ?? undefined,
+      eventCategoryId: data.eventCategoryId ?? undefined,
       inclusions: data.inclusions ?? [],
       sortOrder: data.sortOrder ?? 0,
       items: data.variations
@@ -76,9 +76,9 @@ export async function updatePackage(id: string, data: UpdatePackageInput) {
       description: rest.description ?? undefined,
       categoryId:
         rest.categoryId !== undefined ? (rest.categoryId ?? null) : undefined,
-      subcategoryId:
-        rest.subcategoryId !== undefined
-          ? (rest.subcategoryId ?? null)
+      eventCategoryId:
+        rest.eventCategoryId !== undefined
+          ? (rest.eventCategoryId ?? null)
           : undefined,
       inclusions: rest.inclusions,
     },

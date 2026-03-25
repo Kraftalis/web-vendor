@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { Card, CardBody } from "@/components/ui";
+import { Card, CardBody, useToast } from "@/components/ui";
 import { useDictionary } from "@/i18n";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/config";
@@ -67,6 +67,7 @@ export default function BookingFormTemplate({
   );
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const toast = useToast();
 
   // Track if user just submitted the checkout (to transition from checkout → portal)
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -76,90 +77,130 @@ export default function BookingFormTemplate({
     return <InvalidState message={b.linkInvalid} goHomeLabel={b.goHome} />;
   }
 
-  // If booking link has an event (status = "used"), show portal
-  const showPortal = bookingData.status === "used" || justSubmitted;
+  // Check if event exists but client data is incomplete
+  const eventDataIncomplete =
+    bookingData.status === "used" &&
+    bookingData.event != null &&
+    (!bookingData.event.clientName?.trim() ||
+      !bookingData.event.clientPhone?.trim() ||
+      !bookingData.event.eventLocation?.trim());
+
+  // If booking link has an event (status = "used") AND data is complete, show portal
+  const showPortal =
+    (bookingData.status === "used" && !eventDataIncomplete) || justSubmitted;
 
   // ─── Expired state ──────────────────────────────────────
   if (bookingData.status === "expired") {
     return <InvalidState message={b.linkExpired} goHomeLabel={b.goHome} />;
   }
 
-  // ─── Checkout submit → create event via API ─────────────
+  // ─── Checkout submit → create or update event via API ──
   async function handleCheckoutSubmit(data: CheckoutSubmitData) {
-    // The booking link already has packageSnapshot, addOnsSnapshot, totalAmount
-    // We just need to create the event and optionally the first DP payment
-    const totalAmount = bookingData!.totalAmount
-      ? parseFloat(bookingData!.totalAmount)
-      : 0;
+    const existingEvent = bookingData!.event;
 
-    const res = await fetch("/api/booking", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token,
-        clientName: data.clientName,
-        clientPhone: data.clientPhone,
-        clientEmail: data.clientEmail || null,
-        eventType: "Booking", // default, since vendor pre-filled everything
-        eventDate:
-          bookingData!.eventDate ?? new Date().toISOString().split("T")[0],
-        eventTime: bookingData!.eventTime ?? null,
-        eventLocation: data.eventLocation || bookingData!.eventLocation || null,
-        packageSnapshot: bookingData!.packageSnapshot ?? null,
-        addOnsSnapshot: bookingData!.addOnsSnapshot ?? null,
-        amount: totalAmount || null,
-        currency: bookingData!.packageSnapshot?.currency ?? "IDR",
-        notes: null,
-      }),
-    });
+    try {
+      if (existingEvent) {
+        // ── Event already exists but data was incomplete → PATCH to update ──
+        const patchRes = await fetch(`/api/booking/${token}/event`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientName: data.clientName,
+            clientPhone: data.clientPhone,
+            clientPhoneSecondary: data.clientPhoneSecondary || null,
+            clientEmail: data.clientEmail || null,
+            eventLocation:
+              data.eventLocation || bookingData!.eventLocation || null,
+            eventLocationUrl: data.eventLocationUrl || null,
+          }),
+        });
 
-    if (!res.ok) {
-      const json = await res.json();
-      throw new Error(json.error?.message ?? "Something went wrong");
-    }
+        if (!patchRes.ok) {
+          const json = await patchRes.json();
+          throw new Error(json.error?.message ?? "Something went wrong");
+        }
+      } else {
+        // ── No event yet → POST to create ──
+        const totalAmount = bookingData!.totalAmount
+          ? parseFloat(bookingData!.totalAmount)
+          : 0;
 
-    await res.json();
+        const res = await fetch("/api/booking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token,
+            clientName: data.clientName,
+            clientPhone: data.clientPhone,
+            clientEmail: data.clientEmail || null,
+            eventType: "Booking",
+            eventDate:
+              bookingData!.eventDate ?? new Date().toISOString().split("T")[0],
+            eventTime: bookingData!.eventTime ?? null,
+            eventLocation:
+              data.eventLocation || bookingData!.eventLocation || null,
+            packageSnapshot: bookingData!.packageSnapshot ?? null,
+            addOnsSnapshot: bookingData!.addOnsSnapshot ?? null,
+            amount: totalAmount || null,
+            currency: bookingData!.packageSnapshot?.currency ?? "IDR",
+            notes: null,
+          }),
+        });
 
-    // Upload receipt + create payment if DP was provided
-    if (data.dpAmount && parseFloat(data.dpAmount) > 0) {
-      let receiptUrl: string | null = null;
-      let receiptName: string | null = null;
+        if (!res.ok) {
+          const json = await res.json();
+          throw new Error(json.error?.message ?? "Something went wrong");
+        }
 
-      if (data.receiptFile) {
-        try {
-          const upload = await uploadReceiptFile(data.receiptFile);
-          receiptUrl = upload.publicUrl;
-          receiptName = data.receiptFile.name;
-        } catch {
-          console.warn(
-            "Receipt upload failed, creating payment without receipt",
-          );
+        await res.json();
+      }
+
+      // Upload receipt + create payment if DP was provided
+      if (data.dpAmount && parseFloat(data.dpAmount) > 0) {
+        let receiptUrl: string | null = null;
+        let receiptName: string | null = null;
+
+        if (data.receiptFile) {
+          try {
+            const upload = await uploadReceiptFile(data.receiptFile);
+            receiptUrl = upload.publicUrl;
+            receiptName = data.receiptFile.name;
+          } catch {
+            console.warn(
+              "Receipt upload failed, creating payment without receipt",
+            );
+          }
+        }
+
+        await fetch(`/api/booking/${token}/payments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: parseFloat(data.dpAmount),
+            paymentType: "DOWN_PAYMENT",
+            receiptUrl,
+            receiptName,
+            note: "Initial DP",
+          }),
+        });
+      }
+
+      // Fetch updated event data and transition to portal
+      const eventRes = await fetch(`/api/booking/${token}`);
+      if (eventRes.ok) {
+        const { data: bookingInfo } = await eventRes.json();
+        if (bookingInfo.event) {
+          setPortalEvent(bookingInfo.event);
         }
       }
 
-      await fetch(`/api/booking/${token}/payments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: parseFloat(data.dpAmount),
-          paymentType: "DOWN_PAYMENT",
-          receiptUrl,
-          receiptName,
-          note: "Initial DP",
-        }),
-      });
+      toast.addToast(b.submitSuccess ?? "Submitted successfully!", "success");
+      setJustSubmitted(true);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      toast.addToast(msg, "error");
+      throw err; // re-throw so checkout component can handle isSubmitting
     }
-
-    // Fetch updated event data and transition to portal
-    const eventRes = await fetch(`/api/booking/${token}`);
-    if (eventRes.ok) {
-      const { data: bookingInfo } = await eventRes.json();
-      if (bookingInfo.event) {
-        setPortalEvent(bookingInfo.event);
-      }
-    }
-
-    setJustSubmitted(true);
   }
 
   // ─── Show checkout (single-view receipt) ────────────────
@@ -167,6 +208,7 @@ export default function BookingFormTemplate({
     return (
       <BookingCheckout
         bookingData={bookingData}
+        isCompletingData={eventDataIncomplete}
         onSubmit={handleCheckoutSubmit}
         labels={{
           pageTitle: b.pageTitle,
@@ -177,6 +219,8 @@ export default function BookingFormTemplate({
           fullNamePlaceholder: b.fullNamePlaceholder,
           phone: b.phone,
           phonePlaceholder: b.phonePlaceholder,
+          phoneSecondary: b.phoneSecondary,
+          phoneSecondaryPlaceholder: b.phoneSecondaryPlaceholder,
           email: b.email,
           emailPlaceholder: b.emailPlaceholder,
           editInfo: b.editInfo,
@@ -186,6 +230,8 @@ export default function BookingFormTemplate({
           eventTime: b.eventTime,
           eventLocation: b.eventLocation,
           eventLocationPlaceholder: b.eventLocationPlaceholder,
+          eventLocationUrl: b.eventLocationUrl,
+          eventLocationUrlPlaceholder: b.eventLocationUrlPlaceholder,
           packageLabel: b.packageLabel,
           noPackage: b.portalNoPackage,
           variationLabel: b.selectVariation,
@@ -208,6 +254,8 @@ export default function BookingFormTemplate({
           changeFile: b.changeFile,
           confirmAndPay: b.confirmAndPay,
           processing: b.processing,
+          completeDataSubtitle: b.completeDataSubtitle,
+          completeDataButton: b.completeDataButton,
         }}
       />
     );

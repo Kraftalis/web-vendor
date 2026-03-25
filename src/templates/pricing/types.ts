@@ -11,6 +11,11 @@ export interface CategoryRef {
   name: string;
 }
 
+export interface EventCategoryRef {
+  id: string;
+  name: string;
+}
+
 export interface Package {
   id: string;
   name: string;
@@ -23,7 +28,8 @@ export interface Package {
   inclusions: string[];
   // Category metadata
   category: CategoryRef | null;
-  subcategory: CategoryRef | null;
+  // Event category metadata
+  eventCategory?: EventCategoryRef | null;
 }
 
 export interface AddOn {
@@ -37,16 +43,6 @@ export interface AddOn {
 
 export interface Category {
   id: string;
-  name: string;
-  description: string | null;
-  sortOrder: number;
-  isActive: boolean;
-  subcategories: Subcategory[];
-}
-
-export interface Subcategory {
-  id: string;
-  categoryId: string;
   name: string;
   description: string | null;
   sortOrder: number;

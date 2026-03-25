@@ -5,16 +5,11 @@ import Image from "next/image";
 import { Card, CardHeader, CardBody, Button, Input } from "@/components/ui";
 import {
   IconUser,
-  IconPhone,
-  IconMail,
   IconCalendar,
   IconClock,
-  IconMapPin,
-  IconEdit,
   IconCheck,
   IconUpload,
   IconDollar,
-  IconX,
 } from "@/components/icons";
 import type {
   BookingLinkFullData,
@@ -28,14 +23,18 @@ import { formatCurrency } from "./types";
 export interface CheckoutSubmitData {
   clientName: string;
   clientPhone: string;
+  clientPhoneSecondary: string;
   clientEmail: string;
   eventLocation: string;
+  eventLocationUrl: string;
   dpAmount: string;
   receiptFile: File | null;
 }
 
 export interface BookingCheckoutProps {
   bookingData: BookingLinkFullData;
+  /** When true, the event already exists but data is incomplete — DP section is optional */
+  isCompletingData?: boolean;
   onSubmit: (data: CheckoutSubmitData) => Promise<void>;
   labels: {
     // Header
@@ -49,6 +48,8 @@ export interface BookingCheckoutProps {
     fullNamePlaceholder: string;
     phone: string;
     phonePlaceholder: string;
+    phoneSecondary: string;
+    phoneSecondaryPlaceholder: string;
     email: string;
     emailPlaceholder: string;
     editInfo: string;
@@ -59,6 +60,8 @@ export interface BookingCheckoutProps {
     eventTime: string;
     eventLocation: string;
     eventLocationPlaceholder: string;
+    eventLocationUrl: string;
+    eventLocationUrlPlaceholder: string;
     // Package
     packageLabel: string;
     noPackage: string;
@@ -86,6 +89,9 @@ export interface BookingCheckoutProps {
     // Submit
     confirmAndPay: string;
     processing: string;
+    // Completing data (optional overrides)
+    completeDataSubtitle?: string;
+    completeDataButton?: string;
   };
 }
 
@@ -93,23 +99,44 @@ export interface BookingCheckoutProps {
 
 export function BookingCheckout({
   bookingData,
+  isCompletingData = false,
   onSubmit,
   labels,
 }: BookingCheckoutProps) {
-  // ─── Client info state ──────────────────────────────────
-  // Auto-open edit mode when required fields are missing
-  const needsClientInfo =
-    !bookingData.clientName?.trim() || !bookingData.clientPhone?.trim();
-  const [isEditingInfo, setIsEditingInfo] = useState(needsClientInfo);
-  const [clientName, setClientName] = useState(bookingData.clientName ?? "");
-  const [clientPhone, setClientPhone] = useState(bookingData.clientPhone ?? "");
-  const [clientEmail, setClientEmail] = useState("");
+  // ─── Resolve source data (prefer event data when completing) ──
+  const sourceClientName = isCompletingData
+    ? (bookingData.event?.clientName ?? bookingData.clientName)
+    : bookingData.clientName;
+  const sourceClientPhone = isCompletingData
+    ? (bookingData.event?.clientPhone ?? bookingData.clientPhone)
+    : bookingData.clientPhone;
+  const sourceClientEmail = isCompletingData
+    ? (bookingData.event?.clientEmail ?? "")
+    : "";
+  const sourceEventLocation = isCompletingData
+    ? (bookingData.event?.eventLocation ?? bookingData.eventLocation)
+    : bookingData.eventLocation;
+  const sourceEventLocationUrl = isCompletingData
+    ? (bookingData.event?.eventLocationUrl ?? bookingData.eventLocationUrl)
+    : bookingData.eventLocationUrl;
+  const sourcePhoneSecondary = isCompletingData
+    ? (bookingData.event?.clientPhoneSecondary ??
+      bookingData.clientPhoneSecondary)
+    : bookingData.clientPhoneSecondary;
 
-  // ─── Event location state (editable when missing) ──────
-  const [eventLocation, setEventLocation] = useState(
-    bookingData.eventLocation ?? "",
+  // ─── Client info state ──────────────────────────────────
+  const [clientName, setClientName] = useState(sourceClientName ?? "");
+  const [clientPhone, setClientPhone] = useState(sourceClientPhone ?? "");
+  const [clientPhoneSecondary, setClientPhoneSecondary] = useState(
+    sourcePhoneSecondary ?? "",
   );
-  const needsLocation = !bookingData.eventLocation?.trim();
+  const [clientEmail, setClientEmail] = useState(sourceClientEmail ?? "");
+
+  // ─── Event location state ──────────────────────────────
+  const [eventLocation, setEventLocation] = useState(sourceEventLocation ?? "");
+  const [eventLocationUrl, setEventLocationUrl] = useState(
+    sourceEventLocationUrl ?? "",
+  );
 
   // ─── Payment state ─────────────────────────────────────
   const [dpAmount, setDpAmount] = useState("");
@@ -169,8 +196,10 @@ export function BookingCheckout({
       await onSubmit({
         clientName: clientName.trim(),
         clientPhone: clientPhone.trim(),
+        clientPhoneSecondary: clientPhoneSecondary.trim(),
         clientEmail: clientEmail.trim(),
         eventLocation: eventLocation.trim(),
+        eventLocationUrl: eventLocationUrl.trim(),
         dpAmount,
         receiptFile,
       });
@@ -213,7 +242,9 @@ export function BookingCheckout({
             {labels.pageTitle} {vendorName}
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            {labels.checkoutSubtitle}
+            {isCompletingData && labels.completeDataSubtitle
+              ? labels.completeDataSubtitle
+              : labels.checkoutSubtitle}
           </p>
         </div>
 
@@ -226,71 +257,38 @@ export function BookingCheckout({
                   <IconUser size={16} className="text-blue-500" />
                   {labels.clientInfoTitle}
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingInfo(!isEditingInfo)}
-                  className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50"
-                >
-                  {isEditingInfo ? (
-                    <>
-                      <IconX size={12} />
-                      {labels.cancelEdit}
-                    </>
-                  ) : (
-                    <>
-                      <IconEdit size={12} />
-                      {labels.editInfo}
-                    </>
-                  )}
-                </button>
               </div>
             </CardHeader>
             <CardBody>
-              {isEditingInfo ? (
-                <div className="space-y-3">
-                  <Input
-                    label={labels.fullName}
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder={labels.fullNamePlaceholder}
-                    required
-                  />
-                  <Input
-                    label={labels.phone}
-                    value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
-                    placeholder={labels.phonePlaceholder}
-                    required
-                  />
-                  <Input
-                    label={labels.email}
-                    type="email"
-                    value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
-                    placeholder={labels.emailPlaceholder}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  <InfoRow
-                    icon={<IconUser size={14} className="text-gray-400" />}
-                    label={labels.fullName}
-                    value={clientName || "—"}
-                  />
-                  <InfoRow
-                    icon={<IconPhone size={14} className="text-gray-400" />}
-                    label={labels.phone}
-                    value={clientPhone || "—"}
-                  />
-                  {clientEmail && (
-                    <InfoRow
-                      icon={<IconMail size={14} className="text-gray-400" />}
-                      label={labels.email}
-                      value={clientEmail}
-                    />
-                  )}
-                </div>
-              )}
+              <div className="space-y-3">
+                <Input
+                  label={labels.fullName}
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder={labels.fullNamePlaceholder}
+                  required
+                />
+                <Input
+                  label={labels.phone}
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  placeholder={labels.phonePlaceholder}
+                  required
+                />
+                <Input
+                  label={labels.phoneSecondary}
+                  value={clientPhoneSecondary}
+                  onChange={(e) => setClientPhoneSecondary(e.target.value)}
+                  placeholder={labels.phoneSecondaryPlaceholder}
+                />
+                <Input
+                  label={labels.email}
+                  type="email"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
+                  placeholder={labels.emailPlaceholder}
+                />
+              </div>
             </CardBody>
           </Card>
 
@@ -318,23 +316,25 @@ export function BookingCheckout({
                     value={bookingData.eventTime}
                   />
                 )}
-                {needsLocation ? (
-                  <div className="sm:col-span-2">
-                    <Input
-                      label={labels.eventLocation}
-                      value={eventLocation}
-                      onChange={(e) => setEventLocation(e.target.value)}
-                      placeholder={labels.eventLocationPlaceholder}
-                    />
-                  </div>
-                ) : (
-                  <InfoRow
-                    icon={<IconMapPin size={14} className="text-gray-400" />}
+                <div className="sm:col-span-2">
+                  <Input
                     label={labels.eventLocation}
-                    value={eventLocation || "—"}
-                    className="sm:col-span-2"
+                    value={eventLocation}
+                    onChange={(e) => setEventLocation(e.target.value)}
+                    placeholder={labels.eventLocationPlaceholder}
                   />
-                )}
+                </div>
+                <div className="sm:col-span-2">
+                  <Input
+                    label={labels.eventLocationUrl}
+                    value={eventLocationUrl}
+                    onChange={(e) => setEventLocationUrl(e.target.value)}
+                    placeholder={labels.eventLocationUrlPlaceholder}
+                  />
+                  {eventLocationUrl.trim() && (
+                    <MapPreview url={eventLocationUrl.trim()} />
+                  )}
+                </div>
               </div>
             </CardBody>
           </Card>
@@ -459,91 +459,93 @@ export function BookingCheckout({
           </Card>
 
           {/* ─── DP Payment + Receipt Upload ──────────────── */}
-          <Card>
-            <CardHeader>
-              <div>
-                <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                  <IconDollar size={16} className="text-green-500" />
-                  {labels.dpPaymentTitle}
-                </h2>
-                <p className="mt-0.5 text-xs text-gray-500">
-                  {labels.dpPaymentDesc}
-                </p>
-              </div>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <Input
-                label={labels.dpAmountLabel}
-                type="number"
-                value={dpAmount}
-                onChange={(e) => setDpAmount(e.target.value)}
-                placeholder={labels.dpAmountPlaceholder}
-                required
-              />
+          {!isCompletingData && (
+            <Card>
+              <CardHeader>
+                <div>
+                  <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <IconDollar size={16} className="text-green-500" />
+                    {labels.dpPaymentTitle}
+                  </h2>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    {labels.dpPaymentDesc}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <Input
+                  label={labels.dpAmountLabel}
+                  type="number"
+                  value={dpAmount}
+                  onChange={(e) => setDpAmount(e.target.value)}
+                  placeholder={labels.dpAmountPlaceholder}
+                  required
+                />
 
-              {/* File upload */}
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  {labels.receiptLabel}
-                </label>
-                <p className="mb-2 text-xs text-gray-500">
-                  {labels.receiptDesc}
-                </p>
-                <label
-                  className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
-                    dragActive
-                      ? "border-blue-400 bg-blue-50"
-                      : receiptFile
-                        ? "border-green-300 bg-green-50/50"
-                        : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/30"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  {receiptFile ? (
-                    <>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                        <IconCheck size={20} className="text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">
-                          {receiptFile.name}
+                {/* File upload */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    {labels.receiptLabel}
+                  </label>
+                  <p className="mb-2 text-xs text-gray-500">
+                    {labels.receiptDesc}
+                  </p>
+                  <label
+                    className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
+                      dragActive
+                        ? "border-blue-400 bg-blue-50"
+                        : receiptFile
+                          ? "border-green-300 bg-green-50/50"
+                          : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/30"
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    {receiptFile ? (
+                      <>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                          <IconCheck size={20} className="text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">
+                            {receiptFile.name}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {(receiptFile.size / 1024).toFixed(0)} KB
+                          </p>
+                        </div>
+                        <span className="text-xs font-medium text-blue-600">
+                          {labels.changeFile}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+                          <IconUpload size={20} className="text-gray-400" />
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {labels.dragOrClick}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {(receiptFile.size / 1024).toFixed(0)} KB
+                          {labels.acceptedFormats}
                         </p>
-                      </div>
-                      <span className="text-xs font-medium text-blue-600">
-                        {labels.changeFile}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                        <IconUpload size={20} className="text-gray-400" />
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {labels.dragOrClick}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {labels.acceptedFormats}
-                      </p>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    className="hidden"
-                    onChange={(e) =>
-                      setReceiptFile(e.target.files?.[0] ?? null)
-                    }
-                  />
-                </label>
-              </div>
-            </CardBody>
-          </Card>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      onChange={(e) =>
+                        setReceiptFile(e.target.files?.[0] ?? null)
+                      }
+                    />
+                  </label>
+                </div>
+              </CardBody>
+            </Card>
+          )}
 
           {/* ─── Submit Button ────────────────────────────── */}
           <Button
@@ -552,7 +554,11 @@ export function BookingCheckout({
             size="lg"
             isLoading={isSubmitting}
           >
-            {isSubmitting ? labels.processing : labels.confirmAndPay}
+            {isSubmitting
+              ? labels.processing
+              : isCompletingData && labels.completeDataButton
+                ? labels.completeDataButton
+                : labels.confirmAndPay}
           </Button>
         </form>
 
@@ -566,6 +572,89 @@ export function BookingCheckout({
       </div>
     </div>
   );
+}
+
+// ─── Map Preview ────────────────────────────────────────────
+
+/**
+ * Extracts coordinates or place query from a Google Maps URL and renders
+ * an OpenStreetMap embed (no API key needed). Falls back to a clickable link.
+ */
+function MapPreview({ url }: { url: string }) {
+  const coords = extractCoordsFromUrl(url);
+
+  if (coords) {
+    const { lat, lng } = coords;
+    const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.003},${lng + 0.005},${lat + 0.003}&layer=mapnik&marker=${lat},${lng}`;
+    return (
+      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+        <iframe
+          src={osmUrl}
+          width="100%"
+          height="200"
+          className="border-0"
+          loading="lazy"
+          title="Location map"
+        />
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block border-t border-gray-100 px-3 py-2 text-center text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50"
+        >
+          Open in Google Maps ↗
+        </a>
+      </div>
+    );
+  }
+
+  // Can't parse coords — just show a clickable link
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+    >
+      Open location link ↗
+    </a>
+  );
+}
+
+/**
+ * Try to extract lat/lng from various Google Maps URL formats:
+ * - https://maps.google.com/?q=-6.123,106.456
+ * - https://www.google.com/maps/@-6.123,106.456,15z
+ * - https://www.google.com/maps/place/.../@-6.123,106.456,...
+ * - https://maps.app.goo.gl/... (won't work without redirect, fallback)
+ * - https://goo.gl/maps/... (same)
+ */
+function extractCoordsFromUrl(
+  url: string,
+): { lat: number; lng: number } | null {
+  try {
+    // Pattern 1: /@lat,lng
+    const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (atMatch) {
+      return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+    }
+
+    // Pattern 2: ?q=lat,lng or &q=lat,lng
+    const qMatch = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (qMatch) {
+      return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+    }
+
+    // Pattern 3: /maps/place/.../data=...!3d-6.123!4d106.456
+    const dataMatch = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
+    if (dataMatch) {
+      return { lat: parseFloat(dataMatch[1]), lng: parseFloat(dataMatch[2]) };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 // ─── Info Row ───────────────────────────────────────────────

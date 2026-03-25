@@ -34,7 +34,7 @@ export async function getAddOns(
 }
 
 /**
- * Fetch all categories with subcategories.
+ * Fetch all categories.
  */
 export async function getCategories(): Promise<Category[]> {
   const { data } = await api.get<ApiResponse<Category[]>>(

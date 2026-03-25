@@ -15,3 +15,10 @@ export {
   findPaymentsByEvent,
   recalcPaymentStatus,
 } from "./payment";
+export {
+  findEventCategories,
+  findEventCategoryById,
+  createEventCategory,
+  updateEventCategory,
+  deleteEventCategory,
+} from "./event-category";

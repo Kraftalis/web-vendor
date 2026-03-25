@@ -29,7 +29,8 @@ function serializePackage(pkg: any) {
       price: String(item.price),
     })),
     category: pkg.category ?? null,
-    subcategory: pkg.subcategory ?? null,
+    eventCategory: pkg.eventCategory ?? null,
+    eventCategoryId: pkg.eventCategoryId ?? null,
     inclusions: pkg.inclusions ?? [],
   };
 }

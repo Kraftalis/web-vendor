@@ -1,32 +1,21 @@
 import { prisma } from "@/lib/prisma";
 
 /**
- * Find all active categories with their subcategories.
+ * Find all active categories.
  */
 export async function findAllCategories() {
   return prisma.category.findMany({
     where: { isActive: true },
     orderBy: { sortOrder: "asc" },
-    include: {
-      subcategories: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-      },
-    },
   });
 }
 
 /**
- * Find a single category by ID (with subcategories).
+ * Find a single category by ID.
  */
 export async function findCategoryById(id: string) {
   return prisma.category.findUnique({
     where: { id },
-    include: {
-      subcategories: {
-        orderBy: { sortOrder: "asc" },
-      },
-    },
   });
 }
 

@@ -26,10 +26,7 @@ interface Props {
   setPageSize: (v: number) => void;
   categoryId: string;
   setCategoryId: (v: string) => void;
-  subcategoryId: string;
-  setSubcategoryId: (v: string) => void;
   categoryOptions: SelectOption[];
-  subcategoryOptions: SelectOption[];
   page: number;
   setPage: (v: number | ((p: number) => number)) => void;
   total: number;
@@ -53,10 +50,7 @@ export default function PackageSection({
   setPageSize,
   categoryId,
   setCategoryId,
-  subcategoryId,
-  setSubcategoryId,
   categoryOptions,
-  subcategoryOptions,
   page,
   setPage,
   total,
@@ -102,10 +96,7 @@ export default function PackageSection({
           setPageSize={setPageSize}
           categoryId={categoryId}
           setCategoryId={setCategoryId}
-          subcategoryId={subcategoryId}
-          setSubcategoryId={setSubcategoryId}
           categoryOptions={categoryOptions}
-          subcategoryOptions={subcategoryOptions}
           viewMode={viewMode}
           setViewMode={setViewMode}
         />

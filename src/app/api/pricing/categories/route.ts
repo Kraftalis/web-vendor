@@ -12,8 +12,8 @@ import { createCategorySchema } from "@/lib/validations/pricing";
 
 /**
  * GET /api/pricing/categories
- * List all active categories with subcategories.
- * Public-ish — requires auth but returns all categories (master data).
+ * List all active categories.
+ * Requires auth — returns all categories (master data).
  */
 export async function GET() {
   const { error } = await requireAuth();

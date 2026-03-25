@@ -1,11 +1,11 @@
 "use client";
 
 import { Button, Input, Textarea, Modal } from "@/components/ui";
-import type { Subcategory } from "@/services/pricing";
+import type { EventCategory } from "@/services/event-category/types";
 
 interface Props {
   open: boolean;
-  editingSub: Subcategory | null;
+  editing: EventCategory | null;
   onClose: () => void;
   onSave: (formData: FormData) => void;
   isSaving: boolean;
@@ -13,9 +13,9 @@ interface Props {
   dict: Record<string, any>;
 }
 
-export default function SubcategoryModal({
+export default function EventCategoryModal({
   open,
-  editingSub,
+  editing,
   onClose,
   onSave,
   isSaving,
@@ -27,7 +27,7 @@ export default function SubcategoryModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={editingSub ? s.editSubcategory : s.addSubcategory}
+      title={editing ? s.editEventCategory : s.addEventCategory}
       footer={
         <>
           <Button variant="outline" type="button" onClick={onClose}>
@@ -36,7 +36,7 @@ export default function SubcategoryModal({
           <Button
             variant="primary"
             type="submit"
-            form="sub-form"
+            form="event-cat-form"
             disabled={isSaving}
           >
             {dict.common.save}
@@ -44,19 +44,19 @@ export default function SubcategoryModal({
         </>
       }
     >
-      <form id="sub-form" action={onSave} className="space-y-4">
+      <form id="event-cat-form" action={onSave} className="space-y-4">
         <Input
           name="name"
-          label={s.subcategoryName}
-          placeholder={s.subcategoryNamePlaceholder}
-          defaultValue={editingSub?.name ?? ""}
+          label={s.eventCategoryName}
+          placeholder={s.eventCategoryNamePlaceholder}
+          defaultValue={editing?.name ?? ""}
           required
         />
         <Textarea
           name="description"
-          label={s.subcategoryDescription}
-          placeholder={s.subcategoryDescPlaceholder}
-          defaultValue={editingSub?.description ?? ""}
+          label={s.eventCategoryDescription}
+          placeholder={s.eventCategoryDescPlaceholder}
+          defaultValue={editing?.description ?? ""}
           rows={3}
         />
       </form>

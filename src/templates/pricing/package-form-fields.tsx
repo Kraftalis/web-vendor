@@ -5,6 +5,11 @@ import { Input, Select, Textarea } from "@/components/ui";
 import VariationEditor from "./variation-editor";
 import type { Category } from "./types";
 
+interface EventCategoryOption {
+  id: string;
+  name: string;
+}
+
 interface Variation {
   label: string;
   description: string;
@@ -23,8 +28,9 @@ interface Props {
   categories: Category[];
   catId: string;
   setCatId: (v: string) => void;
-  subId: string;
-  setSubId: (v: string) => void;
+  eventCategories: EventCategoryOption[];
+  eventCatId: string;
+  setEventCatId: (v: string) => void;
   variations: Variation[];
   onAddVariation: () => void;
   onUpdateVariation: (
@@ -44,8 +50,9 @@ export default function PackageFormFields({
   categories,
   catId,
   setCatId,
-  subId,
-  setSubId,
+  eventCategories,
+  eventCatId,
+  setEventCatId,
   variations,
   onAddVariation,
   onUpdateVariation,
@@ -59,14 +66,10 @@ export default function PackageFormFields({
     [categories],
   );
 
-  const subcategoryOptions = useMemo(() => {
-    if (!catId) return [];
-    const cat = categories.find((c) => c.id === catId);
-    return (cat?.subcategories ?? []).map((s) => ({
-      value: s.id,
-      label: s.name,
-    }));
-  }, [catId, categories]);
+  const eventCategoryOptions = useMemo(
+    () => eventCategories.map((c) => ({ value: c.id, label: c.name })),
+    [eventCategories],
+  );
 
   return (
     <>
@@ -100,29 +103,29 @@ export default function PackageFormFields({
         pricing={pricing}
       />
 
-      {/* Category / Subcategory */}
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Select
-          label="Category"
-          name="category"
-          value={catId}
-          onChange={(e) => {
-            setCatId(e.target.value);
-            setSubId("");
-          }}
-          placeholder="Select category"
-          options={categoryOptions}
-        />
-        <Select
-          label="Subcategory"
-          name="subcategory"
-          value={subId}
-          onChange={(e) => setSubId(e.target.value)}
-          placeholder="Select subcategory"
-          options={subcategoryOptions}
-          disabled={!catId}
-        />
-      </div>
+      {/* Category */}
+      <Select
+        label="Category"
+        name="category"
+        value={catId}
+        onChange={(e) => {
+          setCatId(e.target.value);
+        }}
+        placeholder="Select category"
+        options={categoryOptions}
+      />
+
+      {/* Event Category */}
+      <Select
+        label={pricing.eventCategory ?? "Event Category"}
+        name="eventCategory"
+        value={eventCatId}
+        onChange={(e) => {
+          setEventCatId(e.target.value);
+        }}
+        placeholder={pricing.selectEventCategory ?? "Select event category"}
+        options={eventCategoryOptions}
+      />
 
       {/* Inclusions — only shown when package has no variations */}
       {variations.length === 0 && (

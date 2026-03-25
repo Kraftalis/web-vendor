@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardBody, Button, Skeleton } from "@/components/ui";
 import { IconPlus, IconSettings } from "@/components/icons";
 import CategoryRow from "./category-row";
-import type { Category, Subcategory } from "@/services/pricing";
+import type { Category } from "@/services/pricing";
 
 interface Props {
   categories: Category[];
@@ -13,10 +12,6 @@ interface Props {
   onEditCategory: (cat: Category) => void;
   onDeleteCategory: (id: string) => void;
   deletingCatId: string | null;
-  onAddSubcategory: (categoryId: string) => void;
-  onEditSubcategory: (sub: Subcategory) => void;
-  onDeleteSubcategory: (id: string) => void;
-  deletingSubId: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dict: Record<string, any>;
 }
@@ -28,17 +23,9 @@ export default function CategoryList({
   onEditCategory,
   onDeleteCategory,
   deletingCatId,
-  onAddSubcategory,
-  onEditSubcategory,
-  onDeleteSubcategory,
-  deletingSubId,
   dict,
 }: Props) {
   const s = dict.settings;
-  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
-
-  const toggleExpanded = (id: string) =>
-    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <section className="space-y-4">
@@ -87,15 +74,9 @@ export default function CategoryList({
             <CategoryRow
               key={cat.id}
               cat={cat}
-              isExpanded={expandedIds[cat.id] ?? false}
-              onToggle={() => toggleExpanded(cat.id)}
               onEditCategory={onEditCategory}
               onDeleteCategory={onDeleteCategory}
               deletingCatId={deletingCatId}
-              onAddSubcategory={onAddSubcategory}
-              onEditSubcategory={onEditSubcategory}
-              onDeleteSubcategory={onDeleteSubcategory}
-              deletingSubId={deletingSubId}
               dict={dict}
             />
           ))}

@@ -12,6 +12,7 @@ import {
   useUpdateAddOn,
   useDeleteAddOn,
 } from "@/hooks/pricing";
+import { useEventCategories } from "@/hooks";
 import { useConfirmDelete } from "@/hooks/use-confirm-delete";
 import type { Package, AddOn } from "./types";
 import type { PackageFormPayload } from "./package-modal";
@@ -25,7 +26,6 @@ export function usePricingState() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
   const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
 
   // ─── Queries ──────────────────────────────────────────────
   const pricingQuery = usePricing({
@@ -35,10 +35,10 @@ export function usePricingState() {
     sortBy,
     sortDir,
     categoryId: categoryId || undefined,
-    subcategoryId: subcategoryId || undefined,
   });
   const addOnsQuery = useAddOns();
   const categoriesQuery = useCategories();
+  const eventCategoriesQuery = useEventCategories();
 
   // ─── Mutations ────────────────────────────────────────────
   const createPkg = useCreatePackage();
@@ -58,19 +58,15 @@ export function usePricingState() {
     [categoriesQuery.data],
   );
 
+  const eventCategories = useMemo(
+    () => eventCategoriesQuery.data ?? [],
+    [eventCategoriesQuery.data],
+  );
+
   const categoryOptions = useMemo(
     () => categories.map((c) => ({ value: c.id, label: c.name })),
     [categories],
   );
-
-  const subcategoryOptions = useMemo(() => {
-    if (!categoryId) return [];
-    const cat = categories.find((c) => c.id === categoryId);
-    return (cat?.subcategories ?? []).map((s) => ({
-      value: s.id,
-      label: s.name,
-    }));
-  }, [categoryId, categories]);
 
   // ─── Package modal ────────────────────────────────────────
   const [pkgModalOpen, setPkgModalOpen] = useState(false);
@@ -150,15 +146,13 @@ export function usePricingState() {
     setPageSize,
     categoryId,
     setCategoryId,
-    subcategoryId,
-    setSubcategoryId,
     categoryOptions,
-    subcategoryOptions,
     // Data
     packages,
     addOns,
     total,
     categories,
+    eventCategories,
     isLoadingPackages: pricingQuery.isLoading,
     isLoadingAddOns: addOnsQuery.isLoading,
     // Package modal

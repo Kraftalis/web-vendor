@@ -47,10 +47,7 @@ export default function PricingTab() {
         setPageSize={s.setPageSize}
         categoryId={s.categoryId}
         setCategoryId={s.setCategoryId}
-        subcategoryId={s.subcategoryId}
-        setSubcategoryId={s.setSubcategoryId}
         categoryOptions={s.categoryOptions}
-        subcategoryOptions={s.subcategoryOptions}
         page={s.page}
         setPage={s.setPage}
         total={s.total}
@@ -77,6 +74,7 @@ export default function PricingTab() {
         open={s.pkgModalOpen}
         editingPkg={s.editingPkg}
         categories={s.categories}
+        eventCategories={s.eventCategories}
         onClose={s.closePkgModal}
         onSave={s.handleSavePackage}
         isSaving={s.isSavingPkg}

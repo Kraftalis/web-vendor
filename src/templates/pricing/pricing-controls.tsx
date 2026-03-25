@@ -18,10 +18,7 @@ interface Props {
   setPageSize: (v: number) => void;
   categoryId: string;
   setCategoryId: (v: string) => void;
-  subcategoryId: string;
-  setSubcategoryId: (v: string) => void;
   categoryOptions: SelectOption[];
-  subcategoryOptions: SelectOption[];
   viewMode: "grid" | "list";
   setViewMode: (v: "grid" | "list") => void;
 }
@@ -39,10 +36,7 @@ export default function PricingControls({
   setPageSize,
   categoryId,
   setCategoryId,
-  subcategoryId,
-  setSubcategoryId,
   categoryOptions,
-  subcategoryOptions,
   viewMode,
   setViewMode,
 }: Props) {
@@ -52,17 +46,9 @@ export default function PricingControls({
         value={categoryId}
         onChange={(e) => {
           setCategoryId(e.target.value);
-          setSubcategoryId("");
         }}
         options={[{ value: "", label: "All categories" }, ...categoryOptions]}
         className="w-auto"
-      />
-      <Select
-        value={subcategoryId}
-        onChange={(e) => setSubcategoryId(e.target.value)}
-        options={[{ value: "", label: "All types" }, ...subcategoryOptions]}
-        className="w-auto"
-        disabled={!categoryId}
       />
       <Select
         value={`${sortBy}_${sortDir}`}

@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Button, Modal } from "@/components/ui";
 import PackageFormFields from "./package-form-fields";
 import type { Package, Category } from "./types";
+import type { EventCategory } from "@/services/event-category";
 
 interface Props {
   open: boolean;
   editingPkg: Package | null;
   categories: Category[];
+  eventCategories: EventCategory[];
   onClose: () => void;
   onSave: (payload: PackageFormPayload) => void;
   isSaving: boolean;
@@ -23,7 +25,7 @@ export interface PackageFormPayload {
   currency: string;
   isActive: boolean;
   categoryId: string | null;
-  subcategoryId: string | null;
+  eventCategoryId: string | null;
   inclusions: string[];
   variations: {
     label: string;
@@ -38,6 +40,7 @@ export default function PackageModal({
   open,
   editingPkg,
   categories,
+  eventCategories,
   onClose,
   onSave,
   isSaving,
@@ -62,7 +65,9 @@ export default function PackageModal({
     editingPkg ? (editingPkg.inclusions ?? []).join("\n") : "",
   );
   const [catId, setCatId] = useState(editingPkg?.category?.id ?? "");
-  const [subId, setSubId] = useState(editingPkg?.subcategory?.id ?? "");
+  const [eventCatId, setEventCatId] = useState(
+    editingPkg?.eventCategory?.id ?? "",
+  );
 
   const addVariation = () =>
     setVariations((prev) => [
@@ -107,7 +112,7 @@ export default function PackageModal({
       currency,
       isActive,
       categoryId: catId || null,
-      subcategoryId: subId || null,
+      eventCategoryId: eventCatId || null,
       inclusions,
       variations: validVariations.map((v, i) => ({
         label: v.label.trim(),
@@ -157,8 +162,9 @@ export default function PackageModal({
           categories={categories}
           catId={catId}
           setCatId={setCatId}
-          subId={subId}
-          setSubId={setSubId}
+          eventCategories={eventCategories}
+          eventCatId={eventCatId}
+          setEventCatId={setEventCatId}
           variations={variations}
           onAddVariation={addVariation}
           onUpdateVariation={updateVariation}

@@ -5,6 +5,7 @@ import { getLocaleFromCookie } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { I18nProvider } from "@/i18n/provider";
 import { QueryProvider } from "@/contexts/query-provider";
+import { ToastProvider } from "@/components/ui";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,7 +57,9 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <I18nProvider dict={dict} locale={locale}>
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </QueryProvider>
         </I18nProvider>
       </body>
     </html>

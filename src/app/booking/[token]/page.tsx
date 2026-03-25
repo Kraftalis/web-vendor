@@ -60,11 +60,13 @@ export default async function BookingPage({ params }: BookingPageProps) {
         id: fullEvent.id,
         clientName: fullEvent.clientName,
         clientPhone: fullEvent.clientPhone,
+        clientPhoneSecondary: fullEvent.clientPhoneSecondary,
         clientEmail: fullEvent.clientEmail,
         eventType: fullEvent.eventType,
         eventDate: fullEvent.eventDate.toISOString(),
         eventTime: fullEvent.eventTime,
         eventLocation: fullEvent.eventLocation,
+        eventLocationUrl: fullEvent.eventLocationUrl,
         packageSnapshot:
           fullEvent.packageSnapshot as PortalEventType["packageSnapshot"],
         addOnsSnapshot:
@@ -105,9 +107,11 @@ export default async function BookingPage({ params }: BookingPageProps) {
     },
     clientName: link.clientName,
     clientPhone: link.clientPhone,
+    clientPhoneSecondary: link.clientPhoneSecondary,
     eventDate: link.eventDate?.toISOString() ?? null,
     eventTime: link.eventTime,
     eventLocation: link.eventLocation,
+    eventLocationUrl: link.eventLocationUrl,
     packageSnapshot:
       link.packageSnapshot as BookingLinkFullData["packageSnapshot"],
     addOnsSnapshot:

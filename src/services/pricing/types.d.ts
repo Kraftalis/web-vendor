@@ -9,25 +9,10 @@ export interface CategoryRef {
 }
 
 /**
- * Full category with subcategories.
+ * Full category.
  */
 export interface Category {
   id: string;
-  name: string;
-  description: string | null;
-  sortOrder: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  subcategories: Subcategory[];
-}
-
-/**
- * Subcategory within a category.
- */
-export interface Subcategory {
-  id: string;
-  categoryId: string;
   name: string;
   description: string | null;
   sortOrder: number;
@@ -65,7 +50,7 @@ export interface Package {
   sortOrder: number;
   inclusions: string[];
   category: CategoryRef | null;
-  subcategory: CategoryRef | null;
+  eventCategory?: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
   items: PackageVariation[]; // Price variations (empty = single flat price)
@@ -114,7 +99,6 @@ export interface PricingQueryParams {
   sortBy?: string;
   sortDir?: "asc" | "desc";
   categoryId?: string;
-  subcategoryId?: string;
   isActive?: "true" | "false" | "all";
 }
 
@@ -146,7 +130,7 @@ export interface CreatePackagePayload {
   price?: number; // 0 when all pricing is handled by variations
   currency?: string;
   categoryId?: string | null;
-  subcategoryId?: string | null;
+  eventCategoryId?: string | null;
   inclusions?: string[];
   variations?: PackageVariationPayload[];
   sortOrder?: number;
@@ -159,7 +143,7 @@ export interface UpdatePackagePayload {
   currency?: string;
   isActive?: boolean;
   categoryId?: string | null;
-  subcategoryId?: string | null;
+  eventCategoryId?: string | null;
   inclusions?: string[];
   variations?: PackageVariationPayload[];
   sortOrder?: number;
@@ -190,20 +174,6 @@ export interface CreateCategoryPayload {
 }
 
 export interface UpdateCategoryPayload {
-  name?: string;
-  description?: string | null;
-  sortOrder?: number;
-  isActive?: boolean;
-}
-
-export interface CreateSubcategoryPayload {
-  categoryId: string;
-  name: string;
-  description?: string | null;
-  sortOrder?: number;
-}
-
-export interface UpdateSubcategoryPayload {
   name?: string;
   description?: string | null;
   sortOrder?: number;

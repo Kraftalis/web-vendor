@@ -20,9 +20,6 @@ function buildPackageWhere(
   if (params?.categoryId) {
     where.categoryId = params.categoryId;
   }
-  if (params?.subcategoryId) {
-    where.subcategoryId = params.subcategoryId;
-  }
   if (params?.isActive === "true") {
     where.isActive = true;
   } else if (params?.isActive === "false") {
@@ -38,7 +35,6 @@ function buildPackageWhere(
 const packageInclude = {
   items: { orderBy: { sortOrder: "asc" as const } },
   category: { select: { id: true, name: true } },
-  subcategory: { select: { id: true, name: true } },
 };
 
 /**

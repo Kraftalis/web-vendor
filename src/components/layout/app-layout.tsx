@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
   { labelKey: "home", href: "/", icon: IconHome },
   { labelKey: "schedule", href: "/schedule", icon: IconCalendar },
   { labelKey: "event", href: "/event", icon: IconEvent },
-  { labelKey: "pricingPackage", href: "/pricing", icon: IconPricing },
+  { labelKey: "pricingPackage", href: "/finance", icon: IconPricing },
   { labelKey: "settings", href: "/settings", icon: IconSettings },
 ];
 

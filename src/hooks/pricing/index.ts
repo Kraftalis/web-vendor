@@ -12,7 +12,4 @@ export {
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
-  useCreateSubcategory,
-  useUpdateSubcategory,
-  useDeleteSubcategory,
 } from "./use-category-mutations";

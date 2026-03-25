@@ -8,6 +8,7 @@ import {
   IconCheck,
   IconBriefcase,
   IconSettings,
+  IconCalendar,
 } from "@/components/icons";
 import { useDictionary } from "@/i18n";
 import {
@@ -15,21 +16,30 @@ import {
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
-  useCreateSubcategory,
-  useUpdateSubcategory,
-  useDeleteSubcategory,
 } from "@/hooks/pricing";
+import {
+  useEventCategories,
+  useCreateEventCategory,
+  useUpdateEventCategory,
+  useDeleteEventCategory,
+} from "@/hooks/event-category";
 import { useConfirmDelete } from "@/hooks/use-confirm-delete";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import BusinessProfileForm from "./business-profile-form";
 import CategoryList from "./category-list";
 import CategoryModal from "./category-modal";
-import SubcategoryModal from "./subcategory-modal";
-import type { Category, Subcategory } from "@/services/pricing";
+import EventCategoryList from "./event-category-list";
+import EventCategoryModal from "./event-category-modal";
+import type { Category } from "@/services/pricing";
+import type { EventCategory } from "@/services/event-category/types";
 
 // ─── Types ──────────────────────────────────────────────────
 
-type TabKey = "business-profile" | "notifications" | "categories";
+type TabKey =
+  | "business-profile"
+  | "notifications"
+  | "categories"
+  | "event-categories";
 
 interface SettingsTemplateProps {
   user: {
@@ -64,19 +74,28 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
       label: s.tabCategories,
       icon: <IconSettings size={16} />,
     },
+    {
+      key: "event-categories",
+      label: s.tabEventCategories,
+      icon: <IconCalendar size={16} />,
+    },
   ];
 
   // Queries
   const categoriesQuery = useCategories();
   const categories: Category[] = categoriesQuery.data ?? [];
 
+  const eventCatQuery = useEventCategories();
+  const eventCategories: EventCategory[] = eventCatQuery.data ?? [];
+
   // Mutations
   const createCatMut = useCreateCategory();
   const updateCatMut = useUpdateCategory();
   const deleteCatMut = useDeleteCategory();
-  const createSubMut = useCreateSubcategory();
-  const updateSubMut = useUpdateSubcategory();
-  const deleteSubMut = useDeleteSubcategory();
+
+  const createEvtCatMut = useCreateEventCategory();
+  const updateEvtCatMut = useUpdateEventCategory();
+  const deleteEvtCatMut = useDeleteEventCategory();
 
   // ─── Category modal ───────────────────────────────────────
   const [catModalOpen, setCatModalOpen] = useState(false);
@@ -117,47 +136,46 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
 
   const catDelete = useConfirmDelete((id) => deleteCatMut.mutate(id));
 
-  // ─── Subcategory modal ────────────────────────────────────
-  const [subModalOpen, setSubModalOpen] = useState(false);
-  const [subParentCatId, setSubParentCatId] = useState<string>("");
-  const [editingSub, setEditingSub] = useState<Subcategory | null>(null);
+  // ─── Event category modal ─────────────────────────────────
+  const [evtCatModalOpen, setEvtCatModalOpen] = useState(false);
+  const [editingEvtCat, setEditingEvtCat] = useState<EventCategory | null>(
+    null,
+  );
 
-  const openAddSubcategory = (categoryId: string) => {
-    setSubParentCatId(categoryId);
-    setEditingSub(null);
-    setSubModalOpen(true);
+  const openAddEvtCat = () => {
+    setEditingEvtCat(null);
+    setEvtCatModalOpen(true);
   };
 
-  const openEditSubcategory = (sub: Subcategory) => {
-    setSubParentCatId(sub.categoryId);
-    setEditingSub(sub);
-    setSubModalOpen(true);
+  const openEditEvtCat = (cat: EventCategory) => {
+    setEditingEvtCat(cat);
+    setEvtCatModalOpen(true);
   };
 
-  const closeSubModal = () => {
-    setSubModalOpen(false);
-    setEditingSub(null);
+  const closeEvtCatModal = () => {
+    setEvtCatModalOpen(false);
+    setEditingEvtCat(null);
   };
 
-  const handleSaveSubcategory = (formData: FormData) => {
+  const handleSaveEvtCat = (formData: FormData) => {
     const name = (formData.get("name") as string).trim();
     const description = (formData.get("description") as string).trim() || null;
     if (!name) return;
 
-    if (editingSub) {
-      updateSubMut.mutate(
-        { id: editingSub.id, payload: { name, description } },
-        { onSuccess: closeSubModal },
+    if (editingEvtCat) {
+      updateEvtCatMut.mutate(
+        { id: editingEvtCat.id, payload: { name, description } },
+        { onSuccess: closeEvtCatModal },
       );
     } else {
-      createSubMut.mutate(
-        { categoryId: subParentCatId, name, description },
-        { onSuccess: () => setSubModalOpen(false) },
+      createEvtCatMut.mutate(
+        { name, description },
+        { onSuccess: () => setEvtCatModalOpen(false) },
       );
     }
   };
 
-  const subDelete = useConfirmDelete((id) => deleteSubMut.mutate(id));
+  const evtCatDelete = useConfirmDelete((id) => deleteEvtCatMut.mutate(id));
 
   // ─── Push notifications ───────────────────────────────────
   const push = usePushNotifications();
@@ -271,10 +289,18 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
             onEditCategory={openEditCategory}
             onDeleteCategory={catDelete.handleDelete}
             deletingCatId={catDelete.pendingId}
-            onAddSubcategory={openAddSubcategory}
-            onEditSubcategory={openEditSubcategory}
-            onDeleteSubcategory={subDelete.handleDelete}
-            deletingSubId={subDelete.pendingId}
+            dict={dict}
+          />
+        )}
+
+        {activeTab === "event-categories" && (
+          <EventCategoryList
+            categories={eventCategories}
+            isLoading={eventCatQuery.isLoading}
+            onAdd={openAddEvtCat}
+            onEdit={openEditEvtCat}
+            onDelete={evtCatDelete.handleDelete}
+            deletingId={evtCatDelete.pendingId}
             dict={dict}
           />
         )}
@@ -291,14 +317,14 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
         dict={dict}
       />
 
-      {/* Subcategory Modal */}
-      <SubcategoryModal
-        key={editingSub?.id ?? "new-sub"}
-        open={subModalOpen}
-        editingSub={editingSub}
-        onClose={closeSubModal}
-        onSave={handleSaveSubcategory}
-        isSaving={createSubMut.isPending || updateSubMut.isPending}
+      {/* Event Category Modal */}
+      <EventCategoryModal
+        key={editingEvtCat?.id ?? "new-evt-cat"}
+        open={evtCatModalOpen}
+        editing={editingEvtCat}
+        onClose={closeEvtCatModal}
+        onSave={handleSaveEvtCat}
+        isSaving={createEvtCatMut.isPending || updateEvtCatMut.isPending}
         dict={dict}
       />
     </AppLayout>

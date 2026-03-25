@@ -4,8 +4,8 @@ import { Input, Textarea, Select } from "@/components/ui";
 import type { SourcePackage } from "./types";
 
 interface Props {
-  packageMode: "existing" | "custom" | "none";
-  setPackageMode: (v: "existing" | "custom" | "none") => void;
+  packageMode: "existing" | "custom";
+  setPackageMode: (v: "existing" | "custom") => void;
   packages: SourcePackage[];
 
   // Existing package
@@ -64,7 +64,7 @@ export default function PackageSelector({
 
       {/* Mode toggle */}
       <div className="flex gap-2">
-        {(["existing", "custom", "none"] as const).map((mode) => (
+        {(["existing", "custom"] as const).map((mode) => (
           <button
             key={mode}
             type="button"
@@ -77,9 +77,7 @@ export default function PackageSelector({
           >
             {mode === "existing"
               ? (labels.existingPackage ?? "Select Package")
-              : mode === "custom"
-                ? (labels.customPackage ?? "Custom")
-                : (labels.noPackage ?? "No Package")}
+              : (labels.customPackage ?? "Custom")}
           </button>
         ))}
       </div>

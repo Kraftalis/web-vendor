@@ -82,6 +82,19 @@ export function PortalEventInfo({
                 value={event.eventLocation}
               />
             )}
+            {event.eventLocationUrl && (
+              <div className="sm:col-span-2">
+                <a
+                  href={event.eventLocationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:underline"
+                >
+                  <IconMapPin size={12} />
+                  Open in Google Maps ↗
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Google Calendar link */}
