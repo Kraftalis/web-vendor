@@ -2,9 +2,8 @@ import { NextRequest } from "next/server";
 import {
   successResponse,
   notFoundError,
-  forbiddenError,
+  validationError,
   internalError,
-  requireBusinessProfile,
 } from "@/lib/api";
 import {
   findEventCategoryById,
@@ -18,22 +17,17 @@ interface RouteParams {
 
 /**
  * PUT /api/event-categories/[id]
- * Update an event category.
+ * Update an event category (global master data).
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
-  const { businessProfileId, error } = await requireBusinessProfile();
-  if (error) return error;
-
   try {
     const { id } = await params;
     const existing = await findEventCategoryById(id);
     if (!existing) return notFoundError("Event category not found.");
-    if (existing.businessProfileId !== businessProfileId)
-      return forbiddenError();
 
     const body = await request.json();
     const name = (body.name as string)?.trim();
-    if (!name) return notFoundError("Name is required.");
+    if (!name) return validationError("Name is required.");
 
     const description = (body.description as string)?.trim() || null;
 
@@ -47,18 +41,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/event-categories/[id]
- * Delete an event category.
+ * Delete an event category (global master data).
  */
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  const { businessProfileId, error } = await requireBusinessProfile();
-  if (error) return error;
-
   try {
     const { id } = await params;
     const existing = await findEventCategoryById(id);
     if (!existing) return notFoundError("Event category not found.");
-    if (existing.businessProfileId !== businessProfileId)
-      return forbiddenError();
 
     await deleteEventCategory(id);
     return successResponse({ deleted: true });

@@ -4,20 +4,16 @@ import {
   createdResponse,
   validationError,
   internalError,
-  requireBusinessProfile,
 } from "@/lib/api";
 import { findEventCategories, createEventCategory } from "@/repositories/event";
 
 /**
  * GET /api/event-categories
- * List all active event categories for the current vendor.
+ * List all active event categories (global master data).
  */
 export async function GET() {
-  const { businessProfileId, error } = await requireBusinessProfile();
-  if (error) return error;
-
   try {
-    const categories = await findEventCategories(businessProfileId);
+    const categories = await findEventCategories();
     return successResponse(categories);
   } catch (err) {
     console.error("[API] GET /api/event-categories error:", err);
@@ -30,9 +26,6 @@ export async function GET() {
  * Create a new event category.
  */
 export async function POST(request: NextRequest) {
-  const { businessProfileId, error } = await requireBusinessProfile();
-  if (error) return error;
-
   try {
     const body = await request.json();
     const name = (body.name as string)?.trim();
@@ -41,7 +34,6 @@ export async function POST(request: NextRequest) {
     const description = (body.description as string)?.trim() || null;
 
     const category = await createEventCategory({
-      businessProfileId,
       name,
       description,
     });

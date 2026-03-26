@@ -1,6 +1,5 @@
 export interface EventCategory {
   id: string;
-  businessProfileId: string;
   name: string;
   description: string | null;
   sortOrder: number;

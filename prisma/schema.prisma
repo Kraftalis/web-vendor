@@ -192,28 +192,24 @@ enum PaymentType {
 
 // ─── Event Category (Per-Vendor) ────────────────────────────────────────────
 
-/// Event categories defined by each vendor.
+/// Global event categories (master data).
 /// e.g. "Wedding", "Engagement", "Birthday", "Corporate"
 /// Used in event forms instead of hardcoded event types.
 model EventCategory {
-  id                String   @id @default(uuid()) @db.Uuid
-  businessProfileId String   @map("business_profile_id") @db.Uuid
-  name              String   @db.VarChar(255)
-  description       String?  @db.Text
-  sortOrder         Int      @default(0) @map("sort_order")
-  isActive          Boolean  @default(true) @map("is_active")
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(255)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
 
   // Audit fields
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-  packages          Package[]
-  events            Event[]
+  packages    Package[]
+  events      Event[]
 
-  @@unique([businessProfileId, name])
-  @@index([businessProfileId])
   @@index([sortOrder])
   @@index([isActive])
   @@map("event_categories")
@@ -499,7 +495,6 @@ model BusinessProfile {
   bookingLinks BookingLink[]
   packages     Package[]
   addOns       AddOn[]
-  eventCategories    EventCategory[]
   financeAccounts    FinanceAccount[]
   financeTransactions FinanceTransaction[]
 

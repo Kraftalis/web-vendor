@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
 /**
- * Find all active event categories for a business profile.
+ * Find all active event categories (global master data).
  */
-export async function findEventCategories(businessProfileId: string) {
+export async function findEventCategories() {
   return prisma.eventCategory.findMany({
-    where: { businessProfileId, isActive: true },
+    where: { isActive: true },
     orderBy: { sortOrder: "asc" },
   });
 }
@@ -21,13 +21,11 @@ export async function findEventCategoryById(id: string) {
  * Create a new event category.
  */
 export async function createEventCategory(data: {
-  businessProfileId: string;
   name: string;
   description?: string | null;
 }) {
   return prisma.eventCategory.create({
     data: {
-      businessProfileId: data.businessProfileId,
       name: data.name,
       description: data.description ?? null,
     },
