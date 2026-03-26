@@ -8,7 +8,7 @@ export default async function FinancePage() {
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/login");
+    redirect("/vendor/login");
   }
 
   return (

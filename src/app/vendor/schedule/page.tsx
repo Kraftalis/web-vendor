@@ -1,16 +1,16 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import EventListTemplate from "@/templates/event/event-list-template";
+import ScheduleTemplate from "@/templates/schedule/schedule-template";
 
-export default async function EventPage() {
+export default async function SchedulePage() {
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/login");
+    redirect("/vendor/login");
   }
 
   return (
-    <EventListTemplate
+    <ScheduleTemplate
       user={{
         name: session.user.name ?? null,
         email: session.user.email ?? null,

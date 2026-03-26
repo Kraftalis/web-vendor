@@ -94,7 +94,7 @@ export default async function VerifyEmailPage({
                 {dict.verifyEmail.emailVerifiedDesc}
               </p>
               <Link
-                href="/login"
+                href="/vendor/login"
                 className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 {dict.verifyEmail.signInToAccount}
@@ -126,7 +126,7 @@ export default async function VerifyEmailPage({
                 {dict.verifyEmail.linkExpiredDesc}
               </p>
               <Link
-                href="/signup"
+                href="/vendor/signup"
                 className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 {dict.verifyEmail.signUpAgain}
@@ -158,7 +158,7 @@ export default async function VerifyEmailPage({
                 {dict.verifyEmail.invalidLinkDesc}
               </p>
               <Link
-                href="/signup"
+                href="/vendor/signup"
                 className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 {dict.verifyEmail.signUpAgain}

@@ -11,7 +11,7 @@ export default async function SignUpPage() {
   const session = await auth();
 
   if (session?.user) {
-    redirect("/");
+    redirect("/vendor");
   }
 
   return <SignUpForm />;

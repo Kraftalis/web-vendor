@@ -9,7 +9,7 @@ import { locales, type Locale } from "@/i18n/config";
  * Redirects to the login page after sign out.
  */
 export async function handleSignOut() {
-  await signOut({ redirectTo: "/login" });
+  await signOut({ redirectTo: "/vendor/login" });
 }
 
 /**

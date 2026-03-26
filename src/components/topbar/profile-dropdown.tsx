@@ -102,7 +102,7 @@ export default function ProfileDropdown({ user }: ProfileDropdownProps) {
           {/* Menu Items */}
           <div className="p-1.5">
             <Link
-              href="/profile"
+              href="/vendor/profile"
               onClick={close}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >
@@ -110,7 +110,7 @@ export default function ProfileDropdown({ user }: ProfileDropdownProps) {
               {dict.profileDropdown.myProfile}
             </Link>
             <Link
-              href="/settings"
+              href="/vendor/settings"
               onClick={close}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >

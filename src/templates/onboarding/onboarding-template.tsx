@@ -113,7 +113,7 @@ export default function OnboardingTemplate() {
 
     try {
       await upsert.mutateAsync(payload);
-      router.push("/");
+      router.push("/vendor");
       router.refresh();
     } catch {
       setError(o.saveError);

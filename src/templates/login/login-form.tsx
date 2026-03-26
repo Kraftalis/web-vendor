@@ -151,7 +151,7 @@ export default function LoginForm() {
         <p className="mt-6 text-center text-sm text-slate-500">
           {dict.login.noAccount}{" "}
           <Link
-            href="/signup"
+            href="/vendor/signup"
             className="font-medium text-blue-600 hover:text-blue-700"
           >
             {dict.login.signUp}

@@ -12,7 +12,7 @@ export default async function EventDetailPage({
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/login");
+    redirect("/vendor/login");
   }
 
   const { id } = await params;

@@ -214,7 +214,7 @@ export default function SignUpForm() {
         <p className="mt-6 text-center text-sm text-slate-500">
           {dict.signup.alreadyHaveAccount}{" "}
           <Link
-            href="/login"
+            href="/vendor/login"
             className="font-medium text-blue-600 hover:text-blue-700"
           >
             {dict.signup.signIn}

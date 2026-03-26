@@ -12,21 +12,24 @@ import { createAuditLog } from "@/repositories/audit";
 export const authConfig: NextAuthConfig = {
   providers: [], // Overridden in src/lib/auth.ts
   pages: {
-    signIn: "/login",
-    newUser: "/signup",
+    signIn: "/vendor/login",
+    newUser: "/vendor/signup",
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnLogin = nextUrl.pathname.startsWith("/login");
-      const isOnSignUp = nextUrl.pathname.startsWith("/signup");
-      const isOnVerifyEmail = nextUrl.pathname.startsWith("/verify-email");
-      const isOnBooking = nextUrl.pathname.startsWith("/booking");
+      const isLanding = nextUrl.pathname === "/";
+      const isOnLogin = nextUrl.pathname.startsWith("/vendor/login");
+      const isOnSignUp = nextUrl.pathname.startsWith("/vendor/signup");
+      const isOnVerifyEmail = nextUrl.pathname.startsWith(
+        "/vendor/verify-email",
+      );
+      const isOnBooking = nextUrl.pathname.startsWith("/client/booking");
       const isPublicRoute =
-        isOnLogin || isOnSignUp || isOnVerifyEmail || isOnBooking;
+        isLanding || isOnLogin || isOnSignUp || isOnVerifyEmail || isOnBooking;
 
       if (isOnLogin) {
-        if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
+        if (isLoggedIn) return Response.redirect(new URL("/vendor", nextUrl));
         return true;
       }
 

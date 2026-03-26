@@ -283,7 +283,7 @@ export default function EventDetailTemplate({
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href="/event"
+            href="/vendor/event"
             className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
           >
             <IconChevronLeft size={16} />

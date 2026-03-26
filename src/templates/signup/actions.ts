@@ -67,5 +67,5 @@ export async function signUpWithCredentials(
 }
 
 export async function signUpWithGoogle() {
-  await signIn("google", { redirectTo: "/" });
+  await signIn("google", { redirectTo: "/vendor" });
 }

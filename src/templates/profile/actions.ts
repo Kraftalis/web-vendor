@@ -33,8 +33,8 @@ export async function updateProfile(formData: FormData) {
       name: name.trim(),
     });
 
-    revalidatePath("/profile");
-    revalidatePath("/");
+    revalidatePath("/vendor/profile");
+    revalidatePath("/vendor");
 
     return { success: true };
   } catch (error) {

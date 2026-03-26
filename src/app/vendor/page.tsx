@@ -1,16 +1,16 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import ScheduleTemplate from "@/templates/schedule/schedule-template";
+import HomeTemplate from "@/templates/home/home-template";
 
-export default async function SchedulePage() {
+export default async function VendorDashboardPage() {
   const session = await auth();
 
-  if (!session?.user?.id) {
-    redirect("/login");
+  if (!session?.user) {
+    redirect("/vendor/login");
   }
 
   return (
-    <ScheduleTemplate
+    <HomeTemplate
       user={{
         name: session.user.name ?? null,
         email: session.user.email ?? null,

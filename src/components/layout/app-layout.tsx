@@ -41,11 +41,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { labelKey: "home", href: "/", icon: IconHome },
-  { labelKey: "schedule", href: "/schedule", icon: IconCalendar },
-  { labelKey: "event", href: "/event", icon: IconEvent },
-  { labelKey: "pricingPackage", href: "/finance", icon: IconPricing },
-  { labelKey: "settings", href: "/settings", icon: IconSettings },
+  { labelKey: "home", href: "/vendor", icon: IconHome },
+  { labelKey: "schedule", href: "/vendor/schedule", icon: IconCalendar },
+  { labelKey: "event", href: "/vendor/event", icon: IconEvent },
+  { labelKey: "pricingPackage", href: "/vendor/finance", icon: IconPricing },
+  { labelKey: "settings", href: "/vendor/settings", icon: IconSettings },
 ];
 
 export default function AppLayout({ children, user }: AppLayoutProps) {
@@ -76,7 +76,7 @@ export default function AppLayout({ children, user }: AppLayoutProps) {
           {/* Left: Logo + Desktop Nav */}
           <div className="flex items-center gap-8">
             {/* Brand */}
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href="/vendor" className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent">
                 <span className="text-sm font-bold text-white">K</span>
               </div>
@@ -89,8 +89,8 @@ export default function AppLayout({ children, user }: AppLayoutProps) {
             <nav className="hidden items-center gap-1 md:flex">
               {navItems.map((item) => {
                 const isActive =
-                  item.href === "/"
-                    ? pathname === "/"
+                  item.href === "/vendor"
+                    ? pathname === "/vendor"
                     : pathname.startsWith(item.href);
                 return (
                   <Link
@@ -135,8 +135,8 @@ export default function AppLayout({ children, user }: AppLayoutProps) {
         <div className="flex items-center justify-around py-2">
           {navItems.map((item) => {
             const isActive =
-              item.href === "/"
-                ? pathname === "/"
+              item.href === "/vendor"
+                ? pathname === "/vendor"
                 : pathname.startsWith(item.href);
             return (
               <Link

@@ -19,13 +19,16 @@ export function proxy(request: NextRequest) {
     request.cookies.get("__Secure-authjs.session-token");
 
   const isLoggedIn = !!token;
-  const isOnLogin = pathname.startsWith("/login");
-  const isOnSignUp = pathname.startsWith("/signup");
-  const isOnVerifyEmail = pathname.startsWith("/verify-email");
-  const isOnBooking = pathname.startsWith("/booking");
-  const isOnOnboarding = pathname.startsWith("/onboarding");
+
+  // ─── Public routes ─────────────────────────────────────────────
+  const isLanding = pathname === "/";
+  const isOnLogin = pathname.startsWith("/vendor/login");
+  const isOnSignUp = pathname.startsWith("/vendor/signup");
+  const isOnVerifyEmail = pathname.startsWith("/vendor/verify-email");
+  const isOnBooking = pathname.startsWith("/client/booking");
+  const isOnOnboarding = pathname.startsWith("/vendor/onboarding");
   const isPublicRoute =
-    isOnLogin || isOnSignUp || isOnVerifyEmail || isOnBooking;
+    isLanding || isOnLogin || isOnSignUp || isOnVerifyEmail || isOnBooking;
 
   // ─── Security headers ──────────────────────────────────────────
   const response = NextResponse.next();
@@ -37,7 +40,7 @@ export function proxy(request: NextRequest) {
   // If on auth pages and already authenticated, redirect based on bp status
   if ((isOnLogin || isOnSignUp) && isLoggedIn) {
     const hasBp = request.cookies.get("bp");
-    const target = hasBp ? "/" : "/onboarding";
+    const target = hasBp ? "/vendor" : "/vendor/onboarding";
     return NextResponse.redirect(new URL(target, request.url));
   }
 
@@ -48,22 +51,22 @@ export function proxy(request: NextRequest) {
 
   // If not on a public route and not authenticated, redirect to signup
   if (!isLoggedIn) {
-    const signUpUrl = new URL("/signup", request.url);
+    const signUpUrl = new URL("/vendor/signup", request.url);
     signUpUrl.searchParams.set("callbackUrl", request.url);
     return NextResponse.redirect(signUpUrl);
   }
 
   // ─── Onboarding enforcement ────────────────────────────────────
   // The "bp" (business profile) cookie is set when the profile is saved.
-  // If logged in but no bp cookie, and not already on /onboarding, redirect.
+  // If logged in but no bp cookie, and not already on /vendor/onboarding, redirect.
   const hasBp = request.cookies.get("bp");
   if (!hasBp && !isOnOnboarding) {
-    return NextResponse.redirect(new URL("/onboarding", request.url));
+    return NextResponse.redirect(new URL("/vendor/onboarding", request.url));
   }
 
-  // If already on /onboarding but has bp cookie, send to home
+  // If already on /vendor/onboarding but has bp cookie, send to vendor home
   if (hasBp && isOnOnboarding) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/vendor", request.url));
   }
 
   return response;

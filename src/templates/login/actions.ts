@@ -11,7 +11,7 @@ export async function loginWithCredentials(
     await signIn("credentials", {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
-      redirectTo: "/",
+      redirectTo: "/vendor",
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -40,5 +40,5 @@ export async function loginWithCredentials(
 }
 
 export async function loginWithGoogle() {
-  await signIn("google", { redirectTo: "/" });
+  await signIn("google", { redirectTo: "/vendor" });
 }
