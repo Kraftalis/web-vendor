@@ -210,6 +210,7 @@ model EventCategory {
   // Relations
   businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
   packages          Package[]
+  events            Event[]
 
   @@unique([businessProfileId, name])
   @@index([businessProfileId])
@@ -354,6 +355,7 @@ model Event {
 
   // Event details
   eventType     String        @map("event_type") @db.VarChar(100)
+  eventCategoryId String?     @map("event_category_id") @db.Uuid
   eventDate     DateTime      @map("event_date") @db.Date
   eventTime     String?       @map("event_time") @db.VarChar(20)
   eventLocation String?       @map("event_location") @db.Text
@@ -382,6 +384,7 @@ model Event {
 
   // Relations
   businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  eventCategory   EventCategory?  @relation(fields: [eventCategoryId], references: [id], onDelete: SetNull)
   bookingLink   BookingLink?
   payments      Payment[]
   financeTransactions FinanceTransaction[]
@@ -390,6 +393,7 @@ model Event {
   @@index([eventStatus])
   @@index([paymentStatus])
   @@index([eventDate])
+  @@index([eventCategoryId])
   @@index([createdAt])
   @@map("events")
 }
@@ -409,6 +413,7 @@ model BookingLink {
   clientName    String?   @map("client_name") @db.VarChar(255)
   clientPhone   String?   @map("client_phone") @db.VarChar(50)
   clientPhoneSecondary String? @map("client_phone_secondary") @db.VarChar(50)
+  eventCategoryId String? @map("event_category_id") @db.Uuid
   eventDate     DateTime? @map("event_date") @db.Date
   eventTime     String?   @map("event_time") @db.VarChar(20)
   eventLocation String?   @map("event_location") @db.Text

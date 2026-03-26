@@ -26,6 +26,7 @@ export interface BookingLinkItem {
   token: string;
   clientName: string | null;
   clientPhone: string | null;
+  eventCategoryId: string | null;
   eventDate: string | null;
   eventTime: string | null;
   eventLocation: string | null;
@@ -55,6 +56,7 @@ export interface BookingLinkPaymentData {
 export interface CreateBookingLinkPayload {
   clientName?: string | null;
   clientPhone?: string | null;
+  eventCategoryId?: string | null;
   eventDate?: string | null;
   eventTime?: string | null;
   eventLocation?: string | null;
@@ -69,6 +71,7 @@ export interface CreateBookingLinkPayload {
 export interface UpdateBookingLinkPayload {
   clientName?: string | null;
   clientPhone?: string | null;
+  eventCategoryId?: string | null;
   eventDate?: string | null;
   eventTime?: string | null;
   eventLocation?: string | null;

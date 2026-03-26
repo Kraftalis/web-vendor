@@ -41,7 +41,7 @@ export function EventCard({
             <span
               className={`inline-block h-2 w-2 rounded-full ${eventTypeColor(event.eventType)}`}
             />
-            {event.eventType}
+            {event.eventCategoryName ?? event.eventType}
           </p>
         </div>
         <Badge variant={eventStatusVariant(event.eventStatus)}>

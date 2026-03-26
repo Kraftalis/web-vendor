@@ -29,6 +29,7 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
         id: e.id,
         clientName: e.clientName,
         eventType: e.eventType,
+        eventCategoryName: e.eventCategoryName ?? null,
         eventDate: e.eventDate,
         eventTime: e.eventTime,
         eventLocation: e.eventLocation,

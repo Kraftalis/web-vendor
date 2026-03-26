@@ -7,6 +7,8 @@ export interface EventItem {
   clientPhone: string;
   clientEmail: string | null;
   eventType: string;
+  eventCategoryId: string | null;
+  eventCategoryName: string | null;
   eventDate: string;
   eventTime: string | null;
   eventLocation: string | null;

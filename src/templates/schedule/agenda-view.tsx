@@ -137,9 +137,10 @@ function AgendaRow({
 }: AgendaRowProps) {
   const date = new Date(event.eventDate);
 
-  // Event type label from booking dict
+  // Event type label from booking dict or event category name
   const typeKey = `type${event.eventType}` as keyof typeof bookingDict;
-  const typeLabel = bookingDict[typeKey] ?? event.eventType;
+  const typeLabel =
+    event.eventCategoryName ?? bookingDict[typeKey] ?? event.eventType;
 
   return (
     <Card>

@@ -38,6 +38,7 @@ export const bookingLinkPaymentSchema = z.object({
 export const createBookingLinkSchema = z.object({
   clientName: z.string().max(255).optional().nullable(),
   clientPhone: z.string().max(50).optional().nullable(),
+  eventCategoryId: z.string().uuid().optional().nullable(),
   eventDate: z.string().optional().nullable(), // ISO date
   eventTime: z.string().max(20).optional().nullable(),
   eventLocation: z.string().max(2000).optional().nullable(),
@@ -52,6 +53,7 @@ export const createBookingLinkSchema = z.object({
 export const updateBookingLinkSchema = z.object({
   clientName: z.string().max(255).optional().nullable(),
   clientPhone: z.string().max(50).optional().nullable(),
+  eventCategoryId: z.string().uuid().optional().nullable(),
   eventDate: z.string().optional().nullable(),
   eventTime: z.string().max(20).optional().nullable(),
   eventLocation: z.string().max(2000).optional().nullable(),

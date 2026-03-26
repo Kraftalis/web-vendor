@@ -30,6 +30,7 @@ export async function GET() {
         token: l.token,
         clientName: l.clientName,
         clientPhone: l.clientPhone,
+        eventCategoryId: l.eventCategoryId ?? null,
         eventDate: l.eventDate?.toISOString() ?? null,
         eventTime: l.eventTime,
         eventLocation: l.eventLocation,

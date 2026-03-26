@@ -1,37 +1,33 @@
+import { z } from "zod";
 import type { PackageSnapshot, AddOnSnapshot } from "@/services/booking";
 
-// ─── Form state ─────────────────────────────────────────────
+// ─── Zod schema ──────────────────────────────────────────────
 
-export interface BookingLinkFormState {
-  // Client info
-  clientName: string;
-  clientPhone: string;
+export const bookingLinkSchema = z.object({
+  clientName: z.string(),
+  clientPhone: z.string(),
+  eventCategoryId: z.string(),
+  eventDate: z.string(),
+  eventTime: z.string(),
+  eventLocation: z.string(),
+  packageMode: z.enum(["existing", "custom"]),
+  selectedPkgId: z.string(),
+  selectedVariationId: z.string(),
+  customPkgName: z.string(),
+  customPkgPrice: z.string(),
+  customPkgInclusions: z.string(),
+  selectedAddOnIds: z.array(z.string()),
+  customAddOns: z.array(z.object({ name: z.string(), price: z.string() })),
+  paymentType: z.enum(["DOWN_PAYMENT", "FULL_PAYMENT", ""]),
+  paymentAmount: z.string(),
+  paymentReceipt: z.instanceof(File).nullable(),
+  paymentNote: z.string(),
+});
 
-  // Event details
-  eventDate: string;
-  eventTime: string;
-  eventLocation: string;
+export type BookingLinkFormValues = z.infer<typeof bookingLinkSchema>;
 
-  // Package (existing or custom)
-  packageMode: "existing" | "custom";
-  selectedPkgId: string;
-  selectedVariationId: string;
-
-  // Custom package
-  customPkgName: string;
-  customPkgPrice: string;
-  customPkgInclusions: string;
-
-  // Add-ons
-  selectedAddOnIds: string[];
-  customAddOns: CustomAddOnDraft[];
-
-  // Payment (optional — vendor pre-records payment)
-  paymentType: "DOWN_PAYMENT" | "FULL_PAYMENT" | "";
-  paymentAmount: string;
-  paymentReceipt: File | null;
-  paymentNote: string;
-}
+// Keep old name as alias for backward compat
+export type BookingLinkFormState = BookingLinkFormValues;
 
 export interface CustomAddOnDraft {
   name: string;

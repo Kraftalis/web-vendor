@@ -1,33 +1,26 @@
 "use client";
 
 import { useRef } from "react";
+import {
+  Controller,
+  useWatch,
+  type Control,
+  type UseFormSetValue,
+} from "react-hook-form";
 import { Input, Select } from "@/components/ui";
+import type { BookingLinkFormValues } from "./types";
 
 interface Props {
-  paymentType: "DOWN_PAYMENT" | "FULL_PAYMENT" | "";
-  setPaymentType: (v: "DOWN_PAYMENT" | "FULL_PAYMENT" | "") => void;
-  paymentAmount: string;
-  setPaymentAmount: (v: string) => void;
-  paymentReceipt: File | null;
-  setPaymentReceipt: (v: File | null) => void;
-  paymentNote: string;
-  setPaymentNote: (v: string) => void;
+  control: Control<BookingLinkFormValues>;
+  setValue: UseFormSetValue<BookingLinkFormValues>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   labels: Record<string, any>;
 }
 
-export default function PaymentSection({
-  paymentType,
-  setPaymentType,
-  paymentAmount,
-  setPaymentAmount,
-  paymentReceipt,
-  setPaymentReceipt,
-  paymentNote,
-  setPaymentNote,
-  labels,
-}: Props) {
+export default function PaymentSection({ control, setValue, labels }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const paymentType = useWatch({ control, name: "paymentType" });
+  const paymentReceipt = useWatch({ control, name: "paymentReceipt" });
 
   return (
     <div className="space-y-4">
@@ -41,36 +34,43 @@ export default function PaymentSection({
         </p>
       </div>
 
-      {/* Payment type selector */}
-      <Select
-        label={labels.paymentTypeLabel ?? "Payment Type"}
-        value={paymentType}
-        options={[
-          { value: "", label: labels.noPayment ?? "No payment" },
-          {
-            value: "DOWN_PAYMENT",
-            label: labels.dpOption ?? "Down Payment (DP)",
-          },
-          {
-            value: "FULL_PAYMENT",
-            label: labels.fullPaymentOption ?? "Full Payment",
-          },
-        ]}
-        onChange={(e) =>
-          setPaymentType(e.target.value as "DOWN_PAYMENT" | "FULL_PAYMENT" | "")
-        }
+      <Controller
+        control={control}
+        name="paymentType"
+        render={({ field }) => (
+          <Select
+            label={labels.paymentTypeLabel ?? "Payment Type"}
+            value={field.value}
+            onChange={(e) => field.onChange(e.target.value)}
+            options={[
+              { value: "", label: labels.noPayment ?? "No payment" },
+              {
+                value: "DOWN_PAYMENT",
+                label: labels.dpOption ?? "Down Payment (DP)",
+              },
+              {
+                value: "FULL_PAYMENT",
+                label: labels.fullPaymentOption ?? "Full Payment",
+              },
+            ]}
+          />
+        )}
       />
 
-      {/* Show amount + receipt + note when a payment type is selected */}
       {paymentType && (
         <div className="space-y-3">
-          <Input
-            label={labels.paymentAmountLabel ?? "Payment Amount"}
-            type="number"
-            placeholder="0"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            min="0"
+          <Controller
+            control={control}
+            name="paymentAmount"
+            render={({ field }) => (
+              <Input
+                label={labels.paymentAmountLabel ?? "Payment Amount"}
+                type="number"
+                placeholder="0"
+                min="0"
+                {...field}
+              />
+            )}
           />
 
           {/* Receipt upload */}
@@ -83,10 +83,9 @@ export default function PaymentSection({
               type="file"
               accept="image/*,.pdf"
               className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                setPaymentReceipt(f);
-              }}
+              onChange={(e) =>
+                setValue("paymentReceipt", e.target.files?.[0] ?? null)
+              }
             />
             <button
               type="button"
@@ -105,7 +104,7 @@ export default function PaymentSection({
               <button
                 type="button"
                 onClick={() => {
-                  setPaymentReceipt(null);
+                  setValue("paymentReceipt", null);
                   if (fileRef.current) fileRef.current.value = "";
                 }}
                 className="ml-2 text-xs text-red-500 hover:underline"
@@ -118,14 +117,18 @@ export default function PaymentSection({
             </p>
           </div>
 
-          {/* Note */}
-          <Input
-            label={labels.paymentNoteLabel ?? "Note (optional)"}
-            placeholder={
-              labels.paymentNotePlaceholder ?? "e.g. DP transfer via BCA"
-            }
-            value={paymentNote}
-            onChange={(e) => setPaymentNote(e.target.value)}
+          <Controller
+            control={control}
+            name="paymentNote"
+            render={({ field }) => (
+              <Input
+                label={labels.paymentNoteLabel ?? "Note (optional)"}
+                placeholder={
+                  labels.paymentNotePlaceholder ?? "e.g. DP transfer via BCA"
+                }
+                {...field}
+              />
+            )}
           />
         </div>
       )}

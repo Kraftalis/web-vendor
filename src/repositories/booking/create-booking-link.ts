@@ -37,6 +37,7 @@ export async function createBookingLink(
           clientName: input.clientName ?? "—",
           clientPhone: input.clientPhone ?? "—",
           eventType: "Other",
+          eventCategoryId: input.eventCategoryId ?? undefined,
           eventDate: input.eventDate ? new Date(input.eventDate) : new Date(),
           eventTime: input.eventTime ?? undefined,
           eventLocation: input.eventLocation ?? undefined,
@@ -80,6 +81,7 @@ export async function createBookingLink(
           eventId: event.id,
           clientName: input.clientName ?? undefined,
           clientPhone: input.clientPhone ?? undefined,
+          eventCategoryId: input.eventCategoryId ?? undefined,
           eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
           eventTime: input.eventTime ?? undefined,
           eventLocation: input.eventLocation ?? undefined,
@@ -101,6 +103,7 @@ export async function createBookingLink(
       expiresAt,
       clientName: input.clientName ?? undefined,
       clientPhone: input.clientPhone ?? undefined,
+      eventCategoryId: input.eventCategoryId ?? undefined,
       eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
       eventTime: input.eventTime ?? undefined,
       eventLocation: input.eventLocation ?? undefined,
@@ -205,6 +208,7 @@ export async function updateBookingLinkById(
           clientName: input.clientName ?? "—",
           clientPhone: input.clientPhone ?? "—",
           eventType: "Other",
+          eventCategoryId: input.eventCategoryId ?? undefined,
           eventDate: input.eventDate ? new Date(input.eventDate) : new Date(),
           eventTime: input.eventTime ?? undefined,
           eventLocation: input.eventLocation ?? undefined,
@@ -250,6 +254,9 @@ export async function updateBookingLinkById(
           ...(input.clientPhone !== undefined && {
             clientPhone: input.clientPhone ?? undefined,
           }),
+          ...(input.eventCategoryId !== undefined && {
+            eventCategoryId: input.eventCategoryId ?? undefined,
+          }),
           ...(input.eventDate !== undefined && {
             eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
           }),
@@ -282,6 +289,9 @@ export async function updateBookingLinkById(
       }),
       ...(input.clientPhone !== undefined && {
         clientPhone: input.clientPhone ?? undefined,
+      }),
+      ...(input.eventCategoryId !== undefined && {
+        eventCategoryId: input.eventCategoryId ?? undefined,
       }),
       ...(input.eventDate !== undefined && {
         eventDate: input.eventDate ? new Date(input.eventDate) : undefined,

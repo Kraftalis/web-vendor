@@ -1,47 +1,35 @@
 "use client";
 
+import {
+  Controller,
+  useWatch,
+  type Control,
+  type UseFormSetValue,
+} from "react-hook-form";
 import { Input, Textarea, Select } from "@/components/ui";
-import type { SourcePackage } from "./types";
+import type { BookingLinkFormValues, SourcePackage } from "./types";
 
 interface Props {
-  packageMode: "existing" | "custom";
-  setPackageMode: (v: "existing" | "custom") => void;
+  control: Control<BookingLinkFormValues>;
+  setValue: UseFormSetValue<BookingLinkFormValues>;
   packages: SourcePackage[];
-
-  // Existing package
-  selectedPkgId: string;
-  setSelectedPkgId: (v: string) => void;
-  selectedVariationId: string;
-  setSelectedVariationId: (v: string) => void;
-
-  // Custom package
-  customPkgName: string;
-  setCustomPkgName: (v: string) => void;
-  customPkgPrice: string;
-  setCustomPkgPrice: (v: string) => void;
-  customPkgInclusions: string;
-  setCustomPkgInclusions: (v: string) => void;
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   labels: Record<string, any>;
 }
 
 export default function PackageSelector({
-  packageMode,
-  setPackageMode,
+  control,
+  setValue,
   packages,
-  selectedPkgId,
-  setSelectedPkgId,
-  selectedVariationId,
-  setSelectedVariationId,
-  customPkgName,
-  setCustomPkgName,
-  customPkgPrice,
-  setCustomPkgPrice,
-  customPkgInclusions,
-  setCustomPkgInclusions,
   labels,
 }: Props) {
+  const packageMode = useWatch({ control, name: "packageMode" });
+  const selectedPkgId = useWatch({ control, name: "selectedPkgId" });
+  const selectedVariationId = useWatch({
+    control,
+    name: "selectedVariationId",
+  });
+
   const selectedPkg = packages.find((p) => p.id === selectedPkgId);
   const hasVariations = (selectedPkg?.items.length ?? 0) > 0;
 
@@ -56,6 +44,14 @@ export default function PackageSelector({
       label: `${v.label} — Rp ${Number(v.price).toLocaleString()}`,
     })) ?? [];
 
+  const selectedVar = selectedPkg?.items.find(
+    (v) => v.id === selectedVariationId,
+  );
+  const inclusionsToShow =
+    selectedVar && selectedVar.inclusions.length > 0
+      ? selectedVar.inclusions
+      : (selectedPkg?.inclusions ?? []);
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-gray-700">
@@ -68,7 +64,7 @@ export default function PackageSelector({
           <button
             key={mode}
             type="button"
-            onClick={() => setPackageMode(mode)}
+            onClick={() => setValue("packageMode", mode)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
               packageMode === mode
                 ? "bg-blue-600 text-white"
@@ -85,89 +81,106 @@ export default function PackageSelector({
       {/* Existing package */}
       {packageMode === "existing" && (
         <div className="space-y-3">
-          <Select
-            label={labels.selectPackage ?? "Package"}
-            value={selectedPkgId}
-            onChange={(e) => {
-              setSelectedPkgId(e.target.value);
-              setSelectedVariationId("");
-            }}
-            placeholder={labels.selectPackagePlaceholder ?? "Choose a package"}
-            options={pkgOptions}
+          <Controller
+            control={control}
+            name="selectedPkgId"
+            render={({ field }) => (
+              <Select
+                label={labels.selectPackage ?? "Package"}
+                value={field.value}
+                onChange={(e) => {
+                  field.onChange(e.target.value);
+                  setValue("selectedVariationId", "");
+                }}
+                placeholder={
+                  labels.selectPackagePlaceholder ?? "Choose a package"
+                }
+                options={pkgOptions}
+              />
+            )}
           />
 
           {hasVariations && (
-            <Select
-              label={labels.selectVariation ?? "Variation"}
-              value={selectedVariationId}
-              onChange={(e) => setSelectedVariationId(e.target.value)}
-              placeholder={
-                labels.selectVariationPlaceholder ?? "Choose variation"
-              }
-              options={variationOptions}
+            <Controller
+              control={control}
+              name="selectedVariationId"
+              render={({ field }) => (
+                <Select
+                  label={labels.selectVariation ?? "Variation"}
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  placeholder={
+                    labels.selectVariationPlaceholder ?? "Choose variation"
+                  }
+                  options={variationOptions}
+                />
+              )}
             />
           )}
 
-          {/* Show inclusions preview — variation inclusions take priority */}
-          {selectedPkg &&
-            (() => {
-              const selectedVar = selectedPkg.items.find(
-                (v) => v.id === selectedVariationId,
-              );
-              const inclusions =
-                selectedVar && selectedVar.inclusions.length > 0
-                  ? selectedVar.inclusions
-                  : selectedPkg.inclusions;
-
-              if (inclusions.length === 0) return null;
-
-              return (
-                <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                  <p className="mb-1 text-xs font-medium text-gray-500">
-                    {labels.includes ?? "Includes"}
-                  </p>
-                  <ul className="space-y-0.5">
-                    {inclusions.map((inc, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-1.5 text-xs text-gray-600"
-                      >
-                        <span className="mt-0.5 text-green-500">✓</span>
-                        {inc}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })()}
+          {selectedPkg && inclusionsToShow.length > 0 && (
+            <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+              <p className="mb-1 text-xs font-medium text-gray-500">
+                {labels.includes ?? "Includes"}
+              </p>
+              <ul className="space-y-0.5">
+                {inclusionsToShow.map((inc, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-1.5 text-xs text-gray-600"
+                  >
+                    <span className="mt-0.5 text-green-500">✓</span>
+                    {inc}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
       {/* Custom package */}
       {packageMode === "custom" && (
         <div className="space-y-3">
-          <Input
-            label={labels.customPkgName ?? "Package Name"}
-            placeholder={
-              labels.customPkgNamePlaceholder ?? "e.g. Custom Wedding Shoot"
-            }
-            value={customPkgName}
-            onChange={(e) => setCustomPkgName(e.target.value)}
+          <Controller
+            control={control}
+            name="customPkgName"
+            render={({ field }) => (
+              <Input
+                label={labels.customPkgName ?? "Package Name"}
+                placeholder={
+                  labels.customPkgNamePlaceholder ?? "e.g. Custom Wedding Shoot"
+                }
+                {...field}
+              />
+            )}
           />
-          <Input
-            label={labels.customPkgPrice ?? "Price"}
-            type="number"
-            min="0"
-            placeholder="0"
-            value={customPkgPrice}
-            onChange={(e) => setCustomPkgPrice(e.target.value)}
+          <Controller
+            control={control}
+            name="customPkgPrice"
+            render={({ field }) => (
+              <Input
+                label={labels.customPkgPrice ?? "Price"}
+                type="number"
+                min="0"
+                placeholder="0"
+                {...field}
+              />
+            )}
           />
-          <Textarea
-            label={labels.customPkgInclusions ?? "Inclusions (one per line)"}
-            placeholder="e.g. 2 photographers&#10;3 hours coverage"
-            value={customPkgInclusions}
-            onChange={(e) => setCustomPkgInclusions(e.target.value)}
-            rows={3}
+          <Controller
+            control={control}
+            name="customPkgInclusions"
+            render={({ field }) => (
+              <Textarea
+                label={
+                  labels.customPkgInclusions ?? "Inclusions (one per line)"
+                }
+                placeholder={"e.g. 2 photographers\n3 hours coverage"}
+                rows={3}
+                {...field}
+              />
+            )}
           />
         </div>
       )}

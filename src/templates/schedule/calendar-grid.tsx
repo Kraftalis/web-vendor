@@ -176,7 +176,7 @@ function EventDots({ events }: { events: ScheduleEvent[] }) {
         <span
           key={ev.id}
           className={`truncate rounded px-1 py-px text-[10px] font-medium leading-tight text-white ${eventTypeColor(ev.eventType)}`}
-          title={`${ev.clientName} — ${ev.eventType}`}
+          title={`${ev.clientName}${ev.eventCategoryName ? ` — ${ev.eventCategoryName}` : ev.eventType ? ` — ${ev.eventType}` : ""}`}
         >
           {ev.clientName.length > 10
             ? ev.clientName.slice(0, 10) + "…"

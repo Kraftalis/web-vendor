@@ -39,6 +39,8 @@ export async function GET() {
           clientPhone: e.clientPhone,
           clientEmail: e.clientEmail,
           eventType: e.eventType,
+          eventCategoryId: e.eventCategoryId,
+          eventCategoryName: e.eventCategory?.name ?? null,
           eventDate: e.eventDate.toISOString(),
           eventTime: e.eventTime,
           eventLocation: e.eventLocation,

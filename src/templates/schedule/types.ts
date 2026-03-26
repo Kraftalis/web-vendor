@@ -6,6 +6,7 @@ export interface ScheduleEvent {
   id: string;
   clientName: string;
   eventType: string;
+  eventCategoryName: string | null;
   eventDate: string; // ISO
   eventTime: string | null;
   eventLocation: string | null;
