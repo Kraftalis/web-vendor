@@ -14,6 +14,7 @@ import {
 } from "@/components/icons";
 import { useDictionary } from "@/i18n";
 import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
+import { getBookingUrl } from "@/lib/booking-url";
 // types imported from services when needed
 import { eventStatusVariant, paymentStatusVariant } from "./types";
 import {
@@ -159,7 +160,7 @@ export default function EventDetailTemplate({
   function handleCopyLink() {
     const bookingToken = eventData?.bookingToken;
     if (!bookingToken) return;
-    const url = `${window.location.origin}/booking/${bookingToken}`;
+    const url = getBookingUrl(bookingToken);
     navigator.clipboard.writeText(url);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);

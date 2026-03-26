@@ -17,6 +17,7 @@ import {
 import type { BookingLinkItem, PackageSnapshot } from "@/services/booking";
 import { useDeleteBookingLink } from "@/hooks/booking";
 import { useConfirmDelete } from "@/hooks";
+import { getBookingUrl } from "@/lib/booking-url";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -182,8 +183,7 @@ function OfferingCard({
   const timeRemaining = getTimeRemaining(link.expiresAt);
   const timeStr = formatTimeRemaining(timeRemaining, labels);
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const bookingUrl = `${origin}/booking/${link.token}`;
+  const bookingUrl = getBookingUrl(link.token);
 
   const pkg = link.packageSnapshot as PackageSnapshot | null;
   const addOns = (link.addOnsSnapshot ?? []) as {

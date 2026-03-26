@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui";
 import { IconLink, IconCheck } from "@/components/icons";
+import { getBookingUrl } from "@/lib/booking-url";
 
 interface Props {
   token: string;
@@ -22,8 +23,7 @@ export default function BookingLinkResult({
 }: Props) {
   const [copied, setCopied] = useState(false);
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const bookingUrl = `${origin}/booking/${token}`;
+  const bookingUrl = getBookingUrl(token);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(bookingUrl);
