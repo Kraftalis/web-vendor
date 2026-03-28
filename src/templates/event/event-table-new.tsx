@@ -149,7 +149,7 @@ function EventCard({
               <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
                 <span className="inline-flex items-center gap-1">
                   <IconEvent size={12} className="text-slate-400" />
-                  {event.eventType}
+                  {event.eventCategoryName ?? event.eventType}
                 </span>
                 {event.packageName && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">

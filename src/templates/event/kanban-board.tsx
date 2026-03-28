@@ -141,7 +141,9 @@ function KanbanCard({
           <p className="truncate text-sm font-semibold text-slate-900 group-hover:text-blue-700">
             {event.clientName}
           </p>
-          <p className="text-xs text-slate-500">{event.eventType}</p>
+          <p className="text-xs text-slate-500">
+            {event.eventCategoryName ?? event.eventType}
+          </p>
         </div>
         {event.amount && (
           <p className="shrink-0 text-xs font-bold text-slate-700">

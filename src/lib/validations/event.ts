@@ -5,19 +5,29 @@ import { z } from "zod";
 export const createEventSchema = z.object({
   clientName: z.string().min(1, "Client name is required.").max(255),
   clientPhone: z.string().min(1, "Phone number is required.").max(50),
+  clientPhoneSecondary: z.string().max(50).optional().nullable(),
   clientEmail: z
     .string()
     .email("Invalid email.")
     .max(320)
     .optional()
     .nullable(),
-  eventType: z.string().min(1, "Event type is required.").max(100),
+  eventType: z.string().max(100).optional().nullable(),
+  eventCategoryId: z.string().uuid("Invalid category.").optional().nullable(),
   eventDate: z.string().min(1, "Event date is required."), // ISO date string
   eventTime: z.string().max(20).optional().nullable(),
   eventLocation: z.string().max(2000).optional().nullable(),
+  eventLocationUrl: z.string().max(2000).optional().nullable(),
   packageSnapshot: z.any().optional().nullable(),
   addOnsSnapshot: z.any().optional().nullable(),
-  amount: z.number().min(0).optional().nullable(),
+  amount: z
+    .union([
+      z.number(),
+      z.string().transform((v) => (v === "" ? null : Number(v))),
+    ])
+    .pipe(z.number().min(0).nullable())
+    .optional()
+    .nullable(),
   currency: z.string().max(10).optional().default("IDR"),
   notes: z.string().max(5000).optional().nullable(),
 });

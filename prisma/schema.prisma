@@ -383,6 +383,7 @@ model Event {
   eventCategory   EventCategory?  @relation(fields: [eventCategoryId], references: [id], onDelete: SetNull)
   bookingLink   BookingLink?
   payments      Payment[]
+  briefs        EventBrief[]
   financeTransactions FinanceTransaction[]
 
   @@index([businessProfileId])
@@ -392,6 +393,36 @@ model Event {
   @@index([eventCategoryId])
   @@index([createdAt])
   @@map("events")
+}
+
+// ─── Event Brief (Notes / Instructions) ─────────────────────────────────────
+
+/// Briefs are notes, instructions, or file attachments posted to an event.
+/// Both vendors and clients can post briefs (tracked via authorType).
+model EventBrief {
+  id            String   @id @default(uuid()) @db.Uuid
+  eventId       String   @map("event_id") @db.Uuid
+
+  // Content
+  title         String   @db.VarChar(500)
+  content       String?  @db.Text          // HTML from rich text editor
+  attachments   Json     @default("[]") @db.JsonB
+  // JSON: [{ name, url, type, size }]
+
+  // Author tracking
+  authorType    String   @map("author_type") @db.VarChar(10) // "VENDOR" or "CLIENT"
+  authorName    String?  @map("author_name") @db.VarChar(255)
+
+  // Audit fields
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([createdAt])
+  @@map("event_briefs")
 }
 
 // ─── Booking Link (Persistent Client Portal) ───────────────────────────────

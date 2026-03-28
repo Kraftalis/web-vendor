@@ -69,7 +69,9 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
     /* state */
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
+    const [style, setStyle] = useState<React.CSSProperties>({});
     const containerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
 
     // For uncontrolled single-select with defaultValue
@@ -78,6 +80,11 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
     const currentValue = value ?? internalValue;
     const currentMulti = values ?? [];
 
+    const handleClose = useCallback(() => {
+      setOpen(false);
+      setSearch("");
+    }, []);
+
     /* close on outside click */
     useEffect(() => {
       function handleClick(e: MouseEvent) {
@@ -85,13 +92,41 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
           containerRef.current &&
           !containerRef.current.contains(e.target as Node)
         ) {
-          setOpen(false);
-          setSearch("");
+          handleClose();
         }
       }
       document.addEventListener("mousedown", handleClick);
       return () => document.removeEventListener("mousedown", handleClick);
+    }, [handleClose]);
+
+    /* close on scroll */
+    useEffect(() => {
+      if (!open) return;
+      window.addEventListener("scroll", handleClose, true);
+      return () => window.removeEventListener("scroll", handleClose, true);
+    }, [open, handleClose]);
+
+    /* calculate position */
+    const calculatePosition = useCallback(() => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setStyle({
+          position: "fixed",
+          top: rect.bottom + 4, // 4px gap
+          left: rect.left,
+          width: rect.width,
+        });
+      }
     }, []);
+
+    const handleTriggerClick = () => {
+      if (disabled) return;
+      const isOpen = !open;
+      setOpen(isOpen);
+      if (isOpen) {
+        calculatePosition();
+      }
+    };
 
     /* focus search when opened */
     useEffect(() => {
@@ -101,12 +136,14 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
     }, [open, searchable]);
 
     /* keyboard navigation */
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        setSearch("");
-      }
-    }, []);
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (e.key === "Escape") {
+          handleClose();
+        }
+      },
+      [handleClose],
+    );
 
     /* filtered options */
     const filtered = search
@@ -179,10 +216,11 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
 
         {/* Trigger button */}
         <button
+          ref={triggerRef}
           type="button"
           id={id}
           disabled={disabled}
-          onClick={() => !disabled && setOpen((prev) => !prev)}
+          onClick={handleTriggerClick}
           className={`flex items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-600/20 ${
             widthAuto ? "w-auto" : "w-full"
           } ${
@@ -216,7 +254,10 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
 
         {/* Dropdown */}
         {open && (
-          <div className="absolute left-0 z-50 mt-1 w-full min-w-48 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
+          <div
+            style={style}
+            className="z-50 mt-1 min-w-48 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg animate-in fade-in slide-in-from-top-1 duration-150"
+          >
             {/* Search box */}
             {searchable && (
               <div className="border-b border-gray-100 p-2">

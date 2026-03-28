@@ -16,11 +16,14 @@ export async function createEvent(
       businessProfileId,
       clientName: data.clientName,
       clientPhone: data.clientPhone,
+      clientPhoneSecondary: data.clientPhoneSecondary ?? undefined,
       clientEmail: data.clientEmail ?? undefined,
-      eventType: data.eventType,
+      eventType: data.eventType ?? "",
+      eventCategoryId: data.eventCategoryId ?? undefined,
       eventDate: new Date(data.eventDate),
       eventTime: data.eventTime ?? undefined,
       eventLocation: data.eventLocation ?? undefined,
+      eventLocationUrl: data.eventLocationUrl ?? undefined,
       packageSnapshot: data.packageSnapshot ?? undefined,
       addOnsSnapshot: data.addOnsSnapshot ?? undefined,
       amount: data.amount ?? undefined,
@@ -28,6 +31,7 @@ export async function createEvent(
       notes: data.notes ?? undefined,
     },
     include: {
+      eventCategory: { select: { id: true, name: true } },
       bookingLink: { select: { token: true } },
       payments: true,
     },
@@ -45,10 +49,20 @@ export async function updateEvent(id: string, data: UpdateEventInput) {
     updateData.eventDate = new Date(data.eventDate);
   }
 
+  // Normalise empty strings to null for optional foreign-key fields
+  if (
+    "eventCategoryId" in updateData &&
+    (updateData.eventCategoryId === "" ||
+      updateData.eventCategoryId === undefined)
+  ) {
+    updateData.eventCategoryId = null;
+  }
+
   return prisma.event.update({
     where: { id },
     data: updateData,
     include: {
+      eventCategory: { select: { id: true, name: true } },
       bookingLink: { select: { token: true } },
       payments: true,
     },

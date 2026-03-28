@@ -94,6 +94,8 @@ export async function POST(request: NextRequest) {
     return createdResponse({
       ...event,
       eventDate: event.eventDate.toISOString(),
+      eventCategoryId: event.eventCategoryId ?? null,
+      eventCategoryName: event.eventCategory?.name ?? null,
       amount: event.amount ? String(event.amount) : null,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),

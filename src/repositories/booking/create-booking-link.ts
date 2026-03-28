@@ -1,5 +1,9 @@
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
+import {
+  findPrimaryAccount,
+  createIncomeFromPayment,
+} from "@/repositories/finance";
 import type {
   CreateBookingLinkInput,
   UpdateBookingLinkInput,
@@ -58,7 +62,7 @@ export async function createBookingLink(
       });
 
       // 2. Create the payment record (vendor-recorded → auto-verified)
-      await tx.payment.create({
+      const payment = await tx.payment.create({
         data: {
           eventId: event.id,
           paymentType: input.payment!.paymentType,
@@ -71,6 +75,23 @@ export async function createBookingLink(
           isVerified: true,
         },
       });
+
+      // 2b. Auto-record income in primary finance account
+      const primaryAccount = await findPrimaryAccount(businessProfileId);
+      if (primaryAccount) {
+        await createIncomeFromPayment({
+          businessProfileId,
+          primaryAccountId: primaryAccount.id,
+          paymentId: payment.id,
+          amount: input.payment!.amount,
+          eventId: event.id,
+          clientName: input.clientName ?? null,
+          eventType: "Other",
+          paymentType: input.payment!.paymentType,
+          receiptUrl: input.payment!.receiptUrl ?? null,
+          receiptName: input.payment!.receiptName ?? null,
+        });
+      }
 
       // 3. Create the booking link, linked to the event
       const link = await tx.bookingLink.create({
@@ -229,7 +250,7 @@ export async function updateBookingLinkById(
       });
 
       // 2. Create payment record
-      await tx.payment.create({
+      const payment = await tx.payment.create({
         data: {
           eventId: event.id,
           paymentType: input.payment!.paymentType,
@@ -242,6 +263,23 @@ export async function updateBookingLinkById(
           isVerified: true,
         },
       });
+
+      // 2b. Auto-record income in primary finance account
+      const primaryAccount = await findPrimaryAccount(businessProfileId);
+      if (primaryAccount) {
+        await createIncomeFromPayment({
+          businessProfileId,
+          primaryAccountId: primaryAccount.id,
+          paymentId: payment.id,
+          amount: input.payment!.amount,
+          eventId: event.id,
+          clientName: input.clientName ?? null,
+          eventType: "Other",
+          paymentType: input.payment!.paymentType,
+          receiptUrl: input.payment!.receiptUrl ?? null,
+          receiptName: input.payment!.receiptName ?? null,
+        });
+      }
 
       // 3. Update the booking link with data + event link
       return tx.bookingLink.update({

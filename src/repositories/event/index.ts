@@ -22,3 +22,15 @@ export {
   updateEventCategory,
   deleteEventCategory,
 } from "./event-category";
+export {
+  findBriefsByEventId,
+  findBriefById,
+  createBrief,
+  updateBrief,
+  deleteBrief,
+} from "./brief";
+export type {
+  BriefAttachment,
+  CreateBriefInput,
+  UpdateBriefInput,
+} from "./brief";

@@ -325,9 +325,11 @@ const en = {
     clientInfo: "Client Information",
     clientName: "Full Name",
     clientPhone: "Phone Number",
+    clientPhoneSecondary: "Secondary Phone",
     clientEmail: "Email",
     eventInfo: "Event Information",
     eventType: "Event Type",
+    eventCategory: "Event Category",
     eventDate: "Event Date",
     eventTime: "Event Time",
     eventLocation: "Location",
@@ -341,9 +343,29 @@ const en = {
     remainingBalance: "Remaining Balance",
     notes: "Notes",
     noNotes: "No additional notes.",
+    edit: "Edit",
     editEvent: "Edit Event",
+    editPackage: "Edit Package",
+    editAddOns: "Edit Add-ons",
     updateStatus: "Update Status",
     saveChanges: "Save Changes",
+    notSet: "—",
+
+    // Package & Add-on edit modal
+    selectPackage: "Select Package",
+    customPackage: "Custom Package",
+    packageNameLabel: "Package Name",
+    packageDescription: "Description",
+    packagePrice: "Price",
+    noPackage: "No package selected",
+    orCustom: "or custom",
+    selectVariation: "Select Variation",
+    selectAddOns: "Select from existing add-ons",
+    customAddOn: "Custom Add-ons",
+    addOnNameLabel: "Add-on Name",
+    addOnPriceLabel: "Price",
+    addMore: "Add More",
+    remove: "Remove",
 
     // Payment tracking
     paymentProgress: "Payment Progress",
@@ -366,6 +388,33 @@ const en = {
     statusLabel: "Status",
     receiptLabel: "Receipt",
     actionLabel: "Action",
+
+    // Tabs
+    tabGeneralInfo: "General Information",
+    tabPackagePayments: "Package & Payments",
+    tabBrief: "Brief",
+
+    // Brief
+    noBriefs: "No briefs yet.",
+    noBriefsDesc: "Add notes, files, or instructions for this event.",
+    addBrief: "Add Brief",
+    briefTitle: "Title",
+    briefTitlePlaceholder: "Brief title...",
+    briefContent: "Content",
+    briefPlaceholder: "Write a note or instruction...",
+    briefAttachFile: "Attach file",
+    briefSubmit: "Post",
+    briefPosting: "Posting...",
+    briefDeleteConfirm: "Confirm?",
+    briefDelete: "Delete",
+    briefBy: "By",
+    briefViewAttachment: "View Attachment",
+    briefMore: "More",
+    briefImages: "Images",
+    briefFiles: "Files",
+
+    // Link map
+    eventLocationUrl: "Map Link",
   },
 
   // ─── Generate Booking Link Modal ─────────────────────────

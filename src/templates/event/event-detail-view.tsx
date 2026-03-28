@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardHeader, CardBody } from "@/components/ui";
+import { Card, CardHeader, CardBody, Button } from "@/components/ui";
 import {
   IconPhone,
   IconMail,
@@ -8,8 +8,9 @@ import {
   IconClock,
   IconCalendar,
   IconNotes,
+  IconEdit,
 } from "@/components/icons";
-import type { EventDetail } from "./types";
+import type { EventDetail, PackageSnapshot, AddOnSnapshot } from "./types";
 import { formatCurrency } from "./types";
 
 // ─── View Mode ──────────────────────────────────────────────
@@ -21,143 +22,270 @@ interface EventDetailViewProps {
     clientInfo: string;
     clientName: string;
     clientPhone: string;
+    clientPhoneSecondary: string;
     clientEmail: string;
     eventInfo: string;
-    eventType: string;
+    eventCategory: string;
     eventDate: string;
     eventTime: string;
     eventLocation: string;
-    packageInfo: string;
-    packageName: string;
-    addOns: string;
-    paymentInfo: string;
-    totalAmount: string;
+    eventLocationUrl?: string;
     notes: string;
     noNotes: string;
+    editLabel?: string;
+    notSet?: string;
+    updateStatus?: string;
+    paymentStatus?: string;
   };
-  bookingLabels: {
+  /** Which cards to show */
+  variant?:
+    | "general"
+    | "package-only"
+    | "client-only"
+    | "event-only"
+    | "status-only"
+    | "notes-only";
+  /** Callbacks to enable per-card edit buttons */
+  onEditClient?: () => void;
+  onEditEvent?: () => void;
+  onEditNotes?: () => void;
+  onEditStatus?: () => void;
+  onEditPackage?: () => void;
+  onEditAddOns?: () => void;
+  bookingLabels?: {
     totalPaid: string;
     remaining: string;
   };
-  totalPaid: number;
-  remaining: number;
+  totalPaid?: number;
+  remaining?: number;
+  /** Status display helpers */
+  eventStatusLabel?: string;
+  paymentStatusLabel?: string;
 }
 
 export function EventDetailView({
   event,
   formatDate,
   labels,
+  variant = "general",
+  onEditClient,
+  onEditEvent,
+  onEditNotes,
+  onEditStatus,
+  onEditPackage,
+  onEditAddOns,
   bookingLabels,
-  totalPaid,
-  remaining,
+  totalPaid = 0,
+  remaining = 0,
+  eventStatusLabel,
+  paymentStatusLabel,
 }: EventDetailViewProps) {
+  if (variant === "package-only") {
+    return (
+      <div className="space-y-6">
+        {/* Package (from snapshot) */}
+        {event.packageSnapshot != null && (
+          <PackageSnapshotCard
+            snapshot={event.packageSnapshot as Record<string, unknown>}
+            currency={event.currency}
+            onEdit={onEditPackage}
+            editLabel={labels.editLabel}
+          />
+        )}
+
+        {/* Add-ons (from snapshot) */}
+        <AddOnsSnapshotCard
+          snapshot={(event.addOnsSnapshot as AddOnSnapshot[] | undefined) ?? []}
+          currency={event.currency}
+          onEdit={onEditAddOns}
+          editLabel={labels.editLabel}
+        />
+
+        {/* Payment Summary */}
+        {bookingLabels && (
+          <Card>
+            <CardHeader>
+              <h2 className="text-base font-semibold text-gray-900">
+                Payment Summary
+              </h2>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <InfoRow label="Total">
+                {formatCurrency(event.amount, event.currency)}
+              </InfoRow>
+              <InfoRow label={bookingLabels.totalPaid}>
+                <span className="text-green-600">
+                  {formatCurrency(totalPaid.toString())}
+                </span>
+              </InfoRow>
+              <InfoRow label={bookingLabels.remaining}>
+                <span
+                  className={remaining > 0 ? "text-red-600" : "text-green-600"}
+                >
+                  {formatCurrency(remaining.toString())}
+                </span>
+              </InfoRow>
+            </CardBody>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // Determine which cards to show
+  const showClient = variant === "general" || variant === "client-only";
+  const showEvent = variant === "general" || variant === "event-only";
+  const showStatus = variant === "status-only";
+  const showNotes = variant === "general" || variant === "notes-only";
+
   return (
     <div className="space-y-6">
       {/* Client Info */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.clientInfo}
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-3">
-          <InfoRow label={labels.clientName}>{event.clientName}</InfoRow>
-          <InfoRow label={labels.clientPhone} icon={<IconPhone size={14} />}>
-            {event.clientPhone}
-          </InfoRow>
-          {event.clientEmail && (
-            <InfoRow label={labels.clientEmail} icon={<IconMail size={14} />}>
-              {event.clientEmail}
+      {showClient && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.clientInfo}
+            </h2>
+            {onEditClient && (
+              <Button variant="ghost" size="sm" onClick={onEditClient}>
+                <IconEdit size={14} />
+                {labels.editLabel ?? "Edit"}
+              </Button>
+            )}
+          </CardHeader>
+          <CardBody className="space-y-3">
+            <InfoRow label={labels.clientName}>{event.clientName}</InfoRow>
+            <InfoRow label={labels.clientPhone} icon={<IconPhone size={14} />}>
+              {event.clientPhone}
             </InfoRow>
-          )}
-        </CardBody>
-      </Card>
+            <InfoRow
+              label={labels.clientPhoneSecondary}
+              icon={<IconPhone size={14} />}
+            >
+              {event.clientPhoneSecondary || labels.notSet || "—"}
+            </InfoRow>
+            <InfoRow label={labels.clientEmail} icon={<IconMail size={14} />}>
+              {event.clientEmail || labels.notSet || "—"}
+            </InfoRow>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Event Info */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.eventInfo}
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-3">
-          <InfoRow label={labels.eventType}>{event.eventType}</InfoRow>
-          <InfoRow label={labels.eventDate} icon={<IconCalendar size={14} />}>
-            {formatDate(event.eventDate)}
-          </InfoRow>
-          {event.eventTime && (
-            <InfoRow label={labels.eventTime} icon={<IconClock size={14} />}>
-              {event.eventTime}
+      {showEvent && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.eventInfo}
+            </h2>
+            {onEditEvent && (
+              <Button variant="ghost" size="sm" onClick={onEditEvent}>
+                <IconEdit size={14} />
+                {labels.editLabel ?? "Edit"}
+              </Button>
+            )}
+          </CardHeader>
+          <CardBody className="space-y-3">
+            <InfoRow label={labels.eventCategory}>
+              {event.eventCategoryName ??
+                event.eventType ??
+                labels.notSet ??
+                "—"}
             </InfoRow>
-          )}
-          {event.eventLocation && (
+            <InfoRow label={labels.eventDate} icon={<IconCalendar size={14} />}>
+              {formatDate(event.eventDate)}
+            </InfoRow>
+            <InfoRow label={labels.eventTime} icon={<IconClock size={14} />}>
+              {event.eventTime || labels.notSet || "—"}
+            </InfoRow>
             <InfoRow
               label={labels.eventLocation}
               icon={<IconMapPin size={14} />}
             >
-              {event.eventLocation}
+              {event.eventLocation ? (
+                event.eventLocationUrl ? (
+                  <a
+                    href={event.eventLocationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {event.eventLocation}
+                  </a>
+                ) : (
+                  event.eventLocation
+                )
+              ) : (
+                (labels.notSet ?? "—")
+              )}
             </InfoRow>
-          )}
-        </CardBody>
-      </Card>
-
-      {/* Package (from snapshot) */}
-      {event.packageSnapshot != null && (
-        <PackageSnapshotCard
-          snapshot={event.packageSnapshot as Record<string, unknown>}
-          currency={event.currency}
-          labels={labels}
-        />
+            {event.eventLocationUrl && (
+              <InfoRow
+                label={labels.eventLocationUrl ?? "Map Link"}
+                icon={<IconMapPin size={14} />}
+              >
+                <a
+                  href={event.eventLocationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  {labels.eventLocationUrl ?? "View Map"}
+                </a>
+              </InfoRow>
+            )}
+          </CardBody>
+        </Card>
       )}
 
-      {/* Add-ons (from snapshot) */}
-      {Array.isArray(event.addOnsSnapshot) &&
-        (event.addOnsSnapshot as Record<string, unknown>[]).length > 0 && (
-          <AddOnsSnapshotCard
-            snapshot={event.addOnsSnapshot as Record<string, unknown>[]}
-            currency={event.currency}
-            label={labels.addOns}
-          />
-        )}
-
-      {/* Payment Summary */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.paymentInfo}
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-3">
-          <InfoRow label={labels.totalAmount}>
-            {formatCurrency(event.amount, event.currency)}
-          </InfoRow>
-          <InfoRow label={bookingLabels.totalPaid}>
-            <span className="text-green-600">
-              {formatCurrency(totalPaid.toString())}
-            </span>
-          </InfoRow>
-          <InfoRow label={bookingLabels.remaining}>
-            <span className={remaining > 0 ? "text-red-600" : "text-green-600"}>
-              {formatCurrency(remaining.toString())}
-            </span>
-          </InfoRow>
-        </CardBody>
-      </Card>
+      {/* Status */}
+      {showStatus && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.updateStatus ?? "Status"}
+            </h2>
+            {onEditStatus && (
+              <Button variant="ghost" size="sm" onClick={onEditStatus}>
+                <IconEdit size={14} />
+                {labels.editLabel ?? "Edit"}
+              </Button>
+            )}
+          </CardHeader>
+          <CardBody className="space-y-3">
+            <InfoRow label={labels.updateStatus ?? "Event Status"}>
+              {eventStatusLabel ?? event.eventStatus}
+            </InfoRow>
+            <InfoRow label={labels.paymentStatus ?? "Payment Status"}>
+              {paymentStatusLabel ?? event.paymentStatus}
+            </InfoRow>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Notes */}
-      <Card>
-        <CardHeader>
-          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900">
-            <IconNotes size={16} />
-            {labels.notes}
-          </h2>
-        </CardHeader>
-        <CardBody>
-          <p className="text-sm text-gray-600">
-            {event.notes || labels.noNotes}
-          </p>
-        </CardBody>
-      </Card>
+      {showNotes && (
+        <Card>
+          <CardHeader>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900">
+              <IconNotes size={16} />
+              {labels.notes}
+            </h2>
+            {onEditNotes && (
+              <Button variant="ghost" size="sm" onClick={onEditNotes}>
+                <IconEdit size={14} />
+                {labels.editLabel ?? "Edit"}
+              </Button>
+            )}
+          </CardHeader>
+          <CardBody>
+            <p className="text-sm text-gray-600">
+              {event.notes || labels.noNotes}
+            </p>
+          </CardBody>
+        </Card>
+      )}
     </div>
   );
 }
@@ -192,27 +320,48 @@ function PackageSnapshotCard({
   snapshot,
   currency,
   labels,
+  onEdit,
+  editLabel,
 }: {
-  snapshot: Record<string, unknown>;
+  snapshot: PackageSnapshot;
   currency: string;
-  labels: { packageInfo: string; packageName: string };
+  labels?: { packageInfo: string; packageName: string };
+  onEdit?: () => void;
+  editLabel?: string;
 }) {
+  const inclusions = (snapshot.inclusions as string[] | undefined) ?? [];
+
   return (
     <Card>
       <CardHeader>
         <h2 className="text-base font-semibold text-gray-900">
-          {labels.packageInfo}
+          {labels?.packageInfo ?? "Package"}
         </h2>
+        {onEdit && (
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            <IconEdit size={14} />
+            {editLabel ?? "Edit"}
+          </Button>
+        )}
       </CardHeader>
       <CardBody className="space-y-3">
-        <InfoRow label={labels.packageName}>
+        <InfoRow label={labels?.packageName ?? "Selected Package"}>
           {(snapshot.name as string) ?? "-"}
         </InfoRow>
         {typeof snapshot.description === "string" && snapshot.description && (
           <p className="text-sm text-gray-600">{snapshot.description}</p>
         )}
+        {inclusions.length > 0 && (
+          <ul className="mt-2 space-y-1 pl-4">
+            {inclusions.map((item, i) => (
+              <li key={i} className="list-disc text-xs text-gray-500">
+                {item}
+              </li>
+            ))}
+          </ul>
+        )}
         {snapshot.price != null && (
-          <p className="text-sm font-medium text-gray-900">
+          <p className="mt-2 text-sm font-medium text-gray-900">
             {formatCurrency(String(snapshot.price), currency)}
           </p>
         )}
@@ -227,39 +376,55 @@ function AddOnsSnapshotCard({
   snapshot,
   currency,
   label,
+  onEdit,
+  editLabel,
 }: {
-  snapshot: Record<string, unknown>[];
+  snapshot: AddOnSnapshot[];
   currency: string;
-  label: string;
+  label?: string;
+  onEdit?: () => void;
+  editLabel?: string;
 }) {
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-base font-semibold text-gray-900">{label}</h2>
+        <h2 className="text-base font-semibold text-gray-900">
+          {label ?? "Add-ons"}
+        </h2>
+        {onEdit && (
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            <IconEdit size={14} />
+            {editLabel ?? "Edit"}
+          </Button>
+        )}
       </CardHeader>
       <CardBody>
-        <div className="space-y-2">
-          {snapshot.map((addon, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between text-sm"
-            >
-              <span className="text-gray-700">
-                {addon.name as string}
-                {(addon.quantity as number) > 1 && (
-                  <span className="ml-1 text-gray-400">
-                    ×{addon.quantity as number}
+        {snapshot.length > 0 ? (
+          <div className="space-y-2">
+            {snapshot.map((addon, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between text-sm"
+              >
+                <span className="text-gray-700">
+                  {addon.name as string}
+                  {(addon.quantity as number) > 1 && (
+                    <span className="ml-1 text-gray-400">
+                      ×{addon.quantity as number}
+                    </span>
+                  )}
+                </span>
+                {addon.price != null && (
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(String(addon.price), currency)}
                   </span>
                 )}
-              </span>
-              {addon.price != null && (
-                <span className="font-medium text-gray-900">
-                  {formatCurrency(String(addon.price), currency)}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">No add-ons selected.</p>
+        )}
       </CardBody>
     </Card>
   );

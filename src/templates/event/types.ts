@@ -54,6 +54,8 @@ export interface EventItem {
   clientPhone: string;
   clientEmail: string | null;
   eventType: string;
+  eventCategoryId: string | null;
+  eventCategoryName: string | null;
   eventDate: string; // ISO
   eventTime: string | null;
   eventLocation: string | null;
@@ -81,6 +83,22 @@ export interface EventItem {
 
 // ─── Event Detail ───────────────────────────────────────────
 
+export interface PackageSnapshot {
+  name: string;
+  description?: string | null;
+  price: string | number;
+  inclusions?: string[];
+  [key: string]: unknown;
+}
+
+export interface AddOnSnapshot {
+  name: string;
+  description?: string | null;
+  price: string | number;
+  quantity?: number;
+  [key: string]: unknown;
+}
+
 export interface PaymentSerialized {
   id: string;
   amount: string;
@@ -98,17 +116,21 @@ export interface EventDetail {
   vendorId: string;
   clientName: string;
   clientPhone: string;
+  clientPhoneSecondary?: string | null;
   clientEmail: string | null;
   eventType: string;
+  eventCategoryId: string | null;
+  eventCategoryName: string | null;
   eventDate: string;
   eventTime: string | null;
   eventLocation: string | null;
+  eventLocationUrl: string | null;
   packageSnapshot: unknown;
   addOnsSnapshot: unknown;
   amount: string | null;
   currency: string;
   eventStatus: string;
-  paymentStatus: string;
+  paymentStatus: "UNPAID" | "DP_PAID" | "PAID";
   notes: string | null;
   createdAt: string;
   updatedAt: string;

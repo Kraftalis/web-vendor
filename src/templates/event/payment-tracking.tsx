@@ -5,6 +5,7 @@ import {
   Card,
   CardHeader,
   CardBody,
+  CardFooter,
   Badge,
   Button,
   Input,
@@ -25,11 +26,13 @@ interface PaymentProgressProps {
   totalAmount: number;
   totalPaid: number;
   remaining: number;
+  onAddPayment?: () => void;
   labels: {
     paymentProgress: string;
     paidOf: string;
     totalPaid: string;
     remaining: string;
+    addPayment?: string;
   };
 }
 
@@ -37,6 +40,7 @@ export function PaymentProgress({
   totalAmount,
   totalPaid,
   remaining,
+  onAddPayment,
   labels,
 }: PaymentProgressProps) {
   const percentage =
@@ -92,6 +96,15 @@ export function PaymentProgress({
           </div>
         </div>
       </CardBody>
+
+      {/* Add Payment button in footer (requirement #8) */}
+      {onAddPayment && (
+        <CardFooter className="flex justify-end">
+          <Button size="sm" onClick={onAddPayment}>
+            {labels.addPayment ?? "Add Payment"}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
@@ -103,6 +116,11 @@ interface PaymentRecordsProps {
   paymentTypeMap: Record<string, string>;
   onVerify: (paymentId: string) => void;
   onReject: (paymentId: string) => void;
+  onViewReceipt?: (receipt: {
+    url: string;
+    name: string;
+    type: string;
+  }) => void;
   labels: {
     paymentRecords: string;
     noPaymentsYet: string;
@@ -129,6 +147,7 @@ export function PaymentRecords({
   paymentTypeMap,
   onVerify,
   onReject,
+  onViewReceipt,
   labels,
   formatDate,
 }: PaymentRecordsProps) {
@@ -184,6 +203,7 @@ export function PaymentRecords({
                     paymentTypeMap={paymentTypeMap}
                     onVerify={onVerify}
                     onReject={onReject}
+                    onViewReceipt={onViewReceipt}
                     labels={labels}
                     formatDate={formatDate}
                   />
@@ -204,6 +224,7 @@ function PaymentRow({
   paymentTypeMap,
   onVerify,
   onReject,
+  onViewReceipt,
   labels,
   formatDate,
 }: {
@@ -211,6 +232,11 @@ function PaymentRow({
   paymentTypeMap: Record<string, string>;
   onVerify: (id: string) => void;
   onReject: (id: string) => void;
+  onViewReceipt?: (receipt: {
+    url: string;
+    name: string;
+    type: string;
+  }) => void;
   labels: PaymentRecordsProps["labels"];
   formatDate: (dateStr: string) => string;
 }) {
@@ -241,15 +267,22 @@ function PaymentRow({
       </td>
       <td className="px-3 py-2.5">
         {payment.receiptUrl ? (
-          <a
-            href={payment.receiptUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() =>
+              onViewReceipt?.({
+                url: payment.receiptUrl!,
+                name: payment.receiptName ?? "Receipt",
+                type: payment.receiptUrl!.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                  ? "image/jpeg"
+                  : "application/pdf",
+              })
+            }
             className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-500"
           >
             <IconImage size={12} />
             {labels.viewReceipt}
-          </a>
+          </button>
         ) : (
           <span className="text-xs text-gray-400">{labels.noReceipt}</span>
         )}

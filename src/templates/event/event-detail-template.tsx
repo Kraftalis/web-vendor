@@ -4,19 +4,35 @@ import { useState, useMemo, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout";
-import { Badge, Button, Modal } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  Modal,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+} from "@/components/ui";
 import {
   IconChevronLeft,
-  IconEdit,
   IconLink,
   IconCopy,
   IconGoogleCalendar,
+  IconInfo,
+  IconPackage,
+  IconDocument,
 } from "@/components/icons";
 import { useDictionary } from "@/i18n";
 import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
 import { getBookingUrl } from "@/lib/booking-url";
-// types imported from services when needed
-import { eventStatusVariant, paymentStatusVariant } from "./types";
+import { useEventCategories } from "@/hooks";
+import {
+  eventStatusVariant,
+  paymentStatusVariant,
+  formatCurrency,
+  type PackageSnapshot,
+  type AddOnSnapshot,
+} from "./types";
 import {
   useEventDetail,
   useUpdateEvent,
@@ -26,10 +42,15 @@ import {
 import { EventDetailView } from "./event-detail-view";
 import { EventDetailEdit } from "./event-detail-edit";
 import {
+  EditPackageModalContent,
+  EditAddOnsModalContent,
+} from "./edit-package-modal";
+import {
   PaymentProgress,
   PaymentRecords,
   AddPaymentForm,
 } from "./payment-tracking";
+import { BriefTab } from "./brief-tab";
 
 // ─── Orchestrator ───────────────────────────────────────────
 
@@ -54,7 +75,19 @@ export default function EventDetailTemplate({
   const addPaymentMut = useAddPayment(eventId);
   const verifyPaymentMut = useVerifyPayment(eventId);
 
-  const [editing, setEditing] = useState(false);
+  const { data: eventCategoriesData } = useEventCategories();
+  const eventCategories = useMemo(
+    () =>
+      (eventCategoriesData ?? []).map((c: { id: string; name: string }) => ({
+        value: c.id,
+        label: c.name,
+      })),
+    [eventCategoriesData],
+  );
+
+  const [editingSection, setEditingSection] = useState<
+    "client" | "event" | "status" | "notes" | null
+  >(null);
   const [isSaving, startSaveTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -62,6 +95,17 @@ export default function EventDetailTemplate({
   // Payment modal
   const [showAddPayment, setShowAddPayment] = useState(false);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+
+  // Package & Add-ons edit modals
+  const [showEditPackage, setShowEditPackage] = useState(false);
+  const [showEditAddOns, setShowEditAddOns] = useState(false);
+
+  // Receipt / attachment preview modal
+  const [receiptModal, setReceiptModal] = useState<{
+    url: string;
+    name: string;
+    type: string;
+  } | null>(null);
 
   // Memoised calculations
   const totalPaid = useMemo(() => {
@@ -110,15 +154,6 @@ export default function EventDetailTemplate({
     FULL_PAYMENT: dict.booking.fullPayment,
   };
 
-  const eventTypes = [
-    { value: "Wedding", label: dict.booking.typeWedding },
-    { value: "Engagement", label: dict.booking.typeEngagement },
-    { value: "Birthday", label: dict.booking.typeBirthday },
-    { value: "Graduation", label: dict.booking.typeGraduation },
-    { value: "Corporate", label: dict.booking.typeCorporate },
-    { value: "Other", label: dict.booking.typeOther },
-  ];
-
   const eventStatusOptions = [
     { value: "INQUIRY", label: dict.event.statusInquiry },
     {
@@ -142,12 +177,31 @@ export default function EventDetailTemplate({
     if (!eventData) return;
 
     startSaveTransition(() => {
-      const payload = Object.fromEntries(formData) as Record<string, unknown>;
+      const raw = Object.fromEntries(formData) as Record<string, unknown>;
+
+      // Convert amount string → number (Zod will also accept this)
+      if (raw.amount !== undefined) {
+        const n = parseFloat(raw.amount as string);
+        raw.amount = isNaN(n) ? null : n;
+      }
+
+      // Strip empty optional strings so the API receives null
+      for (const key of [
+        "clientPhoneSecondary",
+        "clientEmail",
+        "eventTime",
+        "eventLocation",
+        "eventLocationUrl",
+        "notes",
+      ]) {
+        if (raw[key] === "") raw[key] = null;
+      }
+
       updateEvent.mutate(
-        { id: eventData.id, payload },
+        { id: eventData.id, payload: raw },
         {
           onSuccess: () => {
-            setEditing(false);
+            setEditingSection(null);
             setMessage(dict.eventDetail.saveChanges);
             setTimeout(() => setMessage(null), 3000);
             router.refresh();
@@ -291,7 +345,7 @@ export default function EventDetailTemplate({
             {dict.eventDetail.backToEvents}
           </Link>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Status badges */}
           <Badge variant={eventStatusVariant(eventData.eventStatus)} dot>
             {eventStatusLabel[eventData.eventStatus] ?? eventData.eventStatus}
@@ -319,7 +373,7 @@ export default function EventDetailTemplate({
           {eventData.eventDate && (
             <a
               href={buildGoogleCalendarUrl({
-                title: `${eventData.eventType ?? "Event"} – ${eventData.clientName}`,
+                title: `${eventData.eventCategoryName ?? eventData.eventType ?? "Event"} – ${eventData.clientName}`,
                 date: eventData.eventDate,
                 time: eventData.eventTime ?? null,
                 location: eventData.eventLocation ?? null,
@@ -340,50 +394,275 @@ export default function EventDetailTemplate({
               </Button>
             </a>
           )}
-
-          {/* Edit toggle */}
-          {!editing && (
-            <Button size="sm" onClick={() => setEditing(true)}>
-              <IconEdit size={14} />
-              {dict.eventDetail.editEvent}
-            </Button>
-          )}
         </div>
       </div>
 
-      {/* Main content: 2 columns on large screens */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left column: view or edit */}
-        <div className="lg:col-span-2">
-          {editing ? (
-            <EventDetailEdit
-              event={eventData}
-              onSave={handleSave}
-              onCancel={() => setEditing(false)}
-              isSaving={isSaving}
-              eventTypes={eventTypes}
-              eventStatusOptions={eventStatusOptions}
-              paymentStatusOptions={paymentStatusOptions}
-              labels={{
-                clientInfo: dict.eventDetail.clientInfo,
-                clientName: dict.eventDetail.clientName,
-                clientPhone: dict.eventDetail.clientPhone,
-                clientEmail: dict.eventDetail.clientEmail,
-                eventInfo: dict.eventDetail.eventInfo,
-                eventType: dict.eventDetail.eventType,
-                eventDate: dict.eventDetail.eventDate,
-                eventTime: dict.eventDetail.eventTime,
-                eventLocation: dict.eventDetail.eventLocation,
-                paymentInfo: dict.eventDetail.paymentInfo,
-                totalAmount: dict.eventDetail.totalAmount,
-                notes: dict.eventDetail.notes,
-                saveChanges: dict.eventDetail.saveChanges,
-                updateStatus: dict.eventDetail.updateStatus,
-                paymentStatus: dict.eventDetail.paymentStatus,
-              }}
-              cancelLabel={dict.common.cancel}
-            />
-          ) : (
+      {/* Tabs */}
+      <Tabs
+        defaultTab="general"
+        onChange={() => {
+          setEditingSection(null);
+        }}
+      >
+        <TabList className="mb-6">
+          <Tab id="general" icon={<IconInfo size={16} />}>
+            {dict.eventDetail.tabGeneralInfo}
+          </Tab>
+          <Tab id="package-payments" icon={<IconPackage size={16} />}>
+            {dict.eventDetail.tabPackagePayments}
+          </Tab>
+          <Tab id="brief" icon={<IconDocument size={16} />}>
+            {dict.eventDetail.tabBrief}
+          </Tab>
+        </TabList>
+
+        {/* ═══ Tab 1: General Information ═══ */}
+        <TabPanel id="general">
+          <div className="space-y-6">
+            {/* ── Client Info ── */}
+            {editingSection === "client" ? (
+              <EventDetailEdit
+                event={eventData}
+                onSave={handleSave}
+                onCancel={() => setEditingSection(null)}
+                isSaving={isSaving}
+                section="client"
+                eventCategories={eventCategories}
+                eventStatusOptions={eventStatusOptions}
+                paymentStatusOptions={paymentStatusOptions}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  paymentInfo: dict.eventDetail.paymentInfo,
+                  totalAmount: dict.eventDetail.totalAmount,
+                  notes: dict.eventDetail.notes,
+                  saveChanges: dict.eventDetail.saveChanges,
+                  updateStatus: dict.eventDetail.updateStatus,
+                  paymentStatus: dict.eventDetail.paymentStatus,
+                }}
+                cancelLabel={dict.common.cancel}
+              />
+            ) : (
+              <EventDetailView
+                event={eventData}
+                formatDate={formatDate}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  eventLocationUrl: dict.eventDetail.eventLocationUrl,
+                  notes: dict.eventDetail.notes,
+                  noNotes: dict.eventDetail.noNotes,
+                  editLabel: dict.eventDetail.edit,
+                  notSet: dict.eventDetail.notSet,
+                }}
+                variant="client-only"
+                onEditClient={() => setEditingSection("client")}
+              />
+            )}
+
+            {/* ── Event Info ── */}
+            {editingSection === "event" ? (
+              <EventDetailEdit
+                event={eventData}
+                onSave={handleSave}
+                onCancel={() => setEditingSection(null)}
+                isSaving={isSaving}
+                section="event"
+                eventCategories={eventCategories}
+                eventStatusOptions={eventStatusOptions}
+                paymentStatusOptions={paymentStatusOptions}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  paymentInfo: dict.eventDetail.paymentInfo,
+                  totalAmount: dict.eventDetail.totalAmount,
+                  notes: dict.eventDetail.notes,
+                  saveChanges: dict.eventDetail.saveChanges,
+                  updateStatus: dict.eventDetail.updateStatus,
+                  paymentStatus: dict.eventDetail.paymentStatus,
+                }}
+                cancelLabel={dict.common.cancel}
+              />
+            ) : (
+              <EventDetailView
+                event={eventData}
+                formatDate={formatDate}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  eventLocationUrl: dict.eventDetail.eventLocationUrl,
+                  notes: dict.eventDetail.notes,
+                  noNotes: dict.eventDetail.noNotes,
+                  editLabel: dict.eventDetail.edit,
+                  notSet: dict.eventDetail.notSet,
+                }}
+                variant="event-only"
+                onEditEvent={() => setEditingSection("event")}
+              />
+            )}
+
+            {/* ── Status ── */}
+            {editingSection === "status" ? (
+              <EventDetailEdit
+                event={eventData}
+                onSave={handleSave}
+                onCancel={() => setEditingSection(null)}
+                isSaving={isSaving}
+                section="status"
+                eventCategories={eventCategories}
+                eventStatusOptions={eventStatusOptions}
+                paymentStatusOptions={paymentStatusOptions}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  paymentInfo: dict.eventDetail.paymentInfo,
+                  totalAmount: dict.eventDetail.totalAmount,
+                  notes: dict.eventDetail.notes,
+                  saveChanges: dict.eventDetail.saveChanges,
+                  updateStatus: dict.eventDetail.updateStatus,
+                  paymentStatus: dict.eventDetail.paymentStatus,
+                }}
+                cancelLabel={dict.common.cancel}
+              />
+            ) : (
+              <EventDetailView
+                event={eventData}
+                formatDate={formatDate}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  eventLocationUrl: dict.eventDetail.eventLocationUrl,
+                  notes: dict.eventDetail.notes,
+                  noNotes: dict.eventDetail.noNotes,
+                  editLabel: dict.eventDetail.edit,
+                  notSet: dict.eventDetail.notSet,
+                  updateStatus: dict.eventDetail.updateStatus,
+                  paymentStatus: dict.eventDetail.paymentStatus,
+                }}
+                variant="status-only"
+                onEditStatus={() => setEditingSection("status")}
+                eventStatusLabel={
+                  eventStatusLabel[eventData.eventStatus] ??
+                  eventData.eventStatus
+                }
+                paymentStatusLabel={
+                  paymentStatusLabel[eventData.paymentStatus] ??
+                  eventData.paymentStatus
+                }
+              />
+            )}
+
+            {/* ── Notes ── */}
+            {editingSection === "notes" ? (
+              <EventDetailEdit
+                event={eventData}
+                onSave={handleSave}
+                onCancel={() => setEditingSection(null)}
+                isSaving={isSaving}
+                section="notes"
+                eventCategories={eventCategories}
+                eventStatusOptions={eventStatusOptions}
+                paymentStatusOptions={paymentStatusOptions}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  paymentInfo: dict.eventDetail.paymentInfo,
+                  totalAmount: dict.eventDetail.totalAmount,
+                  notes: dict.eventDetail.notes,
+                  saveChanges: dict.eventDetail.saveChanges,
+                  updateStatus: dict.eventDetail.updateStatus,
+                  paymentStatus: dict.eventDetail.paymentStatus,
+                }}
+                cancelLabel={dict.common.cancel}
+              />
+            ) : (
+              <EventDetailView
+                event={eventData}
+                formatDate={formatDate}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  eventLocationUrl: dict.eventDetail.eventLocationUrl,
+                  notes: dict.eventDetail.notes,
+                  noNotes: dict.eventDetail.noNotes,
+                  editLabel: dict.eventDetail.edit,
+                  notSet: dict.eventDetail.notSet,
+                }}
+                variant="notes-only"
+                onEditNotes={() => setEditingSection("notes")}
+              />
+            )}
+          </div>
+        </TabPanel>
+
+        {/* ═══ Tab 2: Package & Payments ═══ */}
+        <TabPanel id="package-payments">
+          <div className="space-y-6">
+            {/* Package + Add-ons snapshot cards */}
             <EventDetailView
               event={eventData}
               formatDate={formatDate}
@@ -391,20 +670,22 @@ export default function EventDetailTemplate({
                 clientInfo: dict.eventDetail.clientInfo,
                 clientName: dict.eventDetail.clientName,
                 clientPhone: dict.eventDetail.clientPhone,
+                clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
                 clientEmail: dict.eventDetail.clientEmail,
                 eventInfo: dict.eventDetail.eventInfo,
-                eventType: dict.eventDetail.eventType,
+                eventCategory: dict.eventDetail.eventCategory,
                 eventDate: dict.eventDetail.eventDate,
                 eventTime: dict.eventDetail.eventTime,
                 eventLocation: dict.eventDetail.eventLocation,
-                packageInfo: dict.eventDetail.packageInfo,
-                packageName: dict.eventDetail.packageName,
-                addOns: dict.eventDetail.addOns,
-                paymentInfo: dict.eventDetail.paymentInfo,
-                totalAmount: dict.eventDetail.totalAmount,
+                eventLocationUrl: dict.eventDetail.eventLocationUrl,
                 notes: dict.eventDetail.notes,
                 noNotes: dict.eventDetail.noNotes,
+                editLabel: dict.eventDetail.edit,
+                notSet: dict.eventDetail.notSet,
               }}
+              variant="package-only"
+              onEditPackage={() => setShowEditPackage(true)}
+              onEditAddOns={() => setShowEditAddOns(true)}
               bookingLabels={{
                 totalPaid: dict.booking.totalPaid,
                 remaining: dict.booking.remaining,
@@ -412,56 +693,78 @@ export default function EventDetailTemplate({
               totalPaid={totalPaid}
               remaining={remaining}
             />
-          )}
-        </div>
 
-        {/* Right column: payment tracking */}
-        <div className="space-y-4">
-          <PaymentProgress
-            totalAmount={totalAmount}
-            totalPaid={totalPaid}
-            remaining={remaining}
-            labels={{
-              paymentProgress: dict.eventDetail.paymentProgress,
-              paidOf: dict.eventDetail.paidOf,
-              totalPaid: dict.booking.totalPaid,
-              remaining: dict.booking.remaining,
-            }}
-          />
+            {/* Payment Progress with Add Payment in footer */}
+            <PaymentProgress
+              totalAmount={totalAmount}
+              totalPaid={totalPaid}
+              remaining={remaining}
+              onAddPayment={() => setShowAddPayment(true)}
+              labels={{
+                paymentProgress: dict.eventDetail.paymentProgress,
+                paidOf: dict.eventDetail.paidOf,
+                totalPaid: dict.booking.totalPaid,
+                remaining: dict.booking.remaining,
+                addPayment: dict.eventDetail.addPayment,
+              }}
+            />
 
-          <div className="flex justify-end">
-            <Button size="sm" onClick={() => setShowAddPayment(true)}>
-              {dict.eventDetail.addPayment}
-            </Button>
+            {/* Payment Records below progress */}
+            <PaymentRecords
+              payments={eventData.payments}
+              paymentTypeMap={paymentTypeMap}
+              onVerify={handleVerifyPayment}
+              onReject={handleRejectPayment}
+              onViewReceipt={(receipt) => setReceiptModal(receipt)}
+              labels={{
+                paymentRecords: dict.eventDetail.paymentRecords,
+                noPaymentsYet: dict.eventDetail.noPaymentsYet,
+                noPaymentsDesc: dict.eventDetail.noPaymentsDesc,
+                amountLabel: dict.eventDetail.amountLabel,
+                typeLabel: dict.eventDetail.typeLabel,
+                dateLabel: dict.eventDetail.dateLabel,
+                statusLabel: dict.eventDetail.statusLabel,
+                receiptLabel: dict.eventDetail.receiptLabel,
+                actionLabel: dict.eventDetail.actionLabel,
+                viewReceipt: dict.eventDetail.viewReceipt,
+                verifyPayment: dict.eventDetail.verifyPayment,
+                rejectPayment: dict.eventDetail.rejectPayment,
+                verified: dict.booking.verified,
+                pending: dict.booking.pending,
+                receiptUploaded: dict.eventDetail.receiptUploaded,
+                noReceipt: dict.eventDetail.noReceipt,
+              }}
+              formatDate={formatDate}
+            />
           </div>
+        </TabPanel>
 
-          <PaymentRecords
-            payments={eventData.payments}
-            paymentTypeMap={paymentTypeMap}
-            onVerify={handleVerifyPayment}
-            onReject={handleRejectPayment}
+        {/* ═══ Tab 3: Brief ═══ */}
+        <TabPanel id="brief">
+          <BriefTab
+            eventId={eventId}
             labels={{
-              paymentRecords: dict.eventDetail.paymentRecords,
-              noPaymentsYet: dict.eventDetail.noPaymentsYet,
-              noPaymentsDesc: dict.eventDetail.noPaymentsDesc,
-              amountLabel: dict.eventDetail.amountLabel,
-              typeLabel: dict.eventDetail.typeLabel,
-              dateLabel: dict.eventDetail.dateLabel,
-              statusLabel: dict.eventDetail.statusLabel,
-              receiptLabel: dict.eventDetail.receiptLabel,
-              actionLabel: dict.eventDetail.actionLabel,
-              viewReceipt: dict.eventDetail.viewReceipt,
-              verifyPayment: dict.eventDetail.verifyPayment,
-              rejectPayment: dict.eventDetail.rejectPayment,
-              verified: dict.booking.verified,
-              pending: dict.booking.pending,
-              receiptUploaded: dict.eventDetail.receiptUploaded,
-              noReceipt: dict.eventDetail.noReceipt,
+              noBriefs: dict.eventDetail.noBriefs,
+              noBriefsDesc: dict.eventDetail.noBriefsDesc,
+              addBrief: dict.eventDetail.addBrief,
+              briefTitle: dict.eventDetail.briefTitle,
+              briefTitlePlaceholder: dict.eventDetail.briefTitlePlaceholder,
+              briefPlaceholder: dict.eventDetail.briefPlaceholder,
+              briefAttachFile: dict.eventDetail.briefAttachFile,
+              briefSubmit: dict.eventDetail.briefSubmit,
+              briefPosting: dict.eventDetail.briefPosting,
+              briefDeleteConfirm: dict.eventDetail.briefDeleteConfirm,
+              briefDelete: dict.eventDetail.briefDelete,
+              briefBy: dict.eventDetail.briefBy,
+              briefViewAttachment: dict.eventDetail.briefViewAttachment,
+              briefMore: dict.eventDetail.briefMore,
+              briefImages: dict.eventDetail.briefImages,
+              briefFiles: dict.eventDetail.briefFiles,
             }}
             formatDate={formatDate}
           />
-        </div>
-      </div>
+        </TabPanel>
+      </Tabs>
 
       {/* Add Payment Modal */}
       <Modal
@@ -494,6 +797,151 @@ export default function EventDetailTemplate({
           }}
           cancelLabel={dict.common.cancel}
           onCancel={() => setShowAddPayment(false)}
+        />
+      </Modal>
+
+      {/* Receipt / Attachment Preview Modal */}
+      <Modal
+        open={!!receiptModal}
+        onClose={() => setReceiptModal(null)}
+        title={receiptModal?.name ?? dict.eventDetail.viewReceipt}
+        className="max-w-2xl"
+      >
+        {receiptModal && (
+          <div className="flex flex-col items-center gap-4">
+            {receiptModal.type.startsWith("image/") ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={receiptModal.url}
+                alt={receiptModal.name}
+                className="max-h-[60vh] w-full rounded-lg object-contain"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-3 py-8">
+                <IconDocument size={48} className="text-gray-300" />
+                <p className="text-sm text-gray-600">{receiptModal.name}</p>
+              </div>
+            )}
+            <a
+              href={receiptModal.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              Open in new tab ↗
+            </a>
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Package Modal */}
+      <Modal
+        open={showEditPackage}
+        onClose={() => setShowEditPackage(false)}
+        title={dict.eventDetail.editPackage}
+      >
+        <EditPackageModalContent
+          currentSnapshot={
+            eventData.packageSnapshot != null
+              ? (eventData.packageSnapshot as {
+                  name: string;
+                  price: string | number;
+                })
+              : null
+          }
+          onSave={(snapshot) => {
+            const addOnsTotal = (
+              (eventData.addOnsSnapshot as AddOnSnapshot[]) ?? []
+            ).reduce((sum, item) => sum + Number(item.price || 0), 0);
+            const newTotal = Number(snapshot?.price || 0) + addOnsTotal;
+
+            updateEvent.mutate(
+              {
+                id: eventData.id,
+                payload: { packageSnapshot: snapshot, amount: newTotal },
+              },
+              {
+                onSuccess: () => {
+                  setShowEditPackage(false);
+                  setMessage(dict.eventDetail.saveChanges);
+                  setTimeout(() => setMessage(null), 3000);
+                  router.refresh();
+                },
+              },
+            );
+          }}
+          onCancel={() => setShowEditPackage(false)}
+          isSaving={updateEvent.isPending}
+          labels={{
+            selectPackage: dict.eventDetail.selectPackage,
+            customPackage: dict.eventDetail.customPackage,
+            packageName: dict.eventDetail.packageNameLabel,
+            packageDescription: dict.eventDetail.packageDescription,
+            packagePrice: dict.eventDetail.packagePrice,
+            save: dict.eventDetail.saveChanges,
+            cancel: dict.common.cancel,
+            noPackage: dict.eventDetail.noPackage,
+            orCustom: dict.eventDetail.orCustom,
+            selectVariation: dict.eventDetail.selectVariation,
+          }}
+          formatCurrencyFn={formatCurrency}
+          currency={eventData.currency}
+        />
+      </Modal>
+
+      {/* Edit Add-ons Modal */}
+      <Modal
+        open={showEditAddOns}
+        onClose={() => setShowEditAddOns(false)}
+        title={dict.eventDetail.editAddOns}
+      >
+        <EditAddOnsModalContent
+          currentSnapshot={
+            Array.isArray(eventData.addOnsSnapshot)
+              ? (eventData.addOnsSnapshot as {
+                  name: string;
+                  price: string | number;
+                  quantity?: number;
+                }[])
+              : []
+          }
+          onSave={(snapshot) => {
+            const packageTotal = Number(
+              (eventData.packageSnapshot as PackageSnapshot)?.price || 0,
+            );
+            const newTotal =
+              snapshot.reduce((sum, item) => sum + Number(item.price || 0), 0) +
+              packageTotal;
+
+            updateEvent.mutate(
+              {
+                id: eventData.id,
+                payload: { addOnsSnapshot: snapshot, amount: newTotal },
+              },
+              {
+                onSuccess: () => {
+                  setShowEditAddOns(false);
+                  setMessage(dict.eventDetail.saveChanges);
+                  setTimeout(() => setMessage(null), 3000);
+                  router.refresh();
+                },
+              },
+            );
+          }}
+          onCancel={() => setShowEditAddOns(false)}
+          isSaving={updateEvent.isPending}
+          labels={{
+            selectAddOns: dict.eventDetail.selectAddOns,
+            customAddOn: dict.eventDetail.customAddOn,
+            addOnName: dict.eventDetail.addOnNameLabel,
+            addOnPrice: dict.eventDetail.addOnPriceLabel,
+            save: dict.eventDetail.saveChanges,
+            cancel: dict.common.cancel,
+            addMore: dict.eventDetail.addMore,
+            remove: dict.eventDetail.remove,
+          }}
+          formatCurrencyFn={formatCurrency}
+          currency={eventData.currency}
         />
       </Modal>
     </AppLayout>

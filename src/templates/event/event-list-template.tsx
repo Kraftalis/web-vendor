@@ -73,6 +73,7 @@ export default function EventListTemplate({ user }: EventListTemplateProps) {
       return (
         e.clientName.toLowerCase().includes(q) ||
         e.eventType.toLowerCase().includes(q) ||
+        (e.eventCategoryName?.toLowerCase().includes(q) ?? false) ||
         (e.eventLocation?.toLowerCase().includes(q) ?? false)
       );
     }

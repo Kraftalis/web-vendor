@@ -27,6 +27,7 @@ export async function findEventById(id: string) {
   return prisma.event.findUnique({
     where: { id },
     include: {
+      eventCategory: { select: { id: true, name: true } },
       bookingLink: { select: { token: true } },
       payments: { orderBy: { paidAt: "desc" } },
     },

@@ -62,6 +62,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return successResponse({
       ...updated,
       eventDate: updated.eventDate.toISOString(),
+      eventCategoryId: updated.eventCategoryId ?? null,
+      eventCategoryName:
+        (updated as unknown as { eventCategory?: { name: string } })
+          .eventCategory?.name ?? null,
       amount: updated.amount ? String(updated.amount) : null,
       currency: updated.currency,
       packageSnapshot: updated.packageSnapshot,
@@ -107,11 +111,15 @@ function serializeEventDetail(event: any) {
     vendorId: event.businessProfileId,
     clientName: event.clientName,
     clientPhone: event.clientPhone,
+    clientPhoneSecondary: event.clientPhoneSecondary ?? null,
     clientEmail: event.clientEmail,
     eventType: event.eventType,
+    eventCategoryId: event.eventCategoryId ?? null,
+    eventCategoryName: event.eventCategory?.name ?? null,
     eventDate: event.eventDate.toISOString(),
     eventTime: event.eventTime,
     eventLocation: event.eventLocation,
+    eventLocationUrl: event.eventLocationUrl ?? null,
     packageSnapshot: event.packageSnapshot,
     addOnsSnapshot: event.addOnsSnapshot,
     amount: event.amount ? String(event.amount) : null,

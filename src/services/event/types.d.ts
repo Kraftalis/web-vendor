@@ -52,11 +52,15 @@ export interface EventDetail {
   vendorId: string;
   clientName: string;
   clientPhone: string;
+  clientPhoneSecondary?: string | null;
   clientEmail: string | null;
   eventType: string;
+  eventCategoryId: string | null;
+  eventCategoryName: string | null;
   eventDate: string;
   eventTime: string | null;
   eventLocation: string | null;
+  eventLocationUrl: string | null;
   packageSnapshot: unknown;
   addOnsSnapshot: unknown;
   amount: string | null;
@@ -75,11 +79,14 @@ export interface EventDetail {
 export interface CreateEventPayload {
   clientName: string;
   clientPhone: string;
+  clientPhoneSecondary?: string | null;
   clientEmail?: string | null;
-  eventType: string;
+  eventType?: string | null;
+  eventCategoryId?: string | null;
   eventDate: string;
   eventTime?: string | null;
   eventLocation?: string | null;
+  eventLocationUrl?: string | null;
   packageSnapshot?: unknown;
   addOnsSnapshot?: unknown;
   amount?: number | null;

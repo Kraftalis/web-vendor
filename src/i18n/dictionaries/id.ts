@@ -330,9 +330,11 @@ const id: Dictionary = {
     clientInfo: "Informasi Klien",
     clientName: "Nama Lengkap",
     clientPhone: "Nomor Telepon",
+    clientPhoneSecondary: "Telepon Sekunder",
     clientEmail: "Email",
     eventInfo: "Informasi Acara",
     eventType: "Jenis Acara",
+    eventCategory: "Kategori Acara",
     eventDate: "Tanggal Acara",
     eventTime: "Waktu Acara",
     eventLocation: "Lokasi",
@@ -346,9 +348,29 @@ const id: Dictionary = {
     remainingBalance: "Sisa Pembayaran",
     notes: "Catatan",
     noNotes: "Tidak ada catatan tambahan.",
+    edit: "Ubah",
     editEvent: "Ubah Acara",
+    editPackage: "Ubah Paket",
+    editAddOns: "Ubah Add-ons",
     updateStatus: "Perbarui Status",
     saveChanges: "Simpan Perubahan",
+    notSet: "—",
+
+    // Package & Add-on edit modal
+    selectPackage: "Pilih Paket",
+    customPackage: "Paket Kustom",
+    packageNameLabel: "Nama Paket",
+    packageDescription: "Deskripsi",
+    packagePrice: "Harga",
+    noPackage: "Belum ada paket dipilih",
+    orCustom: "atau kustom",
+    selectVariation: "Pilih Variasi",
+    selectAddOns: "Pilih dari add-on yang ada",
+    customAddOn: "Add-on Kustom",
+    addOnNameLabel: "Nama Add-on",
+    addOnPriceLabel: "Harga",
+    addMore: "Tambah Lagi",
+    remove: "Hapus",
 
     // Payment tracking
     paymentProgress: "Progres Pembayaran",
@@ -371,6 +393,33 @@ const id: Dictionary = {
     statusLabel: "Status",
     receiptLabel: "Bukti",
     actionLabel: "Aksi",
+
+    // Tabs
+    tabGeneralInfo: "Informasi Umum",
+    tabPackagePayments: "Paket & Pembayaran",
+    tabBrief: "Brief",
+
+    // Brief
+    noBriefs: "Belum ada brief.",
+    noBriefsDesc: "Tambahkan catatan, file, atau instruksi untuk acara ini.",
+    addBrief: "Tambah Brief",
+    briefTitle: "Judul",
+    briefTitlePlaceholder: "Judul brief...",
+    briefContent: "Konten",
+    briefPlaceholder: "Tulis catatan atau instruksi...",
+    briefAttachFile: "Lampirkan file",
+    briefSubmit: "Posting",
+    briefPosting: "Memposting...",
+    briefDeleteConfirm: "Konfirmasi?",
+    briefDelete: "Hapus",
+    briefBy: "Oleh",
+    briefViewAttachment: "Lihat Lampiran",
+    briefMore: "Lainnya",
+    briefImages: "Gambar",
+    briefFiles: "File",
+
+    // Link map
+    eventLocationUrl: "Link Peta",
   },
 
   // ─── Generate Booking Link Modal ─────────────────────────

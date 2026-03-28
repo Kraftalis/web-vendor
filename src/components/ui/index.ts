@@ -4,8 +4,13 @@ export type { ButtonProps, ButtonVariant, ButtonSize } from "./button";
 export { default as Input } from "./input";
 export type { InputProps } from "./input";
 
-export { Card, CardHeader, CardBody } from "./card";
-export type { CardProps, CardHeaderProps, CardBodyProps } from "./card";
+export { Card, CardHeader, CardBody, CardFooter } from "./card";
+export type {
+  CardProps,
+  CardHeaderProps,
+  CardBodyProps,
+  CardFooterProps,
+} from "./card";
 
 export { default as Badge } from "./badge";
 export type { BadgeProps, BadgeVariant } from "./badge";
@@ -30,3 +35,6 @@ export {
 
 export { ToastProvider, useToast } from "./toast";
 export type { Toast, ToastVariant } from "./toast";
+
+export { Tabs, TabList, Tab, TabPanel } from "./tabs";
+export type { TabsProps, TabListProps, TabProps, TabPanelProps } from "./tabs";

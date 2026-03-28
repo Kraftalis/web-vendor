@@ -13,21 +13,26 @@ import type { EventDetail } from "./types";
 
 // ─── Edit Mode ──────────────────────────────────────────────
 
+export type EditSection = "client" | "event" | "status" | "notes" | "all";
+
 interface EventDetailEditProps {
   event: EventDetail;
   onSave: (formData: FormData) => void;
   onCancel: () => void;
   isSaving: boolean;
-  eventTypes: { value: string; label: string }[];
+  eventCategories: { value: string; label: string }[];
   eventStatusOptions: { value: string; label: string }[];
   paymentStatusOptions: { value: string; label: string }[];
+  /** Which section to render in edit mode. Defaults to "all" */
+  section?: EditSection;
   labels: {
     clientInfo: string;
     clientName: string;
     clientPhone: string;
+    clientPhoneSecondary: string;
     clientEmail: string;
     eventInfo: string;
-    eventType: string;
+    eventCategory: string;
     eventDate: string;
     eventTime: string;
     eventLocation: string;
@@ -46,141 +51,168 @@ export function EventDetailEdit({
   onSave,
   onCancel,
   isSaving,
-  eventTypes,
+  eventCategories,
   eventStatusOptions,
   paymentStatusOptions,
+  section = "all",
   labels,
   cancelLabel,
 }: EventDetailEditProps) {
+  const showClient = section === "all" || section === "client";
+  const showEvent = section === "all" || section === "event";
+  const showStatus = section === "all" || section === "status";
+  const showPayment = section === "all";
+  const showNotes = section === "all" || section === "notes";
+
   return (
     <form action={onSave} className="space-y-6">
       {/* Client Info */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.clientInfo}
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <Input
-            id="clientName"
-            name="clientName"
-            label={labels.clientName}
-            defaultValue={event.clientName}
-            required
-          />
-          <Input
-            id="clientPhone"
-            name="clientPhone"
-            label={labels.clientPhone}
-            defaultValue={event.clientPhone}
-            required
-          />
-          <Input
-            id="clientEmail"
-            name="clientEmail"
-            type="email"
-            label={labels.clientEmail}
-            defaultValue={event.clientEmail ?? ""}
-          />
-        </CardBody>
-      </Card>
-
-      {/* Event Info */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.eventInfo}
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <Select
-            id="eventType"
-            name="eventType"
-            label={labels.eventType}
-            defaultValue={event.eventType}
-            options={eventTypes}
-          />
-          <div className="grid grid-cols-2 gap-4">
+      {showClient && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.clientInfo}
+            </h2>
+          </CardHeader>
+          <CardBody className="space-y-4">
             <Input
-              id="eventDate"
-              name="eventDate"
-              type="date"
-              label={labels.eventDate}
-              defaultValue={event.eventDate.slice(0, 10)}
+              id="clientName"
+              name="clientName"
+              label={labels.clientName}
+              defaultValue={event.clientName}
               required
             />
             <Input
-              id="eventTime"
-              name="eventTime"
-              type="time"
-              label={labels.eventTime}
-              defaultValue={event.eventTime ?? ""}
+              id="clientPhone"
+              name="clientPhone"
+              label={labels.clientPhone}
+              defaultValue={event.clientPhone}
+              required
             />
-          </div>
-          <Input
-            id="eventLocation"
-            name="eventLocation"
-            label={labels.eventLocation}
-            defaultValue={event.eventLocation ?? ""}
-          />
-        </CardBody>
-      </Card>
+            <Input
+              id="clientPhoneSecondary"
+              name="clientPhoneSecondary"
+              label={labels.clientPhoneSecondary}
+              defaultValue={event.clientPhoneSecondary ?? ""}
+            />
+            <Input
+              id="clientEmail"
+              name="clientEmail"
+              type="email"
+              label={labels.clientEmail}
+              defaultValue={event.clientEmail ?? ""}
+            />
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Event Info */}
+      {showEvent && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.eventInfo}
+            </h2>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            <Select
+              id="eventCategoryId"
+              name="eventCategoryId"
+              label={labels.eventCategory}
+              defaultValue={event.eventCategoryId ?? ""}
+              options={eventCategories}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                id="eventDate"
+                name="eventDate"
+                type="date"
+                label={labels.eventDate}
+                defaultValue={event.eventDate.slice(0, 10)}
+                required
+              />
+              <Input
+                id="eventTime"
+                name="eventTime"
+                type="time"
+                label={labels.eventTime}
+                defaultValue={event.eventTime ?? ""}
+              />
+            </div>
+            <Input
+              id="eventLocation"
+              name="eventLocation"
+              label={labels.eventLocation}
+              defaultValue={event.eventLocation ?? ""}
+            />
+          </CardBody>
+        </Card>
+      )}
 
       {/* Status */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.updateStatus}
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <Select
-            id="eventStatus"
-            name="eventStatus"
-            label={labels.updateStatus}
-            defaultValue={event.eventStatus}
-            options={eventStatusOptions}
-          />
-          <Select
-            id="paymentStatus"
-            name="paymentStatus"
-            label={labels.paymentStatus}
-            defaultValue={event.paymentStatus}
-            options={paymentStatusOptions}
-          />
-        </CardBody>
-      </Card>
+      {showStatus && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.updateStatus}
+            </h2>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            <Select
+              id="eventStatus"
+              name="eventStatus"
+              label={labels.updateStatus}
+              defaultValue={event.eventStatus}
+              options={eventStatusOptions}
+            />
+            <Select
+              id="paymentStatus"
+              name="paymentStatus"
+              label={labels.paymentStatus}
+              defaultValue={event.paymentStatus}
+              options={paymentStatusOptions}
+            />
+          </CardBody>
+        </Card>
+      )}
 
       {/* Payment */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.paymentInfo}
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <Input
-            id="amount"
-            name="amount"
-            type="number"
-            label={labels.totalAmount}
-            defaultValue={event.amount ?? ""}
-          />
-        </CardBody>
-      </Card>
+      {showPayment && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.paymentInfo}
+            </h2>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            <Input
+              id="amount"
+              name="amount"
+              type="number"
+              label={labels.totalAmount}
+              defaultValue={event.amount ?? ""}
+            />
+          </CardBody>
+        </Card>
+      )}
 
       {/* Notes */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-base font-semibold text-gray-900">
-            {labels.notes}
-          </h2>
-        </CardHeader>
-        <CardBody>
-          <Textarea id="notes" name="notes" defaultValue={event.notes ?? ""} />
-        </CardBody>
-      </Card>
+      {showNotes && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-base font-semibold text-gray-900">
+              {labels.notes}
+            </h2>
+          </CardHeader>
+          <CardBody>
+            <Textarea
+              id="notes"
+              name="notes"
+              defaultValue={event.notes ?? ""}
+            />
+          </CardBody>
+        </Card>
+      )}
 
       {/* Actions */}
       <div className="flex justify-end gap-3">
