@@ -9,6 +9,7 @@ export interface EventItem {
   eventType: string;
   eventCategoryId: string | null;
   eventCategoryName: string | null;
+  eventCategoryColor: string | null;
   eventDate: string;
   eventTime: string | null;
   eventLocation: string | null;
@@ -57,6 +58,7 @@ export interface EventDetail {
   eventType: string;
   eventCategoryId: string | null;
   eventCategoryName: string | null;
+  eventCategoryColor: string | null;
   eventDate: string;
   eventTime: string | null;
   eventLocation: string | null;

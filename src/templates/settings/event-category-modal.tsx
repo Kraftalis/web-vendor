@@ -52,6 +52,33 @@ export default function EventCategoryModal({
           defaultValue={editing?.name ?? ""}
           required
         />
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            name="color"
+            type="color"
+            label={dict.settings.eventCategoryColor ?? "Category Color"}
+            defaultValue={editing?.color ?? "#3B82F6"}
+            className="h-10 p-1"
+          />
+          <Input
+            name="colorHex"
+            label="Hex Code"
+            placeholder="#000000"
+            defaultValue={editing?.color ?? "#3B82F6"}
+            pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+            onChange={(e) => {
+              const colorInput = document.getElementsByName(
+                "color",
+              )[0] as HTMLInputElement;
+              if (
+                colorInput &&
+                /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(e.target.value)
+              ) {
+                colorInput.value = e.target.value;
+              }
+            }}
+          />
+        </div>
         <Textarea
           name="description"
           label={s.eventCategoryDescription}

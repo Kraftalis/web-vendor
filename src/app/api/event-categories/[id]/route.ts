@@ -30,8 +30,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (!name) return validationError("Name is required.");
 
     const description = (body.description as string)?.trim() || null;
+    const color = (body.color as string)?.trim() || "#3B82F6";
 
-    const updated = await updateEventCategory(id, { name, description });
+    const updated = await updateEventCategory(id, { name, description, color });
     return successResponse(updated);
   } catch (err) {
     console.error("[API] PUT /api/event-categories/[id] error:", err);

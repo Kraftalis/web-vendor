@@ -3,7 +3,7 @@
 import { Card, CardBody, Button } from "@/components/ui";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import type { CalendarDay, ScheduleEvent } from "./types";
-import { eventTypeColor, isSameDay } from "./types";
+import { isSameDay } from "./types";
 
 // ─── Calendar Grid ──────────────────────────────────────────
 
@@ -24,7 +24,7 @@ interface CalendarGridProps {
     previousMonth: string;
     nextMonth: string;
   };
-  legendItems: { type: string; label: string }[];
+  legendItems: { type: string; label: string; color?: string | null }[];
 }
 
 export function CalendarGrid({
@@ -100,13 +100,14 @@ export function CalendarGrid({
 
         {/* Event type legend */}
         <div className="mt-4 flex flex-wrap gap-3 border-t border-gray-100 pt-3">
-          {legendItems.map(({ type, label }) => (
+          {legendItems.map(({ type, label, color }) => (
             <span
               key={type}
               className="flex items-center gap-1.5 text-xs text-gray-500"
             >
               <span
-                className={`h-2.5 w-2.5 rounded-full ${eventTypeColor(type)}`}
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: color || "#3B82F6" }}
               />
               {label}
             </span>
@@ -175,7 +176,8 @@ function EventDots({ events }: { events: ScheduleEvent[] }) {
       {events.slice(0, 2).map((ev) => (
         <span
           key={ev.id}
-          className={`truncate rounded px-1 py-px text-[10px] font-medium leading-tight text-white ${eventTypeColor(ev.eventType)}`}
+          className="truncate rounded px-1 py-px text-[10px] font-medium leading-tight text-white"
+          style={{ backgroundColor: ev.eventCategoryColor || "#3B82F6" }}
           title={`${ev.clientName}${ev.eventCategoryName ? ` — ${ev.eventCategoryName}` : ev.eventType ? ` — ${ev.eventType}` : ""}`}
         >
           {ev.clientName.length > 10

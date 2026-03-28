@@ -160,16 +160,17 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
   const handleSaveEvtCat = (formData: FormData) => {
     const name = (formData.get("name") as string).trim();
     const description = (formData.get("description") as string).trim() || null;
+    const color = (formData.get("color") as string).trim() || "#3B82F6";
     if (!name) return;
 
     if (editingEvtCat) {
       updateEvtCatMut.mutate(
-        { id: editingEvtCat.id, payload: { name, description } },
+        { id: editingEvtCat.id, payload: { name, description, color } },
         { onSuccess: closeEvtCatModal },
       );
     } else {
       createEvtCatMut.mutate(
-        { name, description },
+        { name, description, color },
         { onSuccess: () => setEvtCatModalOpen(false) },
       );
     }

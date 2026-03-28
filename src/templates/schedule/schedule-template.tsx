@@ -2,8 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { AppLayout } from "@/components/layout";
-import { Button } from "@/components/ui";
-import { IconCalendar, IconLink } from "@/components/icons";
+import { IconCalendar } from "@/components/icons";
 import { useDictionary } from "@/i18n";
 import { useEvents } from "@/hooks/event";
 import type { BadgeVariant } from "@/components/ui";
@@ -29,7 +28,9 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
         id: e.id,
         clientName: e.clientName,
         eventType: e.eventType,
+        eventCategoryId: e.eventCategoryId ?? null,
         eventCategoryName: e.eventCategoryName ?? null,
+        eventCategoryColor: e.eventCategoryColor ?? null,
         eventDate: e.eventDate,
         eventTime: e.eventTime,
         eventLocation: e.eventLocation,
@@ -200,17 +201,28 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
     [now, sched],
   );
 
-  const legendItems = useMemo(
-    () => [
-      { type: "Wedding", label: dict.booking.typeWedding },
-      { type: "Engagement", label: dict.booking.typeEngagement },
-      { type: "Birthday", label: dict.booking.typeBirthday },
-      { type: "Graduation", label: dict.booking.typeGraduation },
-      { type: "Corporate", label: dict.booking.typeCorporate },
-      { type: "Other", label: dict.booking.typeOther },
-    ],
-    [dict.booking],
-  );
+  const legendItems = useMemo(() => {
+    // Get unique categories from the current list of events
+    const categoryMap = new Map<
+      string,
+      { label: string; color: string | null }
+    >();
+
+    for (const ev of events) {
+      if (ev.eventCategoryName && !categoryMap.has(ev.eventCategoryName)) {
+        categoryMap.set(ev.eventCategoryName, {
+          label: ev.eventCategoryName,
+          color: ev.eventCategoryColor,
+        });
+      }
+    }
+
+    return Array.from(categoryMap.entries()).map(([type, data]) => ({
+      type,
+      label: data.label,
+      color: data.color,
+    }));
+  }, [events]);
 
   return (
     <AppLayout user={user}>

@@ -41,6 +41,7 @@ export async function GET() {
           eventType: e.eventType,
           eventCategoryId: e.eventCategoryId,
           eventCategoryName: e.eventCategory?.name ?? null,
+          eventCategoryColor: e.eventCategory?.color ?? null,
           eventDate: e.eventDate.toISOString(),
           eventTime: e.eventTime,
           eventLocation: e.eventLocation,

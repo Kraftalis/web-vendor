@@ -56,6 +56,7 @@ export interface EventItem {
   eventType: string;
   eventCategoryId: string | null;
   eventCategoryName: string | null;
+  eventCategoryColor: string | null;
   eventDate: string; // ISO
   eventTime: string | null;
   eventLocation: string | null;
@@ -121,6 +122,7 @@ export interface EventDetail {
   eventType: string;
   eventCategoryId: string | null;
   eventCategoryName: string | null;
+  eventCategoryColor: string | null;
   eventDate: string;
   eventTime: string | null;
   eventLocation: string | null;
@@ -130,7 +132,7 @@ export interface EventDetail {
   amount: string | null;
   currency: string;
   eventStatus: string;
-  paymentStatus: "UNPAID" | "DP_PAID" | "PAID";
+  paymentStatus: string;
   notes: string | null;
   createdAt: string;
   updatedAt: string;

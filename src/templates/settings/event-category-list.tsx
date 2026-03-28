@@ -80,6 +80,10 @@ export default function EventCategoryList({
             <Card key={cat.id}>
               <CardBody className="p-0">
                 <div className="flex items-center gap-3 px-5 py-4">
+                  <div
+                    className="h-4 w-4 shrink-0 rounded-full"
+                    style={{ backgroundColor: cat.color || "#3B82F6" }}
+                  />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold text-gray-900">
                       {cat.name}

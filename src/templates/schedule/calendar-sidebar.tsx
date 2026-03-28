@@ -11,7 +11,7 @@ import {
 } from "@/components/icons";
 import type { BadgeVariant } from "@/components/ui";
 import type { ScheduleEvent } from "./types";
-import { eventStatusVariant, eventTypeColor } from "./types";
+import { eventStatusVariant } from "./types";
 
 // ─── Event Card (Day detail) ────────────────────────────────
 
@@ -39,7 +39,8 @@ export function EventCard({
           </p>
           <p className="flex items-center gap-1 text-xs text-gray-500">
             <span
-              className={`inline-block h-2 w-2 rounded-full ${eventTypeColor(event.eventType)}`}
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: event.eventCategoryColor || "#3B82F6" }}
             />
             {event.eventCategoryName ?? event.eventType}
           </p>
@@ -185,7 +186,10 @@ export function CalendarSidebar({
                   className="flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-gray-50"
                 >
                   <span
-                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${eventTypeColor(ev.eventType)}`}
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: ev.eventCategoryColor || "#3B82F6",
+                    }}
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-medium text-gray-900">

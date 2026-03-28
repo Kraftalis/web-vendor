@@ -32,10 +32,12 @@ export async function POST(request: NextRequest) {
     if (!name) return validationError("Name is required.");
 
     const description = (body.description as string)?.trim() || null;
+    const color = (body.color as string)?.trim() || "#3B82F6";
 
     const category = await createEventCategory({
       name,
       description,
+      color,
     });
     return createdResponse(category);
   } catch (err) {

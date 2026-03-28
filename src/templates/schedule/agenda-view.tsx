@@ -10,7 +10,7 @@ import {
 } from "@/components/icons";
 import type { BadgeVariant } from "@/components/ui";
 import type { ScheduleEvent } from "./types";
-import { eventStatusVariant, eventTypeColor } from "./types";
+import { eventStatusVariant } from "./types";
 
 // ─── Agenda View ────────────────────────────────────────────
 
@@ -175,7 +175,10 @@ function AgendaRow({
               </p>
               <p className="flex items-center gap-1.5 text-xs text-gray-500">
                 <span
-                  className={`inline-block h-2 w-2 rounded-full ${eventTypeColor(event.eventType)}`}
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{
+                    backgroundColor: event.eventCategoryColor || "#3B82F6",
+                  }}
                 />
                 {typeLabel}
                 {event.packageName && (

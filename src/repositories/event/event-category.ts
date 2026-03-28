@@ -23,11 +23,13 @@ export async function findEventCategoryById(id: string) {
 export async function createEventCategory(data: {
   name: string;
   description?: string | null;
+  color: string;
 }) {
   return prisma.eventCategory.create({
     data: {
       name: data.name,
       description: data.description ?? null,
+      color: data.color,
     },
   });
 }
@@ -37,7 +39,7 @@ export async function createEventCategory(data: {
  */
 export async function updateEventCategory(
   id: string,
-  data: { name?: string; description?: string | null },
+  data: { name?: string; description?: string | null; color?: string },
 ) {
   return prisma.eventCategory.update({
     where: { id },

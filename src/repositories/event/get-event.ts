@@ -9,7 +9,7 @@ export async function findEventsByVendor(businessProfileId: string) {
     where: { businessProfileId },
     orderBy: { eventDate: "desc" },
     include: {
-      eventCategory: { select: { id: true, name: true } },
+      eventCategory: { select: { id: true, name: true, color: true } },
       bookingLink: { select: { token: true } },
       payments: {
         where: { isVerified: false, paidBy: "CLIENT" },

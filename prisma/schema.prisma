@@ -199,6 +199,7 @@ model EventCategory {
   id          String   @id @default(uuid()) @db.Uuid
   name        String   @unique @db.VarChar(255)
   description String?  @db.Text
+  color       String?  @db.VarChar(7) // Hex color code, e.g. "#FF0000"
   sortOrder   Int      @default(0) @map("sort_order")
   isActive    Boolean  @default(true) @map("is_active")
 

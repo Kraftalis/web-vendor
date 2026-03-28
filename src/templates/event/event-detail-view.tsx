@@ -86,7 +86,7 @@ export function EventDetailView({
         {/* Package (from snapshot) */}
         {event.packageSnapshot != null && (
           <PackageSnapshotCard
-            snapshot={event.packageSnapshot as Record<string, unknown>}
+            snapshot={event.packageSnapshot as PackageSnapshot}
             currency={event.currency}
             onEdit={onEditPackage}
             editLabel={labels.editLabel}
