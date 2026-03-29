@@ -24,7 +24,4 @@ export {
   createAddOn,
   updateAddOn,
   deleteAddOn,
-  createCategory,
-  updateCategory,
-  deleteCategory,
 } from "./upsert-pricing";

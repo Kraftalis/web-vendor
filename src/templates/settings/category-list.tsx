@@ -1,30 +1,18 @@
 "use client";
 
 import { Card, CardBody, Button, Skeleton } from "@/components/ui";
-import { IconPlus, IconSettings } from "@/components/icons";
+import { IconSettings } from "@/components/icons";
 import CategoryRow from "./category-row";
 import type { Category } from "@/services/pricing";
 
 interface Props {
   categories: Category[];
   isLoading: boolean;
-  onAddCategory: () => void;
-  onEditCategory: (cat: Category) => void;
-  onDeleteCategory: (id: string) => void;
-  deletingCatId: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dict: Record<string, any>;
 }
 
-export default function CategoryList({
-  categories,
-  isLoading,
-  onAddCategory,
-  onEditCategory,
-  onDeleteCategory,
-  deletingCatId,
-  dict,
-}: Props) {
+export default function CategoryList({ categories, isLoading, dict }: Props) {
   const s = dict.settings;
 
   return (
@@ -36,10 +24,6 @@ export default function CategoryList({
           </h2>
           <p className="text-sm text-gray-500">{s.categoriesSubtitle}</p>
         </div>
-        <Button size="md" onClick={onAddCategory}>
-          <IconPlus size={16} />
-          {s.addCategory}
-        </Button>
       </div>
 
       {isLoading ? (
@@ -71,14 +55,7 @@ export default function CategoryList({
       ) : (
         <div className="space-y-3">
           {categories.map((cat) => (
-            <CategoryRow
-              key={cat.id}
-              cat={cat}
-              onEditCategory={onEditCategory}
-              onDeleteCategory={onDeleteCategory}
-              deletingCatId={deletingCatId}
-              dict={dict}
-            />
+            <CategoryRow key={cat.id} cat={cat} />
           ))}
         </div>
       )}

@@ -1,21 +1,12 @@
 "use client";
 
-import { Card, CardBody, Button, Skeleton } from "@/components/ui";
-import {
-  IconPlus,
-  IconEdit,
-  IconTrash,
-  IconCalendar,
-} from "@/components/icons";
+import { Card, CardBody, Skeleton } from "@/components/ui";
+import { IconCalendar } from "@/components/icons";
 import type { EventCategory } from "@/services/event-category/types";
 
 interface Props {
   categories: EventCategory[];
   isLoading: boolean;
-  onAdd: () => void;
-  onEdit: (cat: EventCategory) => void;
-  onDelete: (id: string) => void;
-  deletingId: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dict: Record<string, any>;
 }
@@ -23,10 +14,6 @@ interface Props {
 export default function EventCategoryList({
   categories,
   isLoading,
-  onAdd,
-  onEdit,
-  onDelete,
-  deletingId,
   dict,
 }: Props) {
   const s = dict.settings;
@@ -40,10 +27,6 @@ export default function EventCategoryList({
           </h2>
           <p className="text-sm text-gray-500">{s.eventCategoriesSubtitle}</p>
         </div>
-        <Button size="md" onClick={onAdd}>
-          <IconPlus size={16} />
-          {s.addEventCategory}
-        </Button>
       </div>
 
       {isLoading ? (
@@ -93,27 +76,6 @@ export default function EventCategoryList({
                         {cat.description}
                       </p>
                     )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(cat)}
-                    >
-                      <IconEdit size={14} />
-                    </Button>
-                    <Button
-                      variant={deletingId === cat.id ? "danger" : "outline"}
-                      size="sm"
-                      onClick={() => onDelete(cat.id)}
-                    >
-                      {deletingId === cat.id ? (
-                        s.confirmDeleteEventCategory
-                      ) : (
-                        <IconTrash size={14} />
-                      )}
-                    </Button>
                   </div>
                 </div>
               </CardBody>

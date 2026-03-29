@@ -8,8 +8,3 @@ export { useDeletePackage } from "./use-delete-package";
 export { useCreateAddOn } from "./use-create-addon";
 export { useUpdateAddOn } from "./use-update-addon";
 export { useDeleteAddOn } from "./use-delete-addon";
-export {
-  useCreateCategory,
-  useUpdateCategory,
-  useDeleteCategory,
-} from "./use-category-mutations";

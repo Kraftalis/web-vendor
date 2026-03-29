@@ -1,27 +1,13 @@
 "use client";
 
-import { Card, CardBody, Button } from "@/components/ui";
-import { IconEdit, IconTrash } from "@/components/icons";
+import { Card, CardBody } from "@/components/ui";
 import type { Category } from "@/services/pricing";
 
 interface Props {
   cat: Category;
-  onEditCategory: (cat: Category) => void;
-  onDeleteCategory: (id: string) => void;
-  deletingCatId: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dict: Record<string, any>;
 }
 
-export default function CategoryRow({
-  cat,
-  onEditCategory,
-  onDeleteCategory,
-  deletingCatId,
-  dict,
-}: Props) {
-  const s = dict.settings;
-
+export default function CategoryRow({ cat }: Props) {
   return (
     <Card>
       <CardBody className="p-0">
@@ -34,27 +20,6 @@ export default function CategoryRow({
                 {cat.description}
               </p>
             )}
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEditCategory(cat)}
-            >
-              <IconEdit size={14} />
-            </Button>
-            <Button
-              variant={deletingCatId === cat.id ? "danger" : "outline"}
-              size="sm"
-              onClick={() => onDeleteCategory(cat.id)}
-            >
-              {deletingCatId === cat.id ? (
-                s.confirmDeleteCategory
-              ) : (
-                <IconTrash size={14} />
-              )}
-            </Button>
           </div>
         </div>
       </CardBody>

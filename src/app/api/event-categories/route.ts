@@ -1,11 +1,5 @@
-import { NextRequest } from "next/server";
-import {
-  successResponse,
-  createdResponse,
-  validationError,
-  internalError,
-} from "@/lib/api";
-import { findEventCategories, createEventCategory } from "@/repositories/event";
+import { successResponse, internalError } from "@/lib/api";
+import { findEventCategories } from "@/repositories/event";
 
 /**
  * GET /api/event-categories
@@ -17,31 +11,6 @@ export async function GET() {
     return successResponse(categories);
   } catch (err) {
     console.error("[API] GET /api/event-categories error:", err);
-    return internalError();
-  }
-}
-
-/**
- * POST /api/event-categories
- * Create a new event category.
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const name = (body.name as string)?.trim();
-    if (!name) return validationError("Name is required.");
-
-    const description = (body.description as string)?.trim() || null;
-    const color = (body.color as string)?.trim() || "#3B82F6";
-
-    const category = await createEventCategory({
-      name,
-      description,
-      color,
-    });
-    return createdResponse(category);
-  } catch (err) {
-    console.error("[API] POST /api/event-categories error:", err);
     return internalError();
   }
 }

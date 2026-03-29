@@ -14,13 +14,7 @@ export {
 } from "./event";
 
 // ─── Event Category hooks ───────────────────────────────────
-export {
-  eventCategoryKeys,
-  useEventCategories,
-  useCreateEventCategory,
-  useUpdateEventCategory,
-  useDeleteEventCategory,
-} from "./event-category";
+export { eventCategoryKeys, useEventCategories } from "./event-category";
 
 // ─── Pricing hooks ──────────────────────────────────────────
 export {
@@ -34,9 +28,6 @@ export {
   useCreateAddOn,
   useUpdateAddOn,
   useDeleteAddOn,
-  useCreateCategory,
-  useUpdateCategory,
-  useDeleteCategory,
 } from "./pricing";
 
 // ─── Booking hooks ──────────────────────────────────────────

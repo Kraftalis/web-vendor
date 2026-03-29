@@ -19,6 +19,15 @@ export async function findBusinessProfile(userId: string) {
 }
 
 /**
+ * Find business profile by its own ID.
+ */
+export async function findBusinessProfileById(id: string) {
+  return prisma.businessProfile.findUnique({
+    where: { id },
+  });
+}
+
+/**
  * Create or update business profile.
  */
 export async function upsertBusinessProfile(

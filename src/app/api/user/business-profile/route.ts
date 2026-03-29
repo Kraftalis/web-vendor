@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import {
   successResponse,
   validationError,
@@ -65,15 +64,6 @@ export async function PUT(request: NextRequest) {
     if (!existingPrimary) {
       await createDefaultAccount(profile.id);
     }
-
-    // Set the "bp" cookie so middleware knows onboarding is complete.
-    const cookieStore = await cookies();
-    cookieStore.set("bp", "1", {
-      path: "/",
-      httpOnly: false,
-      maxAge: 60 * 60 * 24 * 365, // 1 year
-      sameSite: "lax",
-    });
 
     return successResponse(profile);
   } catch (err) {

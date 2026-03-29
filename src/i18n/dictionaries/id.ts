@@ -693,6 +693,8 @@ const id: Dictionary = {
     flatPrice: "Harga Satuan",
     flatPriceHint: "Digunakan jika tidak ada variasi harga.",
     currency: "Mata Uang",
+    eventCategory: "Kategori Acara",
+    selectEventCategory: "Pilih kategori acara",
 
     // Add-ons section
     addOnsTitle: "Tambahan",
@@ -821,12 +823,48 @@ const id: Dictionary = {
     emailPlaceholder: "hello@bisnisanda.com",
     phoneLabel: "Nomor Telepon",
     phonePlaceholder: "+62812...",
+    phoneRequired: "Nomor telepon wajib diisi.",
+    logoRequired: "Logo bisnis wajib diunggah.",
     socialLinksLabel: "Media Sosial (opsional)",
     uploadLogo: "Unggah logo bisnis",
     completeSetup: "Selesaikan Pengaturan",
     saving: "Menyimpan…",
     saveError: "Gagal menyimpan profil. Silakan coba lagi.",
     canEditLater: "Anda selalu bisa mengubah ini nanti di pengaturan profil.",
+    // Steps
+    step: "Langkah",
+    of: "dari",
+    stepBusinessProfile: "Profil Bisnis",
+    stepBusinessProfileDesc: "Atur nama bisnis, logo, dan kontak Anda.",
+    stepPackages: "Paket & Harga",
+    stepPackagesDesc:
+      "Tambahkan minimal satu paket layanan untuk mulai menerima booking.",
+    stepAddOns: "Tambahan",
+    stepAddOnsDesc:
+      "Tambahkan ekstra opsional yang bisa klien sertakan dalam booking mereka.",
+    next: "Selanjutnya",
+    back: "Kembali",
+    // Step 2 — Packages
+    packageNameLabel: "Nama Paket",
+    packageNamePlaceholder: "mis. Fotografi Pernikahan - Gold",
+    packageNameRequired: "Nama paket wajib diisi.",
+    packagePriceLabel: "Harga",
+    packagePricePlaceholder: "mis. 15000000",
+    packagePriceRequired: "Harga wajib diisi.",
+    packageDescriptionLabel: "Deskripsi (opsional)",
+    packageDescriptionPlaceholder: "Jelaskan apa yang termasuk dalam paket ini",
+    addPackage: "Tambah Paket",
+    addAnotherPackage: "Tambah Paket Lain",
+    packagesAdded: "paket ditambahkan",
+    noPackagesYet: "Belum ada paket",
+    noPackagesYetDesc:
+      "Tambahkan minimal satu paket untuk menyelesaikan pengaturan.",
+    skipForNow: "Anda bisa menambahkan paket lainnya nanti di Harga & Paket.",
+    finishSetup: "Selesaikan Pengaturan",
+    creatingPackage: "Membuat…",
+    addOnsAdded: "tambahan ditambahkan",
+    addOnsOptionalHint:
+      "Tambahan bersifat opsional. Anda bisa lewati langkah ini atau tambahkan nanti.",
   },
 
   // ─── Push Notifications (Settings) ───────────────────────

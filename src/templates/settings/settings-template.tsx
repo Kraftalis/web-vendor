@@ -11,25 +11,12 @@ import {
   IconCalendar,
 } from "@/components/icons";
 import { useDictionary } from "@/i18n";
-import {
-  useCategories,
-  useCreateCategory,
-  useUpdateCategory,
-  useDeleteCategory,
-} from "@/hooks/pricing";
-import {
-  useEventCategories,
-  useCreateEventCategory,
-  useUpdateEventCategory,
-  useDeleteEventCategory,
-} from "@/hooks/event-category";
-import { useConfirmDelete } from "@/hooks/use-confirm-delete";
+import { useCategories } from "@/hooks/pricing";
+import { useEventCategories } from "@/hooks/event-category";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import BusinessProfileForm from "./business-profile-form";
 import CategoryList from "./category-list";
-import CategoryModal from "./category-modal";
 import EventCategoryList from "./event-category-list";
-import EventCategoryModal from "./event-category-modal";
 import type { Category } from "@/services/pricing";
 import type { EventCategory } from "@/services/event-category/types";
 
@@ -69,16 +56,6 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
       label: s.tabNotifications,
       icon: <IconBell size={16} />,
     },
-    {
-      key: "categories",
-      label: s.tabCategories,
-      icon: <IconSettings size={16} />,
-    },
-    {
-      key: "event-categories",
-      label: s.tabEventCategories,
-      icon: <IconCalendar size={16} />,
-    },
   ];
 
   // Queries
@@ -87,96 +64,6 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
 
   const eventCatQuery = useEventCategories();
   const eventCategories: EventCategory[] = eventCatQuery.data ?? [];
-
-  // Mutations
-  const createCatMut = useCreateCategory();
-  const updateCatMut = useUpdateCategory();
-  const deleteCatMut = useDeleteCategory();
-
-  const createEvtCatMut = useCreateEventCategory();
-  const updateEvtCatMut = useUpdateEventCategory();
-  const deleteEvtCatMut = useDeleteEventCategory();
-
-  // ─── Category modal ───────────────────────────────────────
-  const [catModalOpen, setCatModalOpen] = useState(false);
-  const [editingCat, setEditingCat] = useState<Category | null>(null);
-
-  const openAddCategory = () => {
-    setEditingCat(null);
-    setCatModalOpen(true);
-  };
-
-  const openEditCategory = (cat: Category) => {
-    setEditingCat(cat);
-    setCatModalOpen(true);
-  };
-
-  const closeCatModal = () => {
-    setCatModalOpen(false);
-    setEditingCat(null);
-  };
-
-  const handleSaveCategory = (formData: FormData) => {
-    const name = (formData.get("name") as string).trim();
-    const description = (formData.get("description") as string).trim() || null;
-    if (!name) return;
-
-    if (editingCat) {
-      updateCatMut.mutate(
-        { id: editingCat.id, payload: { name, description } },
-        { onSuccess: closeCatModal },
-      );
-    } else {
-      createCatMut.mutate(
-        { name, description },
-        { onSuccess: () => setCatModalOpen(false) },
-      );
-    }
-  };
-
-  const catDelete = useConfirmDelete((id) => deleteCatMut.mutate(id));
-
-  // ─── Event category modal ─────────────────────────────────
-  const [evtCatModalOpen, setEvtCatModalOpen] = useState(false);
-  const [editingEvtCat, setEditingEvtCat] = useState<EventCategory | null>(
-    null,
-  );
-
-  const openAddEvtCat = () => {
-    setEditingEvtCat(null);
-    setEvtCatModalOpen(true);
-  };
-
-  const openEditEvtCat = (cat: EventCategory) => {
-    setEditingEvtCat(cat);
-    setEvtCatModalOpen(true);
-  };
-
-  const closeEvtCatModal = () => {
-    setEvtCatModalOpen(false);
-    setEditingEvtCat(null);
-  };
-
-  const handleSaveEvtCat = (formData: FormData) => {
-    const name = (formData.get("name") as string).trim();
-    const description = (formData.get("description") as string).trim() || null;
-    const color = (formData.get("color") as string).trim() || "#3B82F6";
-    if (!name) return;
-
-    if (editingEvtCat) {
-      updateEvtCatMut.mutate(
-        { id: editingEvtCat.id, payload: { name, description, color } },
-        { onSuccess: closeEvtCatModal },
-      );
-    } else {
-      createEvtCatMut.mutate(
-        { name, description, color },
-        { onSuccess: () => setEvtCatModalOpen(false) },
-      );
-    }
-  };
-
-  const evtCatDelete = useConfirmDelete((id) => deleteEvtCatMut.mutate(id));
 
   // ─── Push notifications ───────────────────────────────────
   const push = usePushNotifications();
@@ -286,10 +173,6 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
           <CategoryList
             categories={categories}
             isLoading={categoriesQuery.isLoading}
-            onAddCategory={openAddCategory}
-            onEditCategory={openEditCategory}
-            onDeleteCategory={catDelete.handleDelete}
-            deletingCatId={catDelete.pendingId}
             dict={dict}
           />
         )}
@@ -298,36 +181,10 @@ export default function SettingsTemplate({ user }: SettingsTemplateProps) {
           <EventCategoryList
             categories={eventCategories}
             isLoading={eventCatQuery.isLoading}
-            onAdd={openAddEvtCat}
-            onEdit={openEditEvtCat}
-            onDelete={evtCatDelete.handleDelete}
-            deletingId={evtCatDelete.pendingId}
             dict={dict}
           />
         )}
       </div>
-
-      {/* Category Modal */}
-      <CategoryModal
-        key={editingCat?.id ?? "new-cat"}
-        open={catModalOpen}
-        editingCat={editingCat}
-        onClose={closeCatModal}
-        onSave={handleSaveCategory}
-        isSaving={createCatMut.isPending || updateCatMut.isPending}
-        dict={dict}
-      />
-
-      {/* Event Category Modal */}
-      <EventCategoryModal
-        key={editingEvtCat?.id ?? "new-evt-cat"}
-        open={evtCatModalOpen}
-        editing={editingEvtCat}
-        onClose={closeEvtCatModal}
-        onSave={handleSaveEvtCat}
-        isSaving={createEvtCatMut.isPending || updateEvtCatMut.isPending}
-        dict={dict}
-      />
     </AppLayout>
   );
 }

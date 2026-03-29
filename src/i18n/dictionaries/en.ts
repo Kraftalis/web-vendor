@@ -691,6 +691,8 @@ const en = {
     flatPrice: "Flat Price",
     flatPriceHint: "Used when no variations are defined.",
     currency: "Currency",
+    eventCategory: "Event Category",
+    selectEventCategory: "Select event category",
 
     // Add-ons section
     addOnsTitle: "Add-ons",
@@ -819,12 +821,48 @@ const en = {
     emailPlaceholder: "hello@yourbusiness.com",
     phoneLabel: "Phone Number",
     phonePlaceholder: "+62812...",
+    phoneRequired: "Phone number is required.",
+    logoRequired: "Business logo is required.",
     socialLinksLabel: "Social Media (optional)",
     uploadLogo: "Upload business logo",
     completeSetup: "Complete Setup",
     saving: "Saving…",
     saveError: "Failed to save profile. Please try again.",
     canEditLater: "You can always edit this later in your profile settings.",
+    // Steps
+    step: "Step",
+    of: "of",
+    stepBusinessProfile: "Business Profile",
+    stepBusinessProfileDesc:
+      "Set up your business name, logo, and contact info.",
+    stepPackages: "Package & Pricing",
+    stepPackagesDesc:
+      "Add at least one service package to start receiving bookings.",
+    stepAddOns: "Add-ons",
+    stepAddOnsDesc:
+      "Optionally add extras that clients can include with their bookings.",
+    next: "Next",
+    back: "Back",
+    // Step 2 — Packages
+    packageNameLabel: "Package Name",
+    packageNamePlaceholder: "e.g. Wedding Photography - Gold",
+    packageNameRequired: "Package name is required.",
+    packagePriceLabel: "Price",
+    packagePricePlaceholder: "e.g. 15000000",
+    packagePriceRequired: "Price is required.",
+    packageDescriptionLabel: "Description (optional)",
+    packageDescriptionPlaceholder: "Describe what's included in this package",
+    addPackage: "Add Package",
+    addAnotherPackage: "Add Another Package",
+    packagesAdded: "packages added",
+    noPackagesYet: "No packages yet",
+    noPackagesYetDesc: "Add at least one package to complete your setup.",
+    skipForNow: "You can add more packages later in Pricing & Packages.",
+    finishSetup: "Finish Setup",
+    creatingPackage: "Creating…",
+    addOnsAdded: "add-ons added",
+    addOnsOptionalHint:
+      "Add-ons are optional. You can skip this step or add more later.",
   },
 
   // ─── Push Notifications (Settings) ───────────────────────

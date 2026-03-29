@@ -2,15 +2,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Middleware for vendor.kraftalis.com (single-domain, vendor-only).
+ * Proxy (middleware) for vendor.kraftalis.com.
  *
  * Responsibilities:
- * 1. Onboarding enforcement — logged-in vendors without a business profile
- *    (no `bp` cookie) are redirected to /onboarding.
- * 2. Security headers on every response.
- *
- * Authentication is handled by NextAuth's `authorized` callback in
- * src/config/auth.ts, which runs before this middleware for protected routes.
+ * 1. Security headers on every response.
+ * 2. Onboarding enforcement — logged-in vendors without the `bp` cookie
+ *    are redirected to /onboarding. The `bp` cookie is set by Route Handlers
+ *    (API routes) once the vendor completes all onboarding steps.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,8 +20,7 @@ export function proxy(request: NextRequest) {
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-  // ─── Onboarding enforcement ────────────────────────────────
-  // Public routes — skip onboarding check
+  // ─── Public routes — skip onboarding check ────────────────
   const isPublicRoute =
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
@@ -31,7 +28,7 @@ export function proxy(request: NextRequest) {
 
   if (isPublicRoute) return response;
 
-  // Check session
+  // ─── Check session ────────────────────────────────────────
   const token =
     request.cookies.get("authjs.session-token") ??
     request.cookies.get("__Secure-authjs.session-token");
@@ -39,7 +36,7 @@ export function proxy(request: NextRequest) {
 
   if (!isLoggedIn) return response;
 
-  // Logged-in user — enforce onboarding
+  // ─── Logged-in user — enforce onboarding ──────────────────
   const hasBp = request.cookies.get("bp");
   const isOnOnboarding = pathname.startsWith("/onboarding");
 
