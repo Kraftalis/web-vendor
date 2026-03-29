@@ -749,6 +749,12 @@ const id: Dictionary = {
     fri: "Jum",
     sat: "Sab",
 
+    // View labels
+    month: "Bulan",
+    week: "Minggu",
+    day: "Hari",
+    agenda: "Agenda",
+
     // Month names
     months:
       "Januari,Februari,Maret,April,Mei,Juni,Juli,Agustus,September,Oktober,November,Desember",

@@ -747,6 +747,12 @@ const en = {
     fri: "Fri",
     sat: "Sat",
 
+    // View labels
+    month: "Month",
+    week: "Week",
+    day: "Day",
+    agenda: "Agenda",
+
     // Month names
     months:
       "January,February,March,April,May,June,July,August,September,October,November,December",

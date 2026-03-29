@@ -1,0 +1,156 @@
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
+/* ─── React Big Calendar Custom Styles ─────────────────────── */
+
+.calendar-wrapper-full {
+  /* height: 100%; */
+}
+
+.no-border-radius-calendar .rbc-calendar,
+.no-border-radius-calendar .rbc-month-view,
+.no-border-radius-calendar .rbc-month-row,
+.no-border-radius-calendar .rbc-day-bg,
+.no-border-radius-calendar .rbc-day-slot {
+  border-radius: 0 !important;
+}
+
+/* Big Calendar Layout (Google Calendar Style */
+.rbc-calendar {
+  border: none !important;
+  font-family: inherit;
+}
+
+/* Gray out dates outside the current month */
+.rbc-off-range-bg {
+  background-color: #f9fafb !important;
+  opacity: 0.5;
+}
+
+.rbc-off-range {
+  color: #d1d5db !important;
+}
+
+/* Today's background */
+.rbc-today {
+  background-color: var(--accent-light) !important;
+}
+
+/* Circular highlight for selected date */
+.rbc-selected-cell {
+  background-color: transparent !important;
+}
+
+.rbc-selected-cell .rbc-button-link {
+  background-color: var(--accent);
+  color: white !important;
+  border-radius: 9999px;
+  width: 28px;
+  height: 28px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 4px auto 0;
+  font-weight: 700;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Header Cells (Mon, Tue, etc.) */
+.rbc-header {
+  border-bottom: 1px solid #f3f4f6 !important;
+  padding: 12px 0 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: #9ca3af !important;
+  letter-spacing: 0.05em !important;
+}
+
+.rbc-month-view {
+  border: 1px solid #f3f4f6 !important;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.rbc-month-row {
+  border-bottom: 1px solid #f3f4f6 !important;
+}
+
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid #f3f4f6 !important;
+}
+
+/* Today highlight */
+.rbc-today {
+  background-color: var(--accent-light);
+}
+
+/* Off-month days */
+.rbc-off-range-bg {
+  background-color: #fcfcfc;
+}
+
+/* Event styles */
+.rbc-event {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+.rbc-event-content {
+  font-size: 0.75rem;
+  padding: 0;
+}
+
+.rbc-show-more {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  background-color: transparent;
+  padding: 2px 4px;
+}
+
+.rbc-month-view .rbc-date-cell {
+  padding: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  text-align: right;
+}
+
+.rbc-off-range .rbc-date-cell {
+  color: var(--text-tertiary);
+  opacity: 0.5;
+}
+
+.rbc-now .rbc-date-cell {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.rbc-month-view .rbc-events-container {
+  padding: 2px;
+}
+
+/* Remove default focus outline */
+.rbc-month-view:focus,
+.rbc-day-bg:focus,
+.rbc-date-cell:focus {
+  outline: none;
+}
+
+/* Specific button styles in the calendar */
+.rbc-button-link {
+  display: block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  margin: 4px auto 0;
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+
+.rbc-button-link:hover {
+  background-color: #f3f4f6;
+}

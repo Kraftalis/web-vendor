@@ -1,9 +1,6 @@
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
-import {
-  findPrimaryAccount,
-  createIncomeFromPayment,
-} from "@/repositories/finance";
+import { findPrimaryAccount } from "@/repositories/finance";
 import type {
   CreateBookingLinkInput,
   UpdateBookingLinkInput,
@@ -79,17 +76,25 @@ export async function createBookingLink(
       // 2b. Auto-record income in primary finance account
       const primaryAccount = await findPrimaryAccount(businessProfileId);
       if (primaryAccount) {
-        await createIncomeFromPayment({
-          businessProfileId,
-          primaryAccountId: primaryAccount.id,
-          paymentId: payment.id,
-          amount: input.payment!.amount,
-          eventId: event.id,
-          clientName: input.clientName ?? null,
-          eventType: "Other",
-          paymentType: input.payment!.paymentType,
-          receiptUrl: input.payment!.receiptUrl ?? null,
-          receiptName: input.payment!.receiptName ?? null,
+        // Use the transaction 'tx' to create the transaction to ensure event exists!
+        await tx.financeTransaction.create({
+          data: {
+            businessProfileId,
+            accountId: primaryAccount.id,
+            type: "INCOME",
+            category: "Event Payment",
+            description: input.clientName
+              ? `Payment from ${input.clientName}`
+              : "Event payment",
+            amount: input.payment!.amount,
+            currency: "IDR",
+            transactionDate: new Date(),
+            receiptUrl: input.payment!.receiptUrl ?? null,
+            receiptName: input.payment!.receiptName ?? null,
+            eventId: event.id,
+            tags: ["auto", input.payment!.paymentType.toLowerCase()],
+            notes: `Auto-recorded from ${input.payment!.paymentType} (Payment #${payment.id.slice(-8)})`,
+          },
         });
       }
 
@@ -267,17 +272,25 @@ export async function updateBookingLinkById(
       // 2b. Auto-record income in primary finance account
       const primaryAccount = await findPrimaryAccount(businessProfileId);
       if (primaryAccount) {
-        await createIncomeFromPayment({
-          businessProfileId,
-          primaryAccountId: primaryAccount.id,
-          paymentId: payment.id,
-          amount: input.payment!.amount,
-          eventId: event.id,
-          clientName: input.clientName ?? null,
-          eventType: "Other",
-          paymentType: input.payment!.paymentType,
-          receiptUrl: input.payment!.receiptUrl ?? null,
-          receiptName: input.payment!.receiptName ?? null,
+        // Use the transaction 'tx' to create the transaction to ensure event exists!
+        await tx.financeTransaction.create({
+          data: {
+            businessProfileId,
+            accountId: primaryAccount.id,
+            type: "INCOME",
+            category: "Event Payment",
+            description: input.clientName
+              ? `Payment from ${input.clientName}`
+              : "Event payment",
+            amount: input.payment!.amount,
+            currency: "IDR",
+            transactionDate: new Date(),
+            receiptUrl: input.payment!.receiptUrl ?? null,
+            receiptName: input.payment!.receiptName ?? null,
+            eventId: event.id,
+            tags: ["auto", input.payment!.paymentType.toLowerCase()],
+            notes: `Auto-recorded from ${input.payment!.paymentType} (Payment #${payment.id.slice(-8)})`,
+          },
         });
       }
 

@@ -1,23 +1,22 @@
 "use client";
 
-import { type ReactNode } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
-  IconHome,
   IconCalendar,
   IconEvent,
+  IconHome,
   IconPricing,
   IconSettings,
-  IconPlus,
   KraftalisLogo,
 } from "@/components/icons";
 import {
+  LanguageSwitcher,
   NotificationDropdown,
   ProfileDropdown,
-  LanguageSwitcher,
 } from "@/components/topbar";
 import { useDictionary } from "@/i18n";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { type ReactNode } from "react";
 
 /**
  * AppLayout — Google Workspace-inspired authenticated app shell.
@@ -33,6 +32,8 @@ interface AppLayoutProps {
   } | null;
   /** Page title shown in the topbar breadcrumb */
   title?: string;
+  /** If true, the layout will be full width and have no padding */
+  fullWidth?: boolean;
 }
 
 interface NavItem {
@@ -49,7 +50,11 @@ const navItems: NavItem[] = [
   { labelKey: "settings", href: "/settings", icon: IconSettings },
 ];
 
-export default function AppLayout({ children, user }: AppLayoutProps) {
+export default function AppLayout({
+  children,
+  user,
+  fullWidth = false,
+}: AppLayoutProps) {
   const pathname = usePathname();
   const { dict } = useDictionary();
 
@@ -71,9 +76,10 @@ export default function AppLayout({ children, user }: AppLayoutProps) {
         {/* amber — bottom right */}
         <div className="absolute -bottom-16 right-12 h-72 w-72 rounded-full bg-amber-300/15 blur-3xl" />
       </div>
+
       {/* ─── Top Navigation Bar (Desktop + Mobile) ──────── */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm shadow-gray-200/60">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
           {/* Left: Logo + Desktop Nav */}
           <div className="flex items-center gap-8">
             {/* Brand */}
@@ -126,7 +132,11 @@ export default function AppLayout({ children, user }: AppLayoutProps) {
 
       {/* ─── Page Content ───────────────────────────────── */}
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</div>
+        {fullWidth ? (
+          children
+        ) : (
+          <div className="mx-auto px-4 py-6 sm:px-6">{children}</div>
+        )}
       </main>
 
       {/* ─── Mobile Bottom Tab Bar ──────────────────────── */}

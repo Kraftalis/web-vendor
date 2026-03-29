@@ -2,16 +2,25 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { AppLayout } from "@/components/layout";
-import { IconCalendar } from "@/components/icons";
+import {
+  IconCalendar,
+  IconChevronLeft,
+  IconChevronRight,
+  IconPlus,
+} from "@/components/icons";
 import { useDictionary } from "@/i18n";
 import { useEvents } from "@/hooks/event";
-import type { BadgeVariant } from "@/components/ui";
 import type { ScheduleEvent, ScheduleTemplateProps, ViewMode } from "./types";
-import { toDateKey } from "./types";
-import { CalendarGrid } from "./calendar-grid";
-import { CalendarSidebar } from "./calendar-sidebar";
 import { AgendaView } from "./agenda-view";
 import { BookingLinkModal } from "@/templates/event/event-modals";
+import "dayjs/locale/id";
+import { dayjsLocalizer, Views } from "react-big-calendar";
+import dayjs from "dayjs";
+import "./calendar.css";
+import { useScheduleStore } from "@/stores/schedule-store";
+import { MiniCalendar } from "./mini-calendar";
+import { EventList } from "./event-list";
+import { MainCalendar } from "./main-calendar";
 
 export type { ScheduleEvent, ScheduleTemplateProps };
 
@@ -19,6 +28,8 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   const { dict } = useDictionary();
   const sched = dict.schedule;
   const eventDict = dict.event;
+
+  const { currentDate, viewMode, setViewMode, navigate } = useScheduleStore();
 
   // Fetch events client-side
   const { data: rawEvents = [] } = useEvents();
@@ -42,30 +53,30 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   );
 
   const now = useMemo(() => new Date(), []);
-  const [viewMode, setViewMode] = useState<ViewMode>("calendar");
-  const [currentMonth, setCurrentMonth] = useState(() => now.getMonth());
-  const [currentYear, setCurrentYear] = useState(() => now.getFullYear());
-  const [selectedDate, setSelectedDate] = useState<Date>(now);
   const [showLinkModal, setShowLinkModal] = useState(false);
 
   // Format selected date as YYYY-MM-DD for pre-filling the booking form
   const selectedDateISO = useMemo(() => {
-    const y = selectedDate.getFullYear();
-    const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const d = String(selectedDate.getDate()).padStart(2, "0");
+    const y = currentDate.getFullYear();
+    const m = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const d = String(currentDate.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
-  }, [selectedDate]);
+  }, [currentDate]);
 
-  const monthNames = sched.months.split(",");
-  const weekDays = [
-    sched.sun,
-    sched.mon,
-    sched.tue,
-    sched.wed,
-    sched.thu,
-    sched.fri,
-    sched.sat,
-  ];
+  // Convert events to Big Calendar format
+  const calendarEvents = useMemo(() => {
+    return events.map((ev) => ({
+      id: ev.id,
+      title: ev.clientName,
+      start: dayjs(ev.eventDate).toDate(),
+      end: dayjs(ev.eventDate).endOf("day").toDate(),
+      resource: ev,
+    }));
+  }, [events]);
+
+  const viewLabels: Record<string, string> = {
+    month: sched.month,
+  };
 
   const eventStatusMap: Record<string, string> = {
     INQUIRY: eventDict.statusInquiry,
@@ -81,64 +92,11 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
     PAID: eventDict.paymentPaid,
   };
 
-  const paymentStatusVariant: Record<string, BadgeVariant> = {
-    UNPAID: "danger",
-    DP_PAID: "warning",
-    PAID: "success",
+  const paymentStatusVariant = {
+    UNPAID: "danger" as const,
+    DP_PAID: "warning" as const,
+    PAID: "success" as const,
   };
-
-  const eventsByDate = useMemo(() => {
-    const map = new Map<string, ScheduleEvent[]>();
-    for (const ev of events) {
-      const key = toDateKey(new Date(ev.eventDate));
-      const arr = map.get(key) ?? [];
-      arr.push(ev);
-      map.set(key, arr);
-    }
-    return map;
-  }, [events]);
-
-  const calendarDays = useMemo(() => {
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const startOffset = firstDay.getDay();
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
-
-    const days: { date: Date; inMonth: boolean; events: ScheduleEvent[] }[] =
-      [];
-
-    for (let i = startOffset - 1; i >= 0; i--) {
-      const d = new Date(currentYear, currentMonth - 1, prevMonthDays - i);
-      days.push({
-        date: d,
-        inMonth: false,
-        events: eventsByDate.get(toDateKey(d)) ?? [],
-      });
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      const d = new Date(currentYear, currentMonth, i);
-      days.push({
-        date: d,
-        inMonth: true,
-        events: eventsByDate.get(toDateKey(d)) ?? [],
-      });
-    }
-    const remaining = 42 - days.length;
-    for (let i = 1; i <= remaining; i++) {
-      const d = new Date(currentYear, currentMonth + 1, i);
-      days.push({
-        date: d,
-        inMonth: false,
-        events: eventsByDate.get(toDateKey(d)) ?? [],
-      });
-    }
-
-    return days;
-  }, [currentYear, currentMonth, eventsByDate]);
-
-  const selectedDateEvents = useMemo(() => {
-    return eventsByDate.get(toDateKey(selectedDate)) ?? [];
-  }, [selectedDate, eventsByDate]);
 
   const agendaEvents = useMemo(() => {
     const sorted = [...events].sort(
@@ -156,30 +114,6 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
       .reverse();
     return { upcoming, past };
   }, [events, now]);
-
-  const goToPrevMonth = useCallback(() => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  }, [currentMonth]);
-
-  const goToNextMonth = useCallback(() => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
-  }, [currentMonth]);
-
-  const goToToday = useCallback(() => {
-    setCurrentMonth(now.getMonth());
-    setCurrentYear(now.getFullYear());
-    setSelectedDate(now);
-  }, [now]);
 
   const relativeDayLabel = useCallback(
     (dateStr: string): string => {
@@ -225,80 +159,96 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   }, [events]);
 
   return (
-    <AppLayout user={user}>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{sched.title}</h1>
-            <p className="mt-1 text-sm text-gray-500">{sched.subtitle}</p>
+    <AppLayout title={sched.title} user={user} fullWidth>
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-white">
+        {/* Left Sidebar */}
+        <aside className="w-full lg:w-72 border-r border-gray-100 flex flex-col h-full bg-white transition-all shrink-0">
+          <div className="p-4 border-b border-gray-100 mb-2">
+            <button
+              onClick={() => setShowLinkModal(true)}
+              className="w-full bg-blue-600 text-white px-4 py-2 h-11 rounded-lg text-sm font-bold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
+            >
+              <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110">
+                <IconPlus />
+              </div>
+              {dict.bookingLink.configTitle}
+            </button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden mini-calendar-section scrollbar-hide">
+            <MiniCalendar events={events} />
+            <EventList events={events} selectedDate={currentDate} />
+          </div>
+        </aside>
+
+        {/* Main Content (Big Calendar) */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+          <div className="p-4 flex flex-wrap items-center justify-between gap-4 border-b border-gray-50 z-20 bg-white">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-bold text-gray-900 transition-all capitalize">
+                {dayjs(currentDate).format("MMMM YYYY")}
+              </h2>
+              <div className="flex items-center bg-gray-100 rounded-xl p-1">
+                <button
+                  onClick={() => navigate("PREV")}
+                  className="p-1.5 text-gray-500 hover:bg-white hover:text-blue-600 hover:shadow-sm rounded-lg transition-all"
+                >
+                  <IconChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => navigate("TODAY")}
+                  className="px-3 py-1 text-sm font-bold text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition-all"
+                >
+                  {sched.today}
+                </button>
+                <button
+                  onClick={() => navigate("NEXT")}
+                  className="p-1.5 text-gray-500 hover:bg-white hover:text-blue-600 hover:shadow-sm rounded-lg transition-all"
+                >
+                  <IconChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+
             <ViewToggle
               viewMode={viewMode}
               onChangeView={setViewMode}
               labels={sched}
             />
           </div>
-        </div>
 
-        {viewMode === "calendar" ? (
-          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <CalendarGrid
-              now={now}
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              selectedDate={selectedDate}
-              calendarDays={calendarDays}
-              monthNames={monthNames}
-              weekDays={weekDays}
-              onSelectDate={setSelectedDate}
-              onPrevMonth={goToPrevMonth}
-              onNextMonth={goToNextMonth}
-              onGoToToday={goToToday}
-              labels={{
-                today: sched.today,
-                previousMonth: sched.previousMonth,
-                nextMonth: sched.nextMonth,
-              }}
-              legendItems={legendItems}
-            />
-            <CalendarSidebar
-              selectedDate={selectedDate}
-              selectedDateEvents={selectedDateEvents}
-              upcomingEvents={agendaEvents.upcoming}
-              eventStatusMap={eventStatusMap}
-              paymentStatusMap={paymentStatusMap}
-              paymentStatusVariant={paymentStatusVariant}
-              viewLabel={eventDict.view}
-              noEventsOnDayLabel={sched.noEventsOnDay}
-              upcomingLabel={sched.upcoming}
-              noUpcomingLabel={sched.noUpcoming}
-              relativeDayLabel={relativeDayLabel}
-              onCreateBooking={() => setShowLinkModal(true)}
-              createBookingLabel={sched.createBooking}
-            />
+          <div className="flex-1 min-w-0 relative">
+            {viewMode === "calendar" ? (
+              <div className="h-full calendar-wrapper-full scroll-smooth">
+                <MainCalendar
+                  events={events}
+                  calendarEvents={calendarEvents}
+                  legendItems={legendItems}
+                />
+              </div>
+            ) : (
+              <div className="h-full overflow-y-auto p-6 scroll-smooth">
+                <AgendaView
+                  upcomingEvents={agendaEvents.upcoming}
+                  pastEvents={agendaEvents.past}
+                  eventStatusMap={eventStatusMap}
+                  paymentStatusMap={paymentStatusMap}
+                  paymentStatusVariant={paymentStatusVariant}
+                  viewLabel={eventDict.view}
+                  bookingDict={dict.booking}
+                  relativeDayLabel={relativeDayLabel}
+                  labels={{
+                    upcoming: sched.upcoming,
+                    past: sched.past,
+                    noUpcoming: sched.noUpcoming,
+                    noUpcomingDesc: sched.noUpcomingDesc,
+                  }}
+                />
+              </div>
+            )}
           </div>
-        ) : (
-          <AgendaView
-            upcomingEvents={agendaEvents.upcoming}
-            pastEvents={agendaEvents.past}
-            eventStatusMap={eventStatusMap}
-            paymentStatusMap={paymentStatusMap}
-            paymentStatusVariant={paymentStatusVariant}
-            viewLabel={eventDict.view}
-            bookingDict={dict.booking}
-            relativeDayLabel={relativeDayLabel}
-            labels={{
-              upcoming: sched.upcoming,
-              past: sched.past,
-              noUpcoming: sched.noUpcoming,
-              noUpcomingDesc: sched.noUpcomingDesc,
-            }}
-          />
-        )}
+        </main>
       </div>
 
-      {/* Booking Link Modal — accessible from schedule page */}
       <BookingLinkModal
         open={showLinkModal}
         onClose={() => setShowLinkModal(false)}
