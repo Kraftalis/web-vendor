@@ -6,9 +6,11 @@ import { locales, type Locale } from "@/i18n/config";
 
 /**
  * Server action for signing out from the profile dropdown.
- * Redirects to the login page after sign out.
+ * Clears the onboarding `bp` cookie and redirects to the login page.
  */
 export async function handleSignOut() {
+  const cookieStore = await cookies();
+  cookieStore.delete("bp");
   await signOut({ redirectTo: "/login" });
 }
 
