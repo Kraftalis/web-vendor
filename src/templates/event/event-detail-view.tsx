@@ -10,7 +10,12 @@ import {
   IconNotes,
   IconEdit,
 } from "@/components/icons";
-import type { EventDetail, PackageSnapshot, AddOnSnapshot } from "./types";
+import type {
+  EventDetail,
+  EventScheduleItem,
+  PackageSnapshot,
+  AddOnSnapshot,
+} from "./types";
 import { formatCurrency } from "./types";
 
 // ─── View Mode ──────────────────────────────────────────────
@@ -36,6 +41,13 @@ interface EventDetailViewProps {
     notSet?: string;
     updateStatus?: string;
     paymentStatus?: string;
+    // Schedule
+    scheduleTitle?: string;
+    scheduleDate?: string;
+    scheduleStartTime?: string;
+    scheduleEndTime?: string;
+    scheduleLabel?: string;
+    noScheduleDates?: string;
   };
   /** Which cards to show */
   variant?:
@@ -44,7 +56,8 @@ interface EventDetailViewProps {
     | "client-only"
     | "event-only"
     | "status-only"
-    | "notes-only";
+    | "notes-only"
+    | "schedule-only";
   /** Callbacks to enable per-card edit buttons */
   onEditClient?: () => void;
   onEditEvent?: () => void;
@@ -52,6 +65,7 @@ interface EventDetailViewProps {
   onEditStatus?: () => void;
   onEditPackage?: () => void;
   onEditAddOns?: () => void;
+  onEditSchedule?: () => void;
   bookingLabels?: {
     totalPaid: string;
     remaining: string;
@@ -74,6 +88,7 @@ export function EventDetailView({
   onEditStatus,
   onEditPackage,
   onEditAddOns,
+  onEditSchedule,
   bookingLabels,
   totalPaid = 0,
   remaining = 0,
@@ -135,6 +150,7 @@ export function EventDetailView({
   // Determine which cards to show
   const showClient = variant === "general" || variant === "client-only";
   const showEvent = variant === "general" || variant === "event-only";
+  const showSchedule = variant === "general" || variant === "schedule-only";
   const showStatus = variant === "status-only";
   const showNotes = variant === "general" || variant === "notes-only";
 
@@ -193,12 +209,6 @@ export function EventDetailView({
                 labels.notSet ??
                 "—"}
             </InfoRow>
-            <InfoRow label={labels.eventDate} icon={<IconCalendar size={14} />}>
-              {formatDate(event.eventDate)}
-            </InfoRow>
-            <InfoRow label={labels.eventTime} icon={<IconClock size={14} />}>
-              {event.eventTime || labels.notSet || "—"}
-            </InfoRow>
             <InfoRow
               label={labels.eventLocation}
               icon={<IconMapPin size={14} />}
@@ -234,6 +244,59 @@ export function EventDetailView({
                   {labels.eventLocationUrl ?? "View Map"}
                 </a>
               </InfoRow>
+            )}
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Schedule */}
+      {showSchedule && (
+        <Card>
+          <CardHeader>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900">
+              <IconCalendar size={16} />
+              {labels.scheduleTitle ?? "Schedule"}
+            </h2>
+            {onEditSchedule && (
+              <Button variant="ghost" size="sm" onClick={onEditSchedule}>
+                <IconEdit size={14} />
+                {labels.editLabel ?? "Edit"}
+              </Button>
+            )}
+          </CardHeader>
+          <CardBody>
+            {event.schedules && event.schedules.length > 0 ? (
+              <div className="space-y-3">
+                {event.schedules.map((s: EventScheduleItem, idx: number) => (
+                  <div
+                    key={s.id ?? idx}
+                    className="flex flex-col gap-1 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"
+                  >
+                    {s.label && (
+                      <span className="text-xs font-medium text-gray-500">
+                        {s.label}
+                      </span>
+                    )}
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="flex items-center gap-1.5 font-medium text-gray-900">
+                        <IconCalendar size={13} />
+                        {formatDate(s.date)}
+                      </span>
+                      {(s.startTime || s.endTime) && (
+                        <span className="flex items-center gap-1 text-gray-500">
+                          <IconClock size={13} />
+                          {s.startTime ?? "—"}
+                          {s.endTime ? ` – ${s.endTime}` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">
+                {labels.noScheduleDates ?? "No schedule dates set."}
+              </p>
             )}
           </CardBody>
         </Card>

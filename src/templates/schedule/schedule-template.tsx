@@ -29,6 +29,14 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   const sched = dict.schedule;
   const eventDict = dict.event;
 
+  const eventStatusMap: Record<string, string> = {
+    INQUIRY: eventDict.statusInquiry,
+    WAITING_CONFIRMATION: eventDict.statusWaitingConfirmation,
+    BOOKED: eventDict.statusBooked,
+    ONGOING: eventDict.statusOngoing,
+    COMPLETED: eventDict.statusCompleted,
+  };
+
   const { currentDate, viewMode, setViewMode, navigate } = useScheduleStore();
 
   // Fetch events client-side
@@ -42,18 +50,23 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
         eventCategoryId: e.eventCategoryId ?? null,
         eventCategoryName: e.eventCategoryName ?? null,
         eventCategoryColor: e.eventCategoryColor ?? null,
-        eventDate: e.eventDate,
-        eventTime: e.eventTime,
         eventLocation: e.eventLocation,
         packageName: e.packageName,
         eventStatus: e.eventStatus,
         paymentStatus: e.paymentStatus,
+        schedules: e.schedules ?? [],
       })),
     [rawEvents],
   );
 
   const now = useMemo(() => new Date(), []);
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
+  const selectedEvent = useMemo(
+    () => events.find((e) => e.id === selectedEventId) || null,
+    [events, selectedEventId],
+  );
 
   // Format selected date as YYYY-MM-DD for pre-filling the booking form
   const selectedDateISO = useMemo(() => {
@@ -62,29 +75,6 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
     const d = String(currentDate.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
   }, [currentDate]);
-
-  // Convert events to Big Calendar format
-  const calendarEvents = useMemo(() => {
-    return events.map((ev) => ({
-      id: ev.id,
-      title: ev.clientName,
-      start: dayjs(ev.eventDate).toDate(),
-      end: dayjs(ev.eventDate).endOf("day").toDate(),
-      resource: ev,
-    }));
-  }, [events]);
-
-  const viewLabels: Record<string, string> = {
-    month: sched.month,
-  };
-
-  const eventStatusMap: Record<string, string> = {
-    INQUIRY: eventDict.statusInquiry,
-    WAITING_CONFIRMATION: eventDict.statusWaitingConfirmation,
-    BOOKED: eventDict.statusBooked,
-    ONGOING: eventDict.statusOngoing,
-    COMPLETED: eventDict.statusCompleted,
-  };
 
   const paymentStatusMap: Record<string, string> = {
     UNPAID: eventDict.paymentUnpaid,
@@ -99,19 +89,30 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   };
 
   const agendaEvents = useMemo(() => {
-    const sorted = [...events].sort(
-      (a, b) =>
-        new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
+    // Sort all individual schedule items across all events
+    const allScheduleItems = events.flatMap((ev) => {
+      if (!ev.schedules || ev.schedules.length === 0) {
+        return [];
+      }
+      return ev.schedules.map((s) => ({
+        ...s,
+        event: ev,
+      }));
+    });
+
+    const sorted = allScheduleItems.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
+
     const todayStart = new Date(
       now.getFullYear(),
       now.getMonth(),
       now.getDate(),
     );
-    const upcoming = sorted.filter((e) => new Date(e.eventDate) >= todayStart);
-    const past = sorted
-      .filter((e) => new Date(e.eventDate) < todayStart)
-      .reverse();
+
+    const upcoming = sorted.filter((s) => new Date(s.date) >= todayStart);
+    const past = sorted.filter((s) => new Date(s.date) < todayStart).reverse();
+
     return { upcoming, past };
   }, [events, now]);
 
@@ -151,18 +152,20 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
       }
     }
 
-    return Array.from(categoryMap.entries()).map(([type, data]) => ({
+    const items = Array.from(categoryMap.entries()).map(([type, data]) => ({
       type,
       label: data.label,
       color: data.color,
     }));
+
+    return items;
   }, [events]);
 
   return (
     <AppLayout title={sched.title} user={user} fullWidth>
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-white">
-        {/* Left Sidebar */}
-        <aside className="w-full lg:w-72 border-r border-gray-100 flex flex-col h-full bg-white transition-all shrink-0">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-white relative">
+        {/* Left Sidebar - Hidden on mobile, shown as sidebar on desktop */}
+        <aside className="hidden lg:flex w-72 border-r border-gray-100 flex-col h-full bg-white transition-all shrink-0">
           <div className="p-4 border-b border-gray-100 mb-2">
             <button
               onClick={() => setShowLinkModal(true)}
@@ -175,14 +178,43 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto overflow-x-hidden mini-calendar-section scrollbar-hide">
+            <div className="p-4 border-b border-gray-100 mb-2">
+              <div className="flex flex-wrap gap-2">
+                {legendItems.map((item) => (
+                  <div
+                    key={item.type}
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 border border-gray-100"
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: item.color || "#3b82f6",
+                      }}
+                    />
+                    <span className="text-[10px] font-medium text-gray-600">
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
             <MiniCalendar events={events} />
             <EventList events={events} selectedDate={currentDate} />
           </div>
         </aside>
 
+        {/* Floating Action Button - Mobile Only */}
+        <button
+          onClick={() => setShowLinkModal(true)}
+          className="fixed bottom-22 right-6 z-50 flex h-14 w-14 lg:hidden items-center justify-center rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 active:scale-95 transition-all"
+          aria-label={dict.bookingLink.configTitle}
+        >
+          <IconPlus size={24} />
+        </button>
+
         {/* Main Content (Big Calendar) */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          <div className="p-4 flex flex-wrap items-center justify-between gap-4 border-b border-gray-50 z-20 bg-white">
+          <div className="p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-50 z-20 bg-white">
             <div className="flex items-center gap-4">
               <h2 className="text-xl font-bold text-gray-900 transition-all capitalize">
                 {dayjs(currentDate).format("MMMM YYYY")}
@@ -221,7 +253,15 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
               <div className="h-full calendar-wrapper-full scroll-smooth">
                 <MainCalendar
                   events={events}
-                  calendarEvents={calendarEvents}
+                  calendarEvents={events.flatMap((ev) =>
+                    (ev.schedules || []).map((s) => ({
+                      id: `${ev.id}-${s.id}`,
+                      title: s.label || ev.clientName || "Untitled",
+                      start: new Date(`${s.date}T${s.startTime || "00:00:00"}`),
+                      end: new Date(`${s.date}T${s.endTime || "23:59:59"}`),
+                      resource: ev,
+                    })),
+                  )}
                   legendItems={legendItems}
                 />
               </div>
@@ -232,6 +272,7 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
                   pastEvents={agendaEvents.past}
                   eventStatusMap={eventStatusMap}
                   paymentStatusMap={paymentStatusMap}
+                  onSelectEvent={(item) => setSelectedEventId(item.event.id)}
                   paymentStatusVariant={paymentStatusVariant}
                   viewLabel={eventDict.view}
                   bookingDict={dict.booking}
@@ -255,6 +296,64 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
         defaultEventDate={selectedDateISO}
         labels={dict.bookingLink}
       />
+
+      {/* Optional: Event Details Modal/Sheet */}
+      {selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setSelectedEventId(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+            <h3 className="text-lg font-bold mb-4">
+              {selectedEvent.clientName}
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-500">
+                    {eventDict.colEventType}:
+                  </span>
+                  <span className="font-bold text-gray-900">
+                    {selectedEvent.eventType || "-"}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-500">{eventDict.colPackage}:</span>
+                  <span className="font-bold text-gray-900">
+                    {selectedEvent.packageName || "-"}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-500">
+                    {dict.booking.eventLocation}:
+                  </span>
+                  <span className="font-bold text-gray-900 line-clamp-2">
+                    {selectedEvent.eventLocation || "-"}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-500">
+                    {eventDict.colEventStatus}:
+                  </span>
+                  <div className="inline-flex mt-0.5 font-bold text-gray-900">
+                    {eventStatusMap[selectedEvent.eventStatus] ||
+                      selectedEvent.eventStatus}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedEventId(null)}
+              className="mt-6 w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg font-medium transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }

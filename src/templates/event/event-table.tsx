@@ -132,7 +132,9 @@ function EventCard({
   isVerifying,
   quickVerifyLabels,
 }: EventCardProps) {
-  const isUpcoming = new Date(event.eventDate) >= new Date();
+  const firstSchedule = event.schedules?.[0];
+  const eventDate = firstSchedule ? new Date(firstSchedule.date) : null;
+  const isUpcoming = eventDate ? eventDate >= new Date() : false;
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -148,18 +150,21 @@ function EventCard({
                   : "bg-slate-100 text-slate-500"
               }`}
             >
-              <span className="text-xs font-medium leading-none">
-                {new Date(event.eventDate).toLocaleDateString("en-US", {
-                  month: "short",
-                })}
-              </span>
-              <span className="text-lg font-bold leading-tight">
-                {new Date(event.eventDate).getDate()}
-              </span>
+              {eventDate && (
+                <>
+                  <span className="text-xs font-semibold uppercase leading-none opacity-70">
+                    {eventDate.toLocaleDateString("en-US", {
+                      month: "short",
+                    })}
+                  </span>
+                  <span className="mt-0.5 text-lg font-bold leading-none">
+                    {eventDate.getDate()}
+                  </span>
+                </>
+              )}
             </div>
 
-            {/* Info */}
-            <div className="min-w-0 flex-1">
+            <div className="flex-1 min-w-0">
               {/* Row 1: client name + badges */}
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="truncate text-sm font-semibold text-slate-900">
@@ -189,11 +194,11 @@ function EventCard({
 
               {/* Row 3: meta details */}
               <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
-                {event.eventTime && (
-                  <span className="inline-flex items-center gap-1">
-                    <IconClock size={12} />
-                    {event.eventTime}
-                  </span>
+                {firstSchedule?.startTime && (
+                  <div className="flex items-center gap-1">
+                    <IconClock size={12} className="shrink-0" />
+                    <span>{firstSchedule.startTime}</span>
+                  </div>
                 )}
                 {event.eventLocation && (
                   <span className="inline-flex items-center gap-1 truncate">

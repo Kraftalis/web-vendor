@@ -1,7 +1,8 @@
 "use client";
 
-import { Controller, type Control } from "react-hook-form";
-import { Input } from "@/components/ui";
+import { Controller, useFieldArray, type Control } from "react-hook-form";
+import { Input, PhoneInput } from "@/components/ui";
+import { IconPlus } from "@/components/icons";
 import type { BookingLinkFormValues } from "./types";
 
 interface Props {
@@ -11,6 +12,11 @@ interface Props {
 }
 
 export default function ClientEventFields({ control, labels }: Props) {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "scheduleDates",
+  });
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-gray-700">
@@ -33,38 +39,103 @@ export default function ClientEventFields({ control, labels }: Props) {
           control={control}
           name="clientPhone"
           render={({ field }) => (
-            <Input
+            <PhoneInput
               label={labels.clientPhone ?? "Phone"}
-              placeholder="+62..."
+              placeholder="08..."
               {...field}
             />
           )}
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Controller
-          control={control}
-          name="eventDate"
-          render={({ field }) => (
-            <Input
-              label={labels.eventDate ?? "Event Date"}
-              type="date"
-              {...field}
+      {/* Schedule Dates */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-gray-700">
+            {labels.scheduleDates ?? "Schedule Dates"}
+          </h4>
+          <button
+            type="button"
+            onClick={() =>
+              append({ date: "", startTime: "", endTime: "", label: "" })
+            }
+            className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            <IconPlus size={14} />
+            {labels.addDate ?? "Add Date"}
+          </button>
+        </div>
+
+        {fields.map((field, index) => (
+          <div
+            key={field.id}
+            className="rounded-lg border border-gray-200 bg-gray-50/50 p-3 space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-500">
+                {labels.day ?? "Day"} {index + 1}
+              </span>
+              {fields.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  className="text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
+                >
+                  {labels.remove ?? "Remove"}
+                </button>
+              )}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Controller
+                control={control}
+                name={`scheduleDates.${index}.date`}
+                render={({ field: f }) => (
+                  <Input
+                    label={labels.eventDate ?? "Date"}
+                    type="date"
+                    {...f}
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name={`scheduleDates.${index}.startTime`}
+                render={({ field: f }) => (
+                  <Input
+                    label={labels.startTime ?? "Start Time"}
+                    type="time"
+                    {...f}
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name={`scheduleDates.${index}.endTime`}
+                render={({ field: f }) => (
+                  <Input
+                    label={labels.endTime ?? "End Time"}
+                    type="time"
+                    {...f}
+                  />
+                )}
+              />
+            </div>
+            <Controller
+              control={control}
+              name={`scheduleDates.${index}.label`}
+              render={({ field: f }) => (
+                <Input
+                  label={labels.scheduleLabel ?? "Label (optional)"}
+                  placeholder={
+                    labels.scheduleLabelPlaceholder ??
+                    "e.g. Akad Nikah, Resepsi"
+                  }
+                  {...f}
+                />
+              )}
             />
-          )}
-        />
-        <Controller
-          control={control}
-          name="eventTime"
-          render={({ field }) => (
-            <Input
-              label={labels.eventTime ?? "Event Time"}
-              type="time"
-              {...field}
-            />
-          )}
-        />
+          </div>
+        ))}
       </div>
 
       <Controller

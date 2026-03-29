@@ -57,8 +57,6 @@ export interface EventItem {
   eventCategoryId: string | null;
   eventCategoryName: string | null;
   eventCategoryColor: string | null;
-  eventDate: string; // ISO
-  eventTime: string | null;
   eventLocation: string | null;
   packageName: string | null;
   packageSnapshot: unknown;
@@ -71,6 +69,13 @@ export interface EventItem {
   bookingToken: string | null;
   createdAt: string;
   updatedAt: string;
+  schedules?: {
+    id: string;
+    date: string;
+    startTime: string | null;
+    endTime: string | null;
+    label: string | null;
+  }[];
   /** Latest unverified client payment — for quick verify action */
   latestPendingPayment: {
     id: string;
@@ -80,6 +85,17 @@ export interface EventItem {
     paidBy: string;
     createdAt: string;
   } | null;
+}
+
+// ─── Event Schedule Item ────────────────────────────────────
+
+export interface EventScheduleItem {
+  id: string;
+  date: string; // ISO
+  startTime: string | null;
+  endTime: string | null;
+  label: string | null;
+  sortOrder: number;
 }
 
 // ─── Event Detail ───────────────────────────────────────────
@@ -123,8 +139,6 @@ export interface EventDetail {
   eventCategoryId: string | null;
   eventCategoryName: string | null;
   eventCategoryColor: string | null;
-  eventDate: string;
-  eventTime: string | null;
   eventLocation: string | null;
   eventLocationUrl: string | null;
   packageSnapshot: unknown;
@@ -137,6 +151,7 @@ export interface EventDetail {
   createdAt: string;
   updatedAt: string;
   bookingToken: string | null;
+  schedules: EventScheduleItem[];
   payments: PaymentSerialized[];
 }
 

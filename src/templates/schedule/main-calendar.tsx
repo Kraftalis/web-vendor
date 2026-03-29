@@ -1,18 +1,11 @@
 "use client";
 
 import { useMemo, useCallback, useState } from "react";
-import {
-  Calendar,
-  dayjsLocalizer,
-  type EventProps,
-  Views,
-} from "react-big-calendar";
+import { Calendar, dayjsLocalizer, Views } from "react-big-calendar";
 import dayjs from "dayjs";
 import { useScheduleStore } from "@/stores/schedule-store";
 import { Drawer } from "@/components/ui/drawer";
 import type { ScheduleEvent } from "./types";
-
-const localizer = dayjsLocalizer(dayjs);
 
 type CalendarEvent = {
   id: string;
@@ -55,91 +48,100 @@ export function MainCalendar({
     [setCurrentDate],
   );
 
-  const EventComponent = ({ event }: EventProps<CalendarEvent>) => {
-    const ev = event.resource;
-    const bgColor = ev.eventCategoryColor || "#1a73e8";
-
-    return (
-      <div
-        className="flex flex-col gap-0.5 px-1.5 py-0.5 border-l-2 shadow-none overflow-hidden transition-all hover:brightness-95"
-        style={{
-          backgroundColor: `${bgColor}10`,
-          borderLeftColor: bgColor,
-          color: bgColor,
-        }}
-      >
-        <div className="flex items-center justify-between gap-1">
-          <span className="truncate text-[9px] font-bold leading-tight">
-            {ev.clientName}
-          </span>
-        </div>
-      </div>
-    );
-  };
-
   const selectedDateEvents = useMemo(() => {
     const d = dayjs(currentDate).format("YYYY-MM-DD");
     return events
-      .filter((ev) => dayjs(ev.eventDate).format("YYYY-MM-DD") === d)
-      .sort((a, b) =>
-        (a.eventTime || "00:00").localeCompare(b.eventTime || "00:00"),
-      );
+      .filter((ev) =>
+        ev.schedules?.some((s) => dayjs(s.date).format("YYYY-MM-DD") === d),
+      )
+      .sort((a, b) => {
+        const timeA =
+          a.schedules?.find((s) => dayjs(s.date).format("YYYY-MM-DD") === d)
+            ?.startTime || "00:00";
+        const timeB =
+          b.schedules?.find((s) => dayjs(s.date).format("YYYY-MM-DD") === d)
+            ?.startTime || "00:00";
+        return timeA.localeCompare(timeB);
+      });
   }, [events, currentDate]);
 
   // Create hourly slots from 00:00 to 23:00
   const hourlySlots = Array.from({ length: 24 }, (_, i) => {
     const hour = String(i).padStart(2, "0");
     const label = `${hour}:00`;
-    const hourEvents = selectedDateEvents.filter((ev) =>
-      ev.eventTime?.startsWith(hour),
-    );
+    const dStr = dayjs(currentDate).format("YYYY-MM-DD");
+    const hourEvents = selectedDateEvents.filter((ev) => {
+      const schedule = ev.schedules?.find(
+        (s) => dayjs(s.date).format("YYYY-MM-DD") === dStr,
+      );
+      return schedule?.startTime?.startsWith(hour);
+    });
     return { hour, label, events: hourEvents };
   });
 
   return (
-    <div className="h-full no-border-radius-calendar flex flex-col">
-      <div className="flex-1">
+    <div className="h-full relative flex flex-col">
+      <div className="flex-1 relative">
         <Calendar
-          localizer={localizer}
+          localizer={dayjsLocalizer(dayjs)}
           events={calendarEvents}
           startAccessor="start"
           endAccessor="end"
-          date={currentDate}
-          onNavigate={setCurrentDate}
-          view={Views.MONTH}
-          onView={() => {}} // Strictly Month View
-          views={[Views.MONTH]}
-          onSelectEvent={handleSelectEvent}
+          style={{ height: "100%", width: "100%" }}
+          views={["month"]}
+          defaultView={Views.MONTH}
           onSelectSlot={handleSelectSlot}
+          onSelectEvent={handleSelectEvent}
           selectable
-          selected={currentDate}
           toolbar={false}
+          date={currentDate}
+          onNavigate={() => {}} // Controlled by store
           components={{
-            event: EventComponent,
-          }}
-          popup
-          messages={{
-            showMore: (count) => `+${count} more`,
+            month: {
+              dateHeader: ({
+                label,
+                date,
+                onDrillDown,
+              }: {
+                label: string;
+                date: Date;
+                onDrillDown: () => void;
+              }) => {
+                const isSelected = dayjs(date).isSame(currentDate, "day");
+                return (
+                  <div className="rbc-header-container p-0.5 sm:p-1">
+                    <button
+                      type="button"
+                      onClick={onDrillDown}
+                      className={`rbc-button-link ${isSelected ? "rbc-selected-date" : ""} 
+                        w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm mx-auto`}
+                    >
+                      {label}
+                    </button>
+                  </div>
+                );
+              },
+            },
           }}
         />
       </div>
 
-      {/* Legend Section (Desktop Overlay) */}
-      {legendItems.length > 0 && (
-        <div className="px-2 py-4 bg-white/80 backdrop-blur-md flex flex-wrap gap-x-4 gap-y-1 max-w-[80%] pointer-events-auto">
+      <div className="hidden lg:block">
+        <div className="absolute bottom-6 right-6 flex flex-wrap gap-2 z-10 pointer-events-auto">
           {legendItems.map((item) => (
-            <div key={item.type} className="flex items-center gap-2 group">
+            <div
+              key={item.type}
+              className="flex items-center gap-1.5 bg-white/90 backdrop-blur px-2 py-1 rounded-full text-[10px] font-bold text-gray-700 shadow-sm border border-gray-100"
+            >
               <div
-                className="w-2.5 h-2.5 rounded-full ring-2 ring-white shadow-sm shrink-0 transition-transform group-hover:scale-125"
-                style={{ backgroundColor: item.color || "#1a73e8" }}
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: item.color || "#3b82f6" }}
               />
-              <span className="text-[10px] font-bold text-gray-500 truncate group-hover:text-blue-600 transition-colors uppercase tabular-nums tracking-tighter">
-                {item.label}
-              </span>
+              {item.label}
             </div>
           ))}
         </div>
-      )}
+      </div>
 
       <Drawer
         isOpen={isDrawerOpen}
@@ -163,7 +165,7 @@ export function MainCalendar({
                   {slot.events.map((ev) => (
                     <div
                       key={ev.id}
-                      className="mb-2 bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden"
+                      className="mb-2 bg-white border border-gray-100 p-3 shadow-sm hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden"
                     >
                       <div
                         className="absolute left-0 top-0 bottom-0 w-1"
@@ -177,7 +179,13 @@ export function MainCalendar({
                             {ev.clientName}
                           </h4>
                           <span className="text-[10px] font-extrabold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                            {ev.eventTime?.slice(0, 5)}
+                            {ev.schedules
+                              ?.find(
+                                (s) =>
+                                  dayjs(s.date).format("YYYY-MM-DD") ===
+                                  dayjs(currentDate).format("YYYY-MM-DD"),
+                              )
+                              ?.startTime?.slice(0, 5) || "--:--"}
                           </span>
                         </div>
                         <p className="text-[11px] font-bold text-gray-500 truncate">

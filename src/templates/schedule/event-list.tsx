@@ -18,10 +18,26 @@ export function EventList({ events, selectedDate }: EventListProps) {
 
   const filteredEvents = useMemo(() => {
     return events
-      .filter((ev) => dayjs(ev.eventDate).format("YYYY-MM-DD") === dateStr)
-      .sort((a, b) =>
-        (a.eventTime || "00:00").localeCompare(b.eventTime || "00:00"),
-      );
+      .filter((ev) => {
+        // Check if any schedule date matches the selected date
+        if (ev.schedules && ev.schedules.length > 0) {
+          return ev.schedules.some(
+            (s) => dayjs(s.date).format("YYYY-MM-DD") === dateStr,
+          );
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        const timeA =
+          a.schedules?.find(
+            (s) => dayjs(s.date).format("YYYY-MM-DD") === dateStr,
+          )?.startTime || "00:00";
+        const timeB =
+          b.schedules?.find(
+            (s) => dayjs(s.date).format("YYYY-MM-DD") === dateStr,
+          )?.startTime || "00:00";
+        return timeA.localeCompare(timeB);
+      });
   }, [events, dateStr]);
 
   const eventStatusMap: Record<string, string> = {
@@ -68,7 +84,11 @@ export function EventList({ events, selectedDate }: EventListProps) {
                       {ev.clientName}
                     </h5>
                     <span className="shrink-0 text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md">
-                      {ev.eventTime?.slice(0, 5) || "--:--"}
+                      {ev.schedules
+                        ?.find(
+                          (s) => dayjs(s.date).format("YYYY-MM-DD") === dateStr,
+                        )
+                        ?.startTime?.slice(0, 5) || "--:--"}
                     </span>
                   </div>
 

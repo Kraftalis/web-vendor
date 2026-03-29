@@ -84,7 +84,12 @@ export default function BookingLinkForm({
       return buildEditValues(editingLink, packages, addOns);
     }
     if (defaultEventDate) {
-      return { ...DEFAULT_VALUES, eventDate: defaultEventDate };
+      return {
+        ...DEFAULT_VALUES,
+        scheduleDates: [
+          { date: defaultEventDate, startTime: "", endTime: "", label: "" },
+        ],
+      };
     }
     return DEFAULT_VALUES;
   }, [editingLink, defaultEventDate, packages, addOns]);
@@ -118,7 +123,10 @@ export default function BookingLinkForm({
   const watchedSelectedAddOnIds = watched.selectedAddOnIds;
   const watchedCustomAddOns = watched.customAddOns;
   const watchedClientName = watched.clientName ?? "";
-  const watchedEventDate = watched.eventDate ?? "";
+  const watchedScheduleDates = watched.scheduleDates ?? [];
+
+  // Derive a "has date" flag from schedule dates
+  const hasAnyDate = watchedScheduleDates.some((s) => s?.date?.trim());
 
   const filteredPackages = useMemo(() => {
     if (!watchedEventCategoryId) return packages;
@@ -226,9 +234,18 @@ export default function BookingLinkForm({
       clientName: values.clientName || null,
       clientPhone: values.clientPhone || null,
       eventCategoryId: values.eventCategoryId || null,
-      eventDate: values.eventDate || null,
-      eventTime: values.eventTime || null,
+      eventDate: values.scheduleDates?.[0]?.date || null,
+      eventTime: values.scheduleDates?.[0]?.startTime || null,
       eventLocation: values.eventLocation || null,
+      scheduleDates:
+        values.scheduleDates
+          ?.filter((s) => s.date.trim())
+          .map((s) => ({
+            date: s.date,
+            startTime: s.startTime || null,
+            endTime: s.endTime || null,
+            label: s.label || null,
+          })) ?? null,
       packageSnapshot: pkgSnapshot,
       addOnsSnapshot: addOnsSnapshot?.length ? addOnsSnapshot : null,
       payment,
@@ -268,7 +285,7 @@ export default function BookingLinkForm({
   const total = calculateTotal(pkgSnapshot, addOnsSnapshot);
   const hasData = Boolean(
     watchedClientName.trim() ||
-    watchedEventDate ||
+    hasAnyDate ||
     watchedSelectedPkgId ||
     watchedCustomPkgName.trim() ||
     (watchedSelectedAddOnIds?.length ?? 0) > 0 ||

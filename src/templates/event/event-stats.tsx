@@ -23,10 +23,16 @@ interface EventStatsProps {
 
 export function EventStats({ events, labels }: EventStatsProps) {
   const now = new Date();
+  now.setHours(0, 0, 0, 0);
 
-  const upcomingCount = events.filter(
-    (e) => new Date(e.eventDate) >= now && e.eventStatus !== "COMPLETED",
-  ).length;
+  const upcomingCount = events.filter((e) => {
+    if (!e.schedules || e.schedules.length === 0) return false;
+    // Check if any schedule date is in the future
+    return (
+      e.schedules.some((s) => new Date(s.date) >= now) &&
+      e.eventStatus !== "COMPLETED"
+    );
+  }).length;
 
   const confirmedCount = events.filter(
     (e) => e.eventStatus === "BOOKED" || e.eventStatus === "ONGOING",

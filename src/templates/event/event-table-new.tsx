@@ -103,7 +103,9 @@ function EventCard({
   paymentStatusLabel,
   viewLabel,
 }: EventCardProps) {
-  const isUpcoming = new Date(event.eventDate) >= new Date();
+  const firstSchedule = event.schedules?.[0];
+  const eventDate = firstSchedule ? new Date(firstSchedule.date) : null;
+  const isUpcoming = eventDate ? eventDate >= new Date() : false;
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -119,14 +121,18 @@ function EventCard({
                   : "bg-slate-100 text-slate-500"
               }`}
             >
-              <span className="text-xs font-medium leading-none">
-                {new Date(event.eventDate).toLocaleDateString("en-US", {
-                  month: "short",
-                })}
-              </span>
-              <span className="text-lg font-bold leading-tight">
-                {new Date(event.eventDate).getDate()}
-              </span>
+              {eventDate && (
+                <>
+                  <span className="text-xs font-medium leading-none opacity-70">
+                    {eventDate.toLocaleDateString("en-US", {
+                      month: "short",
+                    })}
+                  </span>
+                  <span className="mt-0.5 text-lg font-bold leading-tight">
+                    {eventDate.getDate()}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Info */}
@@ -148,9 +154,14 @@ function EventCard({
               {/* Row 2: event type + package */}
               <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
                 <span className="inline-flex items-center gap-1">
-                  <IconEvent size={12} className="text-slate-400" />
-                  {event.eventCategoryName ?? event.eventType}
+                  {event.eventType}
                 </span>
+                {firstSchedule?.startTime && (
+                  <span className="inline-flex items-center gap-1">
+                    <IconClock size={12} className="shrink-0" />
+                    {firstSchedule.startTime}
+                  </span>
+                )}
                 {event.packageName && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                     📦 {event.packageName}
@@ -160,12 +171,6 @@ function EventCard({
 
               {/* Row 3: meta details */}
               <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
-                {event.eventTime && (
-                  <span className="inline-flex items-center gap-1">
-                    <IconClock size={12} />
-                    {event.eventTime}
-                  </span>
-                )}
                 {event.eventLocation && (
                   <span className="inline-flex items-center gap-1 truncate">
                     <IconMapPin size={12} />

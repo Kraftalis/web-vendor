@@ -89,7 +89,40 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
   // ─── Computed stats ─────────────────────────────────────
 
   const stats = useMemo(() => {
-    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcoming = events
+      .flatMap((e) =>
+        (e.schedules || []).map((s) => ({
+          ...e,
+          schedule: s,
+          sortDate: new Date(s.date),
+        })),
+      )
+      .filter((item) => {
+        const d = new Date(item.sortDate);
+        d.setHours(0, 0, 0, 0);
+        return d >= today && item.eventStatus !== "COMPLETED";
+      })
+      .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
+
+    // Group upcoming by date for the summary
+    const upcomingByDate: Record<string, typeof upcoming> = {};
+    for (const item of upcoming) {
+      const dateKey = new Date(item.schedule.date).toISOString().split("T")[0];
+      if (!upcomingByDate[dateKey]) {
+        upcomingByDate[dateKey] = [];
+      }
+      upcomingByDate[dateKey].push(item);
+    }
+    const upcomingSummary = Object.entries(upcomingByDate)
+      .map(([date, items]) => ({
+        date,
+        items,
+        eventCount: items.length,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     // Revenue
     const totalRevenue = events.reduce(
@@ -107,20 +140,6 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
     const uniqueClients = new Set(
       events.map((e) => e.clientPhone || e.clientName),
     ).size;
-
-    // Upcoming events (today or future, not completed)
-    const upcoming = events
-      .filter((e) => {
-        const d = new Date(e.eventDate);
-        d.setHours(0, 0, 0, 0);
-        const t = new Date();
-        t.setHours(0, 0, 0, 0);
-        return d >= t && e.eventStatus !== "COMPLETED";
-      })
-      .sort(
-        (a, b) =>
-          new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
-      );
 
     // Event pipeline counts
     const pipeline: Record<string, number> = {
@@ -150,13 +169,19 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
 
     // Monthly revenue (last 6 months)
     const monthlyRevenue: { month: string; amount: number }[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthLabel = d.toLocaleDateString("en-US", { month: "short" });
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date();
+      d.setMonth(d.getMonth() - (5 - i));
+      return d;
+    });
+
+    for (const d of last6Months) {
+      const monthLabel = d.toLocaleString("default", { month: "short" });
       const amount = events
         .filter((e) => {
-          const ed = new Date(e.eventDate);
+          const ed = e.schedules?.[0] ? new Date(e.schedules[0].date) : null;
           return (
+            ed &&
             ed.getFullYear() === d.getFullYear() &&
             ed.getMonth() === d.getMonth() &&
             e.amount
@@ -168,11 +193,11 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
 
     // Active booking links (not expired, not yet converted)
     const activeLinks = bookingLinks.filter(
-      (l) => new Date(l.expiresAt) > now && !l.event,
+      (l) => new Date(l.expiresAt) > today && !l.event,
     );
     const expiringSoon = activeLinks.filter((l) => {
       const hoursLeft =
-        (new Date(l.expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60);
+        (new Date(l.expiresAt).getTime() - today.getTime()) / (1000 * 60 * 60);
       return hoursLeft < 24;
     });
 
@@ -181,29 +206,20 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
     const conversionRate =
       events.length > 0 ? Math.round((converted / events.length) * 100) : 0;
 
-    // Avg event value
-    const eventsWithAmount = events.filter(
-      (e) => e.amount && parseFloat(e.amount) > 0,
-    );
-    const avgEventValue =
-      eventsWithAmount.length > 0
-        ? eventsWithAmount.reduce((sum, e) => sum + parseFloat(e.amount!), 0) /
-          eventsWithAmount.length
-        : 0;
-
     return {
+      upcoming,
+      upcomingSummary,
       totalRevenue,
       collectedRevenue,
       outstandingRevenue,
       uniqueClients,
-      upcoming,
       pipeline,
       paymentCounts,
-      monthlyRevenue,
       activeLinks,
       expiringSoon,
       conversionRate,
-      avgEventValue,
+      monthlyRevenue,
+      avgEventValue: events.length > 0 ? totalRevenue / events.length : 0,
     };
   }, [events, bookingLinks]);
 
@@ -466,7 +482,7 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
               </Link>
             </div>
 
-            {stats.upcoming.length === 0 && !isLoading ? (
+            {stats.upcomingSummary.length === 0 && !isLoading ? (
               <EmptyState
                 icon={<IconCalendar size={24} />}
                 title={dict.dashboard.noUpcomingEvents}
@@ -474,15 +490,17 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
               />
             ) : (
               <div className="divide-y divide-gray-100">
-                {stats.upcoming.slice(0, 5).map((event) => {
-                  const days = daysUntil(event.eventDate);
-                  const dateLabel = new Date(
-                    event.eventDate,
-                  ).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  });
+                {stats.upcomingSummary.slice(0, 5).map((group) => {
+                  const dateStr = group.date;
+                  const days = daysUntil(dateStr);
+                  const dateLabel = new Date(dateStr).toLocaleDateString(
+                    "en-US",
+                    {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    },
+                  );
                   const daysLabel =
                     days === 0
                       ? dict.dashboard.today
@@ -491,55 +509,48 @@ export default function HomeTemplate({ user }: HomeTemplateProps) {
                         : `${days} ${dict.dashboard.daysAway}`;
 
                   return (
-                    <Link
-                      key={event.id}
-                      href={`/event/${event.id}`}
-                      className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-gray-50"
-                    >
-                      {/* Date badge */}
-                      <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                        <span className="text-lg font-bold leading-none">
-                          {new Date(event.eventDate).getDate()}
-                        </span>
-                        <span className="text-[10px] font-medium uppercase">
-                          {new Date(event.eventDate).toLocaleDateString(
-                            "en-US",
-                            { month: "short" },
-                          )}
-                        </span>
+                    <div key={dateStr} className="flex flex-col">
+                      <div className="bg-gray-50 px-5 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider flex justify-between">
+                        <span>{dateLabel}</span>
+                        <span>{daysLabel}</span>
                       </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-900">
-                          {event.clientName}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {event.eventType} • {dateLabel}
-                          {event.eventTime ? ` • ${event.eventTime}` : ""}
-                        </p>
-                      </div>
-
-                      {/* Right side */}
-                      <div className="flex flex-col items-end gap-1">
-                        <Badge
-                          variant={
-                            event.eventStatus === "BOOKED"
-                              ? "success"
-                              : event.eventStatus === "WAITING_CONFIRMATION"
-                                ? "warning"
-                                : "default"
-                          }
-                          dot
+                      {group.items.map((item) => (
+                        <Link
+                          key={`${item.id}-${item.schedule.id}`}
+                          href={`/event/${item.id}`}
+                          className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-gray-50 border-b border-gray-50 last:border-0"
                         >
-                          {event.eventStatus.replace("_", " ")}
-                        </Badge>
-                        <span className="flex items-center gap-1 text-[10px] text-gray-400">
-                          <IconClock size={10} />
-                          {daysLabel}
-                        </span>
-                      </div>
-                    </Link>
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate text-sm font-medium text-gray-900">
+                              {item.clientName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {item.eventType}
+                              {item.schedule.startTime
+                                ? ` • ${item.schedule.startTime}`
+                                : ""}
+                            </p>
+                          </div>
+
+                          {/* Right side */}
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge
+                              variant={
+                                item.eventStatus === "BOOKED"
+                                  ? "success"
+                                  : item.eventStatus === "WAITING_CONFIRMATION"
+                                    ? "warning"
+                                    : "default"
+                              }
+                              dot
+                            >
+                              {item.eventStatus.replace("_", " ")}
+                            </Badge>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
                   );
                 })}
               </div>

@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+// ─── Schedule date schema ───────────────────────────────────
+
+export const eventScheduleSchema = z.object({
+  id: z.string().uuid().optional(), // present when updating existing schedule
+  date: z.string().min(1),
+  startTime: z.string().max(20).optional().nullable(),
+  endTime: z.string().max(20).optional().nullable(),
+  label: z.string().max(255).optional().nullable(),
+});
+
 // ─── Event creation (from vendor side) ──────────────────────
 
 export const createEventSchema = z.object({
@@ -14,8 +24,6 @@ export const createEventSchema = z.object({
     .nullable(),
   eventType: z.string().max(100).optional().nullable(),
   eventCategoryId: z.string().uuid("Invalid category.").optional().nullable(),
-  eventDate: z.string().min(1, "Event date is required."), // ISO date string
-  eventTime: z.string().max(20).optional().nullable(),
   eventLocation: z.string().max(2000).optional().nullable(),
   eventLocationUrl: z.string().max(2000).optional().nullable(),
   packageSnapshot: z.any().optional().nullable(),
@@ -30,6 +38,7 @@ export const createEventSchema = z.object({
     .nullable(),
   currency: z.string().max(10).optional().default("IDR"),
   notes: z.string().max(5000).optional().nullable(),
+  schedules: z.array(eventScheduleSchema).optional().nullable(),
 });
 
 export const updateEventSchema = createEventSchema.partial().extend({
@@ -52,14 +61,13 @@ export const bookingSubmitSchema = z.object({
     .optional()
     .nullable(),
   eventType: z.string().min(1, "Event type is required.").max(100),
-  eventDate: z.string().min(1, "Event date is required."),
-  eventTime: z.string().max(20).optional().nullable(),
   eventLocation: z.string().max(2000).optional().nullable(),
   packageSnapshot: z.any().optional().nullable(),
   addOnsSnapshot: z.any().optional().nullable(),
   amount: z.number().optional().nullable(),
   currency: z.string().max(10).optional().default("IDR"),
   notes: z.string().max(5000).optional().nullable(),
+  schedules: z.array(eventScheduleSchema).optional().nullable(),
 });
 
 // ─── Inferred types ─────────────────────────────────────────

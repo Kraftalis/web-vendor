@@ -86,10 +86,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         ...(data.clientEmail !== undefined && {
           clientEmail: data.clientEmail,
         }),
-        ...(isEarlyStage &&
-          data.eventDate && { eventDate: new Date(data.eventDate) }),
-        ...(isEarlyStage &&
-          data.eventTime !== undefined && { eventTime: data.eventTime }),
         ...(data.eventLocation !== undefined && {
           eventLocation: data.eventLocation,
         }),
@@ -109,10 +105,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         ...(data.clientPhoneSecondary !== undefined && {
           clientPhoneSecondary: data.clientPhoneSecondary,
         }),
-        ...(isEarlyStage &&
-          data.eventDate && { eventDate: new Date(data.eventDate) }),
-        ...(isEarlyStage &&
-          data.eventTime !== undefined && { eventTime: data.eventTime }),
         ...(data.eventLocation !== undefined && {
           eventLocation: data.eventLocation,
         }),
@@ -128,8 +120,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       clientPhone: updated.clientPhone,
       clientPhoneSecondary: updated.clientPhoneSecondary,
       clientEmail: updated.clientEmail,
-      eventDate: updated.eventDate.toISOString(),
-      eventTime: updated.eventTime,
       eventLocation: updated.eventLocation,
       eventLocationUrl: updated.eventLocationUrl,
       notes: updated.notes,

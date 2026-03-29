@@ -39,14 +39,13 @@ export async function POST(request: NextRequest) {
       clientPhone: data.clientPhone,
       clientEmail: data.clientEmail,
       eventType: data.eventType,
-      eventDate: data.eventDate,
-      eventTime: data.eventTime,
       eventLocation: data.eventLocation,
       packageSnapshot: data.packageSnapshot,
       addOnsSnapshot: data.addOnsSnapshot,
       amount: data.amount,
       currency: data.currency ?? "IDR",
       notes: data.notes,
+      schedules: data.schedules,
     });
 
     // 3. Link event to booking link + update booking link with snapshots
@@ -56,8 +55,6 @@ export async function POST(request: NextRequest) {
         eventId: event.id,
         clientName: data.clientName,
         clientPhone: data.clientPhone,
-        eventDate: new Date(data.eventDate),
-        eventTime: data.eventTime,
         eventLocation: data.eventLocation,
         packageSnapshot: data.packageSnapshot ?? undefined,
         addOnsSnapshot: data.addOnsSnapshot ?? undefined,

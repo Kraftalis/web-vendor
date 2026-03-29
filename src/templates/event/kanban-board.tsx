@@ -156,8 +156,11 @@ function KanbanCard({
       <div className="mb-2 space-y-1">
         <p className="flex items-center gap-1.5 text-xs text-slate-500">
           <IconClock size={12} className="shrink-0" />
-          {formatDate(event.eventDate)}
-          {event.eventTime && ` · ${event.eventTime}`}
+          {event.schedules?.[0]
+            ? formatDate(event.schedules[0].date)
+            : "No date"}
+          {event.schedules?.[0]?.startTime &&
+            ` · ${event.schedules[0].startTime}`}
         </p>
         {event.eventLocation && (
           <p className="flex items-center gap-1.5 text-xs text-slate-500">

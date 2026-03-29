@@ -42,8 +42,6 @@ export async function GET() {
           eventCategoryId: e.eventCategoryId,
           eventCategoryName: e.eventCategory?.name ?? null,
           eventCategoryColor: e.eventCategory?.color ?? null,
-          eventDate: e.eventDate.toISOString(),
-          eventTime: e.eventTime,
           eventLocation: e.eventLocation,
           packageSnapshot: e.packageSnapshot,
           addOnsSnapshot: e.addOnsSnapshot,
@@ -56,6 +54,14 @@ export async function GET() {
           bookingToken: e.bookingLink?.token ?? null,
           createdAt: e.createdAt.toISOString(),
           updatedAt: e.updatedAt.toISOString(),
+          schedules: (e.schedules ?? []).map((s) => ({
+            id: s.id,
+            date: s.date.toISOString(),
+            startTime: s.startTime,
+            endTime: s.endTime,
+            label: s.label,
+            sortOrder: s.sortOrder,
+          })),
           // Latest unverified client payment for quick-action
           latestPendingPayment: pendingPayment
             ? {
@@ -94,12 +100,28 @@ export async function POST(request: NextRequest) {
 
     return createdResponse({
       ...event,
-      eventDate: event.eventDate.toISOString(),
       eventCategoryId: event.eventCategoryId ?? null,
       eventCategoryName: event.eventCategory?.name ?? null,
       amount: event.amount ? String(event.amount) : null,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
+      schedules: (event.schedules ?? []).map(
+        (s: {
+          id: string;
+          date: Date;
+          startTime: string | null;
+          endTime: string | null;
+          label: string | null;
+          sortOrder: number;
+        }) => ({
+          id: s.id,
+          date: s.date.toISOString(),
+          startTime: s.startTime,
+          endTime: s.endTime,
+          label: s.label,
+          sortOrder: s.sortOrder,
+        }),
+      ),
     });
   } catch (err) {
     console.error("[API] POST /api/events error:", err);

@@ -61,7 +61,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return successResponse({
       ...updated,
-      eventDate: updated.eventDate.toISOString(),
       eventCategoryId: updated.eventCategoryId ?? null,
       eventCategoryName:
         (updated as unknown as { eventCategory?: { name: string } })
@@ -116,8 +115,6 @@ function serializeEventDetail(event: any) {
     eventType: event.eventType,
     eventCategoryId: event.eventCategoryId ?? null,
     eventCategoryName: event.eventCategory?.name ?? null,
-    eventDate: event.eventDate.toISOString(),
-    eventTime: event.eventTime,
     eventLocation: event.eventLocation,
     eventLocationUrl: event.eventLocationUrl ?? null,
     packageSnapshot: event.packageSnapshot,
@@ -130,6 +127,23 @@ function serializeEventDetail(event: any) {
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
     bookingToken: event.bookingLink?.token ?? null,
+    schedules: (event.schedules ?? []).map(
+      (s: {
+        id: string;
+        date: Date;
+        startTime: string | null;
+        endTime: string | null;
+        label: string | null;
+        sortOrder: number;
+      }) => ({
+        id: s.id,
+        date: s.date.toISOString(),
+        startTime: s.startTime,
+        endTime: s.endTime,
+        label: s.label,
+        sortOrder: s.sortOrder,
+      }),
+    ),
     payments: (event.payments ?? []).map(
       (p: {
         id: string;

@@ -30,6 +30,7 @@ export function EventCard({
   paymentStatusVariant,
   viewLabel,
 }: EventCardProps) {
+  const firstSchedule = event.schedules?.[0];
   return (
     <div className="rounded-lg border border-gray-100 p-3 transition-shadow hover:shadow-sm">
       <div className="mb-2 flex items-start justify-between gap-2">
@@ -50,12 +51,12 @@ export function EventCard({
         </Badge>
       </div>
 
-      {(event.eventTime || event.eventLocation) && (
+      {(firstSchedule?.startTime || event.eventLocation) && (
         <div className="mb-2 space-y-1">
-          {event.eventTime && (
+          {firstSchedule?.startTime && (
             <p className="flex items-center gap-1.5 text-xs text-gray-500">
               <IconClock size={12} />
-              {event.eventTime}
+              {firstSchedule.startTime}
             </p>
           )}
           {event.eventLocation && (
@@ -179,35 +180,42 @@ export function CalendarSidebar({
             </p>
           ) : (
             <div className="space-y-2">
-              {upcomingEvents.slice(0, 5).map((ev) => (
-                <Link
-                  key={ev.id}
-                  href={`/event/${ev.id}`}
-                  className="flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-gray-50"
-                >
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{
-                      backgroundColor: ev.eventCategoryColor || "#3B82F6",
-                    }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium text-gray-900">
-                      {ev.clientName}
-                    </p>
-                    <p className="text-[10px] text-gray-400">
-                      {new Date(ev.eventDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                      {ev.eventTime && ` · ${ev.eventTime}`}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-gray-400">
-                    {relativeDayLabel(ev.eventDate)}
-                  </span>
-                </Link>
-              ))}
+              {upcomingEvents.slice(0, 5).map((ev) => {
+                const firstSchedule = ev.schedules?.[0];
+                const dateStr = firstSchedule?.date || "";
+                return (
+                  <Link
+                    key={ev.id}
+                    href={`/event/${ev.id}`}
+                    className="flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-gray-50"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{
+                        backgroundColor: ev.eventCategoryColor || "#3B82F6",
+                      }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-gray-900">
+                        {ev.clientName}
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        {dateStr
+                          ? new Date(dateStr).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "No date"}
+                        {firstSchedule?.startTime &&
+                          ` · ${firstSchedule.startTime}`}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-gray-400">
+                      {dateStr ? relativeDayLabel(dateStr) : ""}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </CardBody>

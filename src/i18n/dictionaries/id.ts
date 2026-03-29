@@ -420,6 +420,16 @@ const id: Dictionary = {
 
     // Link map
     eventLocationUrl: "Link Peta",
+
+    // Schedule section
+    scheduleTitle: "Jadwal",
+    scheduleDate: "Tanggal",
+    scheduleStartTime: "Jam Mulai",
+    scheduleEndTime: "Jam Selesai",
+    scheduleLabel: "Label",
+    addScheduleDate: "Tambah Tanggal",
+    removeScheduleDate: "Hapus",
+    noScheduleDates: "Belum ada jadwal.",
   },
 
   // ─── Generate Booking Link Modal ─────────────────────────

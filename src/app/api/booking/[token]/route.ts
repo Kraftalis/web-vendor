@@ -38,6 +38,12 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       });
 
       if (fullEvent) {
+        // Fetch schedules separately or use include if defined in prisma
+        const schedules = await prisma.eventSchedule.findMany({
+          where: { eventId: fullEvent.id },
+          orderBy: { sortOrder: "asc" },
+        });
+
         event = {
           id: fullEvent.id,
           clientName: fullEvent.clientName,
@@ -45,8 +51,6 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
           clientPhoneSecondary: fullEvent.clientPhoneSecondary,
           clientEmail: fullEvent.clientEmail,
           eventType: fullEvent.eventType,
-          eventDate: fullEvent.eventDate.toISOString(),
-          eventTime: fullEvent.eventTime,
           eventLocation: fullEvent.eventLocation,
           eventLocationUrl: fullEvent.eventLocationUrl,
           packageSnapshot: fullEvent.packageSnapshot,
@@ -58,6 +62,13 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
           notes: fullEvent.notes,
           createdAt: fullEvent.createdAt.toISOString(),
           updatedAt: fullEvent.updatedAt.toISOString(),
+          schedules: schedules.map((s) => ({
+            id: s.id,
+            date: s.date.toISOString().split("T")[0],
+            startTime: s.startTime,
+            endTime: s.endTime,
+            label: s.label,
+          })),
           payments: fullEvent.payments.map((p) => ({
             id: p.id,
             amount: String(p.amount),

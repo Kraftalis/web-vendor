@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+// ─── Schedule date item shape ───────────────────────────────
+
+export const scheduleDateSchema = z.object({
+  date: z.string().min(1), // ISO date string e.g. "2026-04-01"
+  startTime: z.string().max(20).optional().nullable(),
+  endTime: z.string().max(20).optional().nullable(),
+  label: z.string().max(255).optional().nullable(),
+});
+
 // ─── Package snapshot shape ─────────────────────────────────
 
 export const packageSnapshotSchema = z.object({
@@ -39,9 +48,10 @@ export const createBookingLinkSchema = z.object({
   clientName: z.string().max(255).optional().nullable(),
   clientPhone: z.string().max(50).optional().nullable(),
   eventCategoryId: z.string().uuid().optional().nullable(),
-  eventDate: z.string().optional().nullable(), // ISO date
+  eventDate: z.string().optional().nullable(), // ISO date (kept for backward compat — first schedule date)
   eventTime: z.string().max(20).optional().nullable(),
   eventLocation: z.string().max(2000).optional().nullable(),
+  scheduleDates: z.array(scheduleDateSchema).min(1).optional().nullable(),
   packageSnapshot: packageSnapshotSchema.optional().nullable(),
   addOnsSnapshot: z.array(addOnSnapshotSchema).optional().nullable(),
   expiresInDays: z.number().int().min(1).max(90).default(30),
@@ -57,6 +67,7 @@ export const updateBookingLinkSchema = z.object({
   eventDate: z.string().optional().nullable(),
   eventTime: z.string().max(20).optional().nullable(),
   eventLocation: z.string().max(2000).optional().nullable(),
+  scheduleDates: z.array(scheduleDateSchema).min(1).optional().nullable(),
   packageSnapshot: packageSnapshotSchema.optional().nullable(),
   addOnsSnapshot: z.array(addOnSnapshotSchema).optional().nullable(),
   payment: bookingLinkPaymentSchema.optional(),
@@ -64,6 +75,7 @@ export const updateBookingLinkSchema = z.object({
 
 // ─── Inferred types ─────────────────────────────────────────
 
+export type ScheduleDateData = z.infer<typeof scheduleDateSchema>;
 export type PackageSnapshotData = z.infer<typeof packageSnapshotSchema>;
 export type AddOnSnapshotData = z.infer<typeof addOnSnapshotSchema>;
 export type CreateBookingLinkInput = z.infer<typeof createBookingLinkSchema>;

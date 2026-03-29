@@ -1,3 +1,14 @@
+// ─── Schedule date ──────────────────────────────────────────
+
+export interface EventScheduleItem {
+  id: string;
+  date: string; // ISO
+  startTime: string | null;
+  endTime: string | null;
+  label: string | null;
+  sortOrder: number;
+}
+
 // ─── Event list item ────────────────────────────────────────
 
 export interface EventItem {
@@ -10,8 +21,6 @@ export interface EventItem {
   eventCategoryId: string | null;
   eventCategoryName: string | null;
   eventCategoryColor: string | null;
-  eventDate: string;
-  eventTime: string | null;
   eventLocation: string | null;
   packageName: string | null;
   packageSnapshot: unknown;
@@ -24,6 +33,7 @@ export interface EventItem {
   bookingToken: string | null;
   createdAt: string;
   updatedAt: string;
+  schedules: EventScheduleItem[];
   latestPendingPayment: {
     id: string;
     amount: string;
@@ -59,8 +69,6 @@ export interface EventDetail {
   eventCategoryId: string | null;
   eventCategoryName: string | null;
   eventCategoryColor: string | null;
-  eventDate: string;
-  eventTime: string | null;
   eventLocation: string | null;
   eventLocationUrl: string | null;
   packageSnapshot: unknown;
@@ -73,6 +81,7 @@ export interface EventDetail {
   createdAt: string;
   updatedAt: string;
   bookingToken: string | null;
+  schedules: EventScheduleItem[];
   payments: EventDetailPayment[];
 }
 
@@ -85,8 +94,6 @@ export interface CreateEventPayload {
   clientEmail?: string | null;
   eventType?: string | null;
   eventCategoryId?: string | null;
-  eventDate: string;
-  eventTime?: string | null;
   eventLocation?: string | null;
   eventLocationUrl?: string | null;
   packageSnapshot?: unknown;
@@ -99,6 +106,13 @@ export interface CreateEventPayload {
 export interface UpdateEventPayload extends Partial<CreateEventPayload> {
   eventStatus?: string;
   paymentStatus?: string;
+  schedules?: {
+    id?: string;
+    date: string;
+    startTime?: string | null;
+    endTime?: string | null;
+    label?: string | null;
+  }[];
 }
 
 // ─── Booking link ───────────────────────────────────────────
@@ -117,8 +131,6 @@ export interface BookingSubmitPayload {
   clientPhone: string;
   clientEmail?: string | null;
   eventType: string;
-  eventDate: string;
-  eventTime?: string | null;
   eventLocation?: string | null;
   packageSnapshot?: unknown;
   addOnsSnapshot?: unknown;

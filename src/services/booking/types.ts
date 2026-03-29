@@ -1,3 +1,12 @@
+// ─── Schedule date snapshot ─────────────────────────────────
+
+export interface ScheduleDateItem {
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  label: string | null;
+}
+
 // ─── Snapshot types (frontend-safe) ─────────────────────────
 
 export interface PackageSnapshot {
@@ -30,6 +39,7 @@ export interface BookingLinkItem {
   eventDate: string | null;
   eventTime: string | null;
   eventLocation: string | null;
+  scheduleDates: ScheduleDateItem[] | null;
   packageSnapshot: PackageSnapshot | null;
   addOnsSnapshot: AddOnSnapshot[] | null;
   totalAmount: string | null;
@@ -60,6 +70,7 @@ export interface CreateBookingLinkPayload {
   eventDate?: string | null;
   eventTime?: string | null;
   eventLocation?: string | null;
+  scheduleDates?: ScheduleDateItem[] | null;
   packageSnapshot?: PackageSnapshot | null;
   addOnsSnapshot?: AddOnSnapshot[] | null;
   expiresInDays?: number;
@@ -75,6 +86,7 @@ export interface UpdateBookingLinkPayload {
   eventDate?: string | null;
   eventTime?: string | null;
   eventLocation?: string | null;
+  scheduleDates?: ScheduleDateItem[] | null;
   packageSnapshot?: PackageSnapshot | null;
   addOnsSnapshot?: AddOnSnapshot[] | null;
   payment?: BookingLinkPaymentData;

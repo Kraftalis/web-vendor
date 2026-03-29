@@ -2,6 +2,15 @@ import type { BadgeVariant } from "@/components/ui";
 
 // ─── Types ──────────────────────────────────────────────────
 
+export interface ScheduleEventScheduleItem {
+  id: string;
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  label: string | null;
+  sortOrder: number;
+}
+
 export interface ScheduleEvent {
   id: string;
   clientName: string;
@@ -9,12 +18,11 @@ export interface ScheduleEvent {
   eventCategoryId: string | null;
   eventCategoryName: string | null;
   eventCategoryColor: string | null;
-  eventDate: string; // ISO
-  eventTime: string | null;
   eventLocation: string | null;
   packageName: string | null;
   eventStatus: string;
   paymentStatus: string;
+  schedules?: ScheduleEventScheduleItem[];
 }
 
 export interface ScheduleTemplateProps {

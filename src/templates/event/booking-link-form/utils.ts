@@ -19,9 +19,8 @@ export const DEFAULT_VALUES: BookingLinkFormValues = {
   clientName: "",
   clientPhone: "",
   eventCategoryId: "",
-  eventDate: "",
-  eventTime: "",
   eventLocation: "",
+  scheduleDates: [{ date: "", startTime: "", endTime: "", label: "" }],
   packageMode: "existing",
   selectedPkgId: "",
   selectedVariationId: "",
@@ -122,14 +121,41 @@ export function buildEditValues(
     }
   }
 
+  // Build schedule dates from existing link
+  const scheduleDates: BookingLinkFormValues["scheduleDates"] =
+    (
+      link.scheduleDates as
+        | {
+            date: string;
+            startTime: string | null;
+            endTime: string | null;
+            label: string | null;
+          }[]
+        | null
+    )?.map((s) => ({
+      date: s.date?.slice(0, 10) ?? "",
+      startTime: s.startTime ?? "",
+      endTime: s.endTime ?? "",
+      label: s.label ?? "",
+    })) ??
+    (link.eventDate
+      ? [
+          {
+            date: link.eventDate.slice(0, 10),
+            startTime: link.eventTime ?? "",
+            endTime: "",
+            label: "",
+          },
+        ]
+      : [{ date: "", startTime: "", endTime: "", label: "" }]);
+
   return {
     ...DEFAULT_VALUES,
     clientName: link.clientName ?? "",
     clientPhone: link.clientPhone ?? "",
     eventCategoryId: link.eventCategoryId ?? "",
-    eventDate: link.eventDate ?? "",
-    eventTime: link.eventTime ?? "",
     eventLocation: link.eventLocation ?? "",
+    scheduleDates,
     packageMode,
     selectedPkgId,
     selectedVariationId,

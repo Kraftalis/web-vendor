@@ -31,6 +31,9 @@ export async function createBookingLink(
   // If vendor provides payment data → create event + payment in a transaction
   if (input.payment) {
     return prisma.$transaction(async (tx) => {
+      // Resolve event date: use first schedule date if available
+      const firstSchedule = input.scheduleDates?.[0];
+
       // 1. Create the event with BOOKED status
       const event = await tx.event.create({
         data: {
@@ -39,8 +42,6 @@ export async function createBookingLink(
           clientPhone: input.clientPhone ?? "—",
           eventType: "Other",
           eventCategoryId: input.eventCategoryId ?? undefined,
-          eventDate: input.eventDate ? new Date(input.eventDate) : new Date(),
-          eventTime: input.eventTime ?? undefined,
           eventLocation: input.eventLocation ?? undefined,
           packageSnapshot: input.packageSnapshot ?? undefined,
           addOnsSnapshot: input.addOnsSnapshot ?? undefined,
@@ -57,6 +58,20 @@ export async function createBookingLink(
                 : "UNPAID",
         },
       });
+
+      // 1b. Create schedule dates if provided
+      if (input.scheduleDates && input.scheduleDates.length > 0) {
+        await tx.eventSchedule.createMany({
+          data: input.scheduleDates.map((s, idx) => ({
+            eventId: event.id,
+            date: new Date(s.date),
+            startTime: s.startTime ?? null,
+            endTime: s.endTime ?? null,
+            label: s.label ?? null,
+            sortOrder: idx,
+          })),
+        });
+      }
 
       // 2. Create the payment record (vendor-recorded → auto-verified)
       const payment = await tx.payment.create({
@@ -108,9 +123,8 @@ export async function createBookingLink(
           clientName: input.clientName ?? undefined,
           clientPhone: input.clientPhone ?? undefined,
           eventCategoryId: input.eventCategoryId ?? undefined,
-          eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
-          eventTime: input.eventTime ?? undefined,
           eventLocation: input.eventLocation ?? undefined,
+          scheduleDates: input.scheduleDates ?? undefined,
           packageSnapshot: input.packageSnapshot ?? undefined,
           addOnsSnapshot: input.addOnsSnapshot ?? undefined,
           totalAmount: totalAmount > 0 ? totalAmount : undefined,
@@ -122,6 +136,7 @@ export async function createBookingLink(
   }
 
   // No payment → simple booking link creation (original flow)
+  const firstSchedule = input.scheduleDates?.[0];
   return prisma.bookingLink.create({
     data: {
       businessProfileId,
@@ -130,9 +145,8 @@ export async function createBookingLink(
       clientName: input.clientName ?? undefined,
       clientPhone: input.clientPhone ?? undefined,
       eventCategoryId: input.eventCategoryId ?? undefined,
-      eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
-      eventTime: input.eventTime ?? undefined,
       eventLocation: input.eventLocation ?? undefined,
+      scheduleDates: input.scheduleDates ?? undefined,
       packageSnapshot: input.packageSnapshot ?? undefined,
       addOnsSnapshot: input.addOnsSnapshot ?? undefined,
       totalAmount: totalAmount > 0 ? totalAmount : undefined,
@@ -227,6 +241,9 @@ export async function updateBookingLinkById(
     const total = totalAmount ?? 0;
 
     return prisma.$transaction(async (tx) => {
+      // Resolve event date: use first schedule date if available
+      const firstSchedule = input.scheduleDates?.[0];
+
       // 1. Create the event
       const event = await tx.event.create({
         data: {
@@ -235,8 +252,6 @@ export async function updateBookingLinkById(
           clientPhone: input.clientPhone ?? "—",
           eventType: "Other",
           eventCategoryId: input.eventCategoryId ?? undefined,
-          eventDate: input.eventDate ? new Date(input.eventDate) : new Date(),
-          eventTime: input.eventTime ?? undefined,
           eventLocation: input.eventLocation ?? undefined,
           packageSnapshot: input.packageSnapshot ?? undefined,
           addOnsSnapshot: input.addOnsSnapshot ?? undefined,
@@ -253,6 +268,20 @@ export async function updateBookingLinkById(
                 : "UNPAID",
         },
       });
+
+      // 1b. Create schedule dates if provided
+      if (input.scheduleDates && input.scheduleDates.length > 0) {
+        await tx.eventSchedule.createMany({
+          data: input.scheduleDates.map((s, idx) => ({
+            eventId: event.id,
+            date: new Date(s.date),
+            startTime: s.startTime ?? null,
+            endTime: s.endTime ?? null,
+            label: s.label ?? null,
+            sortOrder: idx,
+          })),
+        });
+      }
 
       // 2. Create payment record
       const payment = await tx.payment.create({
@@ -308,12 +337,6 @@ export async function updateBookingLinkById(
           ...(input.eventCategoryId !== undefined && {
             eventCategoryId: input.eventCategoryId ?? undefined,
           }),
-          ...(input.eventDate !== undefined && {
-            eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
-          }),
-          ...(input.eventTime !== undefined && {
-            eventTime: input.eventTime ?? undefined,
-          }),
           ...(input.eventLocation !== undefined && {
             eventLocation: input.eventLocation ?? undefined,
           }),
@@ -322,6 +345,9 @@ export async function updateBookingLinkById(
           }),
           ...(input.addOnsSnapshot !== undefined && {
             addOnsSnapshot: input.addOnsSnapshot ?? undefined,
+          }),
+          ...(input.scheduleDates !== undefined && {
+            scheduleDates: input.scheduleDates ?? undefined,
           }),
           ...(total !== undefined && {
             totalAmount: total > 0 ? total : undefined,
@@ -344,14 +370,11 @@ export async function updateBookingLinkById(
       ...(input.eventCategoryId !== undefined && {
         eventCategoryId: input.eventCategoryId ?? undefined,
       }),
-      ...(input.eventDate !== undefined && {
-        eventDate: input.eventDate ? new Date(input.eventDate) : undefined,
-      }),
-      ...(input.eventTime !== undefined && {
-        eventTime: input.eventTime ?? undefined,
-      }),
       ...(input.eventLocation !== undefined && {
         eventLocation: input.eventLocation ?? undefined,
+      }),
+      ...(input.scheduleDates !== undefined && {
+        scheduleDates: input.scheduleDates ?? undefined,
       }),
       ...(input.packageSnapshot !== undefined && {
         packageSnapshot: input.packageSnapshot ?? undefined,

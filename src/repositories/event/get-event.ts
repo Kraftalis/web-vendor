@@ -7,10 +7,11 @@ import { prisma } from "@/lib/prisma";
 export async function findEventsByVendor(businessProfileId: string) {
   return prisma.event.findMany({
     where: { businessProfileId },
-    orderBy: { eventDate: "desc" },
+    orderBy: { createdAt: "desc" },
     include: {
       eventCategory: { select: { id: true, name: true, color: true } },
       bookingLink: { select: { token: true } },
+      schedules: { orderBy: { sortOrder: "asc" } },
       payments: {
         where: { isVerified: false, paidBy: "CLIENT" },
         orderBy: { paidAt: "desc" },
@@ -29,6 +30,7 @@ export async function findEventById(id: string) {
     include: {
       eventCategory: { select: { id: true, name: true } },
       bookingLink: { select: { token: true } },
+      schedules: { orderBy: { sortOrder: "asc" } },
       payments: { orderBy: { paidAt: "desc" } },
     },
   });

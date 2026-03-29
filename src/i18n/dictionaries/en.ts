@@ -415,6 +415,16 @@ const en = {
 
     // Link map
     eventLocationUrl: "Map Link",
+
+    // Schedule section
+    scheduleTitle: "Schedule",
+    scheduleDate: "Date",
+    scheduleStartTime: "Start Time",
+    scheduleEndTime: "End Time",
+    scheduleLabel: "Label",
+    addScheduleDate: "Add Date",
+    removeScheduleDate: "Remove",
+    noScheduleDates: "No schedule dates set.",
   },
 
   // ─── Generate Booking Link Modal ─────────────────────────

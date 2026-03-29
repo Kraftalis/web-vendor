@@ -36,10 +36,11 @@ export async function GET(request: NextRequest) {
     // Fetch events for today
     const todayEvents = await prisma.event.findMany({
       where: {
-        eventDate: { gte: todayStart, lt: todayEnd },
+        schedules: { some: { date: { gte: todayStart, lt: todayEnd } } },
         eventStatus: { in: ["BOOKED", "ONGOING"] },
       },
       include: {
+        schedules: { where: { date: { gte: todayStart, lt: todayEnd } } },
         businessProfile: {
           include: { user: { select: { id: true, name: true, email: true } } },
         },
@@ -49,10 +50,11 @@ export async function GET(request: NextRequest) {
     // Fetch events for tomorrow
     const tomorrowEvents = await prisma.event.findMany({
       where: {
-        eventDate: { gte: tomorrowStart, lt: tomorrowEnd },
+        schedules: { some: { date: { gte: tomorrowStart, lt: tomorrowEnd } } },
         eventStatus: { in: ["BOOKED", "ONGOING"] },
       },
       include: {
+        schedules: { where: { date: { gte: tomorrowStart, lt: tomorrowEnd } } },
         businessProfile: {
           include: { user: { select: { id: true, name: true, email: true } } },
         },
@@ -71,19 +73,20 @@ export async function GET(request: NextRequest) {
       for (const event of events) {
         if (event.clientEmail) {
           const pkg = event.packageSnapshot as { name?: string } | null;
+          const schedule = event.schedules[0]; // The first matching schedule for this notification
           try {
             await sendClientEventReminder(
               event.clientEmail,
               {
                 clientName: event.clientName,
                 eventType: event.eventType,
-                eventDate: event.eventDate.toLocaleDateString("en-US", {
+                eventDate: schedule.date.toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
                   month: "long",
                   day: "numeric",
                 }),
-                eventTime: event.eventTime,
+                eventTime: schedule.startTime,
                 eventLocation: event.eventLocation,
                 packageName: pkg?.name ?? null,
               },
@@ -105,15 +108,15 @@ export async function GET(request: NextRequest) {
         string,
         {
           vendor: { id: string; name: string | null; email: string };
-          events: typeof events;
+          events: (typeof events)[number][];
         }
       >();
 
       for (const event of events) {
-        const user = event.businessProfile.user;
-        const vid = user.id;
+        const vendorUser = event.businessProfile.user;
+        const vid = vendorUser.id;
         if (!vendorMap.has(vid)) {
-          vendorMap.set(vid, { vendor: user, events: [] });
+          vendorMap.set(vid, { vendor: vendorUser, events: [] });
         }
         vendorMap.get(vid)!.events.push(event);
       }
@@ -126,16 +129,17 @@ export async function GET(request: NextRequest) {
             vendor.name ?? "Vendor",
             vendorEvents.map((e) => {
               const pkg = e.packageSnapshot as { name?: string } | null;
+              const schedule = e.schedules[0];
               return {
                 clientName: e.clientName,
                 eventType: e.eventType,
-                eventDate: e.eventDate.toLocaleDateString("en-US", {
+                eventDate: schedule.date.toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
                   month: "long",
                   day: "numeric",
                 }),
-                eventTime: e.eventTime,
+                eventTime: schedule.startTime,
                 eventLocation: e.eventLocation,
                 packageName: pkg?.name ?? null,
               };

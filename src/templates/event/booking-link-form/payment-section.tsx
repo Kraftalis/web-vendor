@@ -7,7 +7,7 @@ import {
   type Control,
   type UseFormSetValue,
 } from "react-hook-form";
-import { Input, Select } from "@/components/ui";
+import { Input, Select, CurrencyInput } from "@/components/ui";
 import type { BookingLinkFormValues } from "./types";
 
 interface Props {
@@ -63,12 +63,11 @@ export default function PaymentSection({ control, setValue, labels }: Props) {
             control={control}
             name="paymentAmount"
             render={({ field }) => (
-              <Input
+              <CurrencyInput
                 label={labels.paymentAmountLabel ?? "Payment Amount"}
-                type="number"
                 placeholder="0"
-                min="0"
-                {...field}
+                value={field.value}
+                onValueChange={(val) => field.onChange(val)}
               />
             )}
           />

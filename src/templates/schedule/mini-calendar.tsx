@@ -15,10 +15,16 @@ export function MiniCalendar({ events }: MiniCalendarProps) {
 
   const currentMonth = currentDate.getMonth();
 
-  // Highlight dates with events
+  // Highlight dates with events (including schedule dates)
   const eventDates = useMemo(() => {
     const set = new Set<string>();
-    events.forEach((ev) => set.add(dayjs(ev.eventDate).format("YYYY-MM-DD")));
+    events.forEach((ev) => {
+      if (ev.schedules && ev.schedules.length > 0) {
+        ev.schedules.forEach((s) =>
+          set.add(dayjs(s.date).format("YYYY-MM-DD")),
+        );
+      }
+    });
     return set;
   }, [events]);
 
@@ -43,7 +49,7 @@ export function MiniCalendar({ events }: MiniCalendarProps) {
   return (
     <div className="p-4 bg-white select-none">
       <div className="flex items-center justify-between mb-4 px-1">
-        <h3 className="text-sm font-bold text-gray-900">
+        <h3 className="text-sm text-center font-bold text-gray-900">
           {dayjs(currentDate).format("MMMM YYYY")}
         </h3>
         <div className="flex items-center gap-1">
@@ -70,7 +76,7 @@ export function MiniCalendar({ events }: MiniCalendarProps) {
         {weekDays.map((d) => (
           <span
             key={d}
-            className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter"
+            className="text-[10px] text-center font-bold text-gray-400 uppercase tracking-tighter"
           >
             {d}
           </span>

@@ -41,6 +41,7 @@ import {
 } from "@/hooks/event";
 import { EventDetailView } from "./event-detail-view";
 import { EventDetailEdit } from "./event-detail-edit";
+import type { ScheduleRow } from "./event-detail-edit";
 import {
   EditPackageModalContent,
   EditAddOnsModalContent,
@@ -86,7 +87,7 @@ export default function EventDetailTemplate({
   );
 
   const [editingSection, setEditingSection] = useState<
-    "client" | "event" | "status" | "notes" | null
+    "client" | "event" | "status" | "notes" | "schedule" | null
   >(null);
   const [isSaving, startSaveTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -199,6 +200,34 @@ export default function EventDetailTemplate({
 
       updateEvent.mutate(
         { id: eventData.id, payload: raw },
+        {
+          onSuccess: () => {
+            setEditingSection(null);
+            setMessage(dict.eventDetail.saveChanges);
+            setTimeout(() => setMessage(null), 3000);
+            router.refresh();
+          },
+        },
+      );
+    });
+  }
+
+  function handleSaveSchedules(rows: ScheduleRow[]) {
+    if (!eventData) return;
+    startSaveTransition(() => {
+      updateEvent.mutate(
+        {
+          id: eventData.id,
+          payload: {
+            schedules: rows.map((r) => ({
+              id: r.id,
+              date: r.date,
+              startTime: r.startTime || null,
+              endTime: r.endTime || null,
+              label: r.label || null,
+            })),
+          },
+        },
         {
           onSuccess: () => {
             setEditingSection(null);
@@ -370,12 +399,12 @@ export default function EventDetailTemplate({
           )}
 
           {/* Google Calendar */}
-          {eventData.eventDate && (
+          {eventData.schedules && eventData.schedules.length > 0 && (
             <a
               href={buildGoogleCalendarUrl({
                 title: `${eventData.eventCategoryName ?? eventData.eventType ?? "Event"} – ${eventData.clientName}`,
-                date: eventData.eventDate,
-                time: eventData.eventTime ?? null,
+                date: eventData.schedules[0].date,
+                time: eventData.schedules[0].startTime ?? null,
                 location: eventData.eventLocation ?? null,
                 description: (
                   eventData.packageSnapshot as { name?: string } | null
@@ -530,6 +559,73 @@ export default function EventDetailTemplate({
                 }}
                 variant="event-only"
                 onEditEvent={() => setEditingSection("event")}
+              />
+            )}
+
+            {/* ── Schedule ── */}
+            {editingSection === "schedule" ? (
+              <EventDetailEdit
+                event={eventData}
+                onSave={handleSave}
+                onSaveSchedules={handleSaveSchedules}
+                onCancel={() => setEditingSection(null)}
+                isSaving={isSaving}
+                section="schedule"
+                eventCategories={eventCategories}
+                eventStatusOptions={eventStatusOptions}
+                paymentStatusOptions={paymentStatusOptions}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  paymentInfo: dict.eventDetail.paymentInfo,
+                  totalAmount: dict.eventDetail.totalAmount,
+                  notes: dict.eventDetail.notes,
+                  saveChanges: dict.eventDetail.saveChanges,
+                  updateStatus: dict.eventDetail.updateStatus,
+                  paymentStatus: dict.eventDetail.paymentStatus,
+                  scheduleTitle: dict.eventDetail.scheduleTitle,
+                  scheduleDate: dict.eventDetail.scheduleDate,
+                  scheduleStartTime: dict.eventDetail.scheduleStartTime,
+                  scheduleEndTime: dict.eventDetail.scheduleEndTime,
+                  scheduleLabel: dict.eventDetail.scheduleLabel,
+                  addScheduleDate: dict.eventDetail.addScheduleDate,
+                  removeScheduleDate: dict.eventDetail.removeScheduleDate,
+                }}
+                cancelLabel={dict.common.cancel}
+              />
+            ) : (
+              <EventDetailView
+                event={eventData}
+                formatDate={formatDate}
+                labels={{
+                  clientInfo: dict.eventDetail.clientInfo,
+                  clientName: dict.eventDetail.clientName,
+                  clientPhone: dict.eventDetail.clientPhone,
+                  clientPhoneSecondary: dict.eventDetail.clientPhoneSecondary,
+                  clientEmail: dict.eventDetail.clientEmail,
+                  eventInfo: dict.eventDetail.eventInfo,
+                  eventCategory: dict.eventDetail.eventCategory,
+                  eventDate: dict.eventDetail.eventDate,
+                  eventTime: dict.eventDetail.eventTime,
+                  eventLocation: dict.eventDetail.eventLocation,
+                  eventLocationUrl: dict.eventDetail.eventLocationUrl,
+                  notes: dict.eventDetail.notes,
+                  noNotes: dict.eventDetail.noNotes,
+                  editLabel: dict.eventDetail.edit,
+                  notSet: dict.eventDetail.notSet,
+                  scheduleTitle: dict.eventDetail.scheduleTitle,
+                  noScheduleDates: dict.eventDetail.noScheduleDates,
+                }}
+                variant="schedule-only"
+                onEditSchedule={() => setEditingSection("schedule")}
               />
             )}
 

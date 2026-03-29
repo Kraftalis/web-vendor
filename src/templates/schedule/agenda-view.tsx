@@ -9,20 +9,25 @@ import {
   IconEye,
 } from "@/components/icons";
 import type { BadgeVariant } from "@/components/ui";
-import type { ScheduleEvent } from "./types";
+import type { ScheduleEvent, ScheduleEventScheduleItem } from "./types";
 import { eventStatusVariant } from "./types";
 
 // ─── Agenda View ────────────────────────────────────────────
 
+export interface AgendaItem extends ScheduleEventScheduleItem {
+  event: ScheduleEvent;
+}
+
 interface AgendaViewProps {
-  upcomingEvents: ScheduleEvent[];
-  pastEvents: ScheduleEvent[];
+  upcomingEvents: AgendaItem[];
+  pastEvents: AgendaItem[];
   eventStatusMap: Record<string, string>;
   paymentStatusMap: Record<string, string>;
   paymentStatusVariant: Record<string, BadgeVariant>;
   viewLabel: string;
   bookingDict: Record<string, string>;
   relativeDayLabel: (dateStr: string) => string;
+  onSelectEvent?: (item: AgendaItem) => void;
   labels: {
     upcoming: string;
     past: string;
@@ -68,11 +73,11 @@ export function AgendaView({
           </Card>
         ) : (
           <div className="space-y-3">
-            {upcomingEvents.map((ev) => (
+            {upcomingEvents.map((item, idx) => (
               <AgendaRow
-                key={ev.id}
-                event={ev}
-                relativeLabel={relativeDayLabel(ev.eventDate)}
+                key={`${item.event.id}-${item.id || idx}`}
+                item={item}
+                relativeLabel={relativeDayLabel(item.date)}
                 eventStatusMap={eventStatusMap}
                 paymentStatusMap={paymentStatusMap}
                 paymentStatusVariant={paymentStatusVariant}
@@ -95,11 +100,11 @@ export function AgendaView({
             </span>
           </h2>
           <div className="space-y-3 opacity-75">
-            {pastEvents.map((ev) => (
+            {pastEvents.map((item, idx) => (
               <AgendaRow
-                key={ev.id}
-                event={ev}
-                relativeLabel={relativeDayLabel(ev.eventDate)}
+                key={`${item.event.id}-${item.id || idx}`}
+                item={item}
+                relativeLabel={relativeDayLabel(item.date)}
                 eventStatusMap={eventStatusMap}
                 paymentStatusMap={paymentStatusMap}
                 paymentStatusVariant={paymentStatusVariant}
@@ -117,7 +122,7 @@ export function AgendaView({
 // ─── Agenda Row ─────────────────────────────────────────────
 
 interface AgendaRowProps {
-  event: ScheduleEvent;
+  item: AgendaItem;
   relativeLabel: string;
   eventStatusMap: Record<string, string>;
   paymentStatusMap: Record<string, string>;
@@ -127,7 +132,7 @@ interface AgendaRowProps {
 }
 
 function AgendaRow({
-  event,
+  item,
   relativeLabel,
   eventStatusMap,
   paymentStatusMap,
@@ -135,12 +140,17 @@ function AgendaRow({
   viewLabel,
   bookingDict,
 }: AgendaRowProps) {
-  const date = new Date(event.eventDate);
+  const { event } = item;
+  const date = new Date(item.date);
 
   // Event type label from booking dict or event category name
   const typeKey = `type${event.eventType}` as keyof typeof bookingDict;
   const typeLabel =
     event.eventCategoryName ?? bookingDict[typeKey] ?? event.eventType;
+
+  const displayTitle = item.label
+    ? `${event.clientName} (${item.label})`
+    : event.clientName;
 
   return (
     <Card>
@@ -171,7 +181,7 @@ function AgendaRow({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-gray-900">
-                {event.clientName}
+                {displayTitle}
               </p>
               <p className="flex items-center gap-1.5 text-xs text-gray-500">
                 <span
@@ -198,10 +208,11 @@ function AgendaRow({
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {event.eventTime && (
+            {(item.startTime || item.endTime) && (
               <span className="flex items-center gap-1 text-xs text-gray-500">
                 <IconClock size={12} />
-                {event.eventTime}
+                {item.startTime ?? "—"}
+                {item.endTime ? ` – ${item.endTime}` : ""}
               </span>
             )}
             {event.eventLocation && (

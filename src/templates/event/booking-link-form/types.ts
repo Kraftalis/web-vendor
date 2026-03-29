@@ -7,9 +7,15 @@ export const bookingLinkSchema = z.object({
   clientName: z.string(),
   clientPhone: z.string(),
   eventCategoryId: z.string(),
-  eventDate: z.string(),
-  eventTime: z.string(),
   eventLocation: z.string(),
+  scheduleDates: z.array(
+    z.object({
+      date: z.string(),
+      startTime: z.string(),
+      endTime: z.string(),
+      label: z.string(),
+    }),
+  ),
   packageMode: z.enum(["existing", "custom"]),
   selectedPkgId: z.string(),
   selectedVariationId: z.string(),

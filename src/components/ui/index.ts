@@ -1,30 +1,25 @@
-export { default as Button } from "./button";
-export type { ButtonProps, ButtonVariant, ButtonSize } from "./button";
-
-export { default as Input } from "./input";
-export type { InputProps } from "./input";
-
-export { Card, CardHeader, CardBody, CardFooter } from "./card";
-export type {
-  CardProps,
-  CardHeaderProps,
-  CardBodyProps,
-  CardFooterProps,
+import Input, { type InputProps } from "./input";
+import CurrencyInput from "./currency-input";
+import PhoneInput from "./phone-input";
+import Select, { type SelectProps } from "./select";
+import Badge, { type BadgeProps, type BadgeVariant } from "./badge";
+import Button, {
+  type ButtonProps,
+  type ButtonVariant,
+  type ButtonSize,
+} from "./button";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  type CardProps,
+  type CardHeaderProps,
+  type CardBodyProps,
+  type CardFooterProps,
 } from "./card";
-
-export { default as Badge } from "./badge";
-export type { BadgeProps, BadgeVariant } from "./badge";
-
-export { default as Select } from "./select";
-export type { SelectProps, SelectOption } from "./select";
-
-export { default as Modal } from "./modal";
-export type { ModalProps } from "./modal";
-
-export { default as Textarea } from "./textarea";
-export type { TextareaProps } from "./textarea";
-
-export {
+import Modal, { type ModalProps } from "./modal";
+import {
   Skeleton,
   SkeletonText,
   SkeletonCircle,
@@ -32,9 +27,69 @@ export {
   SkeletonTableRow,
   SkeletonWrapper,
 } from "./skeleton";
+import {
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+  type TabsProps,
+  type TabListProps,
+  type TabProps,
+  type TabPanelProps,
+} from "./tabs";
+import {
+  ToastProvider,
+  useToast,
+  type Toast,
+  type ToastVariant,
+} from "./toast";
+import Textarea, { type TextareaProps } from "./textarea";
 
-export { ToastProvider, useToast } from "./toast";
-export type { Toast, ToastVariant } from "./toast";
+export {
+  Input,
+  CurrencyInput,
+  PhoneInput,
+  Select,
+  Button,
+  Badge,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Modal,
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
+  SkeletonCard,
+  SkeletonTableRow,
+  SkeletonWrapper,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+  ToastProvider,
+  useToast,
+  Textarea,
+};
 
-export { Tabs, TabList, Tab, TabPanel } from "./tabs";
-export type { TabsProps, TabListProps, TabProps, TabPanelProps } from "./tabs";
+export type {
+  ButtonProps,
+  ButtonVariant,
+  ButtonSize,
+  InputProps,
+  SelectProps,
+  BadgeProps,
+  BadgeVariant,
+  CardProps,
+  CardHeaderProps,
+  CardBodyProps,
+  CardFooterProps,
+  ModalProps,
+  TextareaProps,
+  TabsProps,
+  TabListProps,
+  TabProps,
+  TabPanelProps,
+  Toast,
+  ToastVariant,
+};

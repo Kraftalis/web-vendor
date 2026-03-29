@@ -34,6 +34,7 @@ export async function GET() {
         eventDate: l.eventDate?.toISOString() ?? null,
         eventTime: l.eventTime,
         eventLocation: l.eventLocation,
+        scheduleDates: l.scheduleDates ?? null,
         packageSnapshot: l.packageSnapshot,
         addOnsSnapshot: l.addOnsSnapshot,
         totalAmount: l.totalAmount ? String(l.totalAmount) : null,
