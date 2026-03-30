@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button, Input, Textarea, Select } from "@/components/ui";
@@ -114,6 +114,28 @@ export default function OnboardingTemplate() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
+
+  // ─── Auto-completion Check ────────────────────────────
+  // If the user lands here but is technically already "complete" in the DB,
+  // we check the status API and set the cookie / redirect if so.
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const res = await fetch("/api/onboarding/complete");
+        const json = await res.json();
+
+        if (json.data?.complete) {
+          // If already complete, call the POST to set the cookie and redirect
+          await fetch("/api/onboarding/complete", { method: "POST" });
+          router.replace("/");
+          router.refresh();
+        }
+      } catch (err) {
+        console.error("[Onboarding] Status check failed:", err);
+      }
+    }
+    checkStatus();
+  }, [router]);
 
   // ─── Photo upload ─────────────────────────────────────
   const handleLogoChange = useCallback(

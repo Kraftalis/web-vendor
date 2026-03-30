@@ -21,10 +21,13 @@ export const authConfig: NextAuthConfig = {
       const isOnLogin = nextUrl.pathname.startsWith("/login");
       const isOnSignUp = nextUrl.pathname.startsWith("/signup");
       const isOnVerifyEmail = nextUrl.pathname.startsWith("/verify-email");
-      const isPublicRoute = isOnLogin || isOnSignUp || isOnVerifyEmail;
+      const isPreparing = nextUrl.pathname.startsWith("/preparing");
+      const isPublicRoute =
+        isOnLogin || isOnSignUp || isOnVerifyEmail || isPreparing;
 
       if (isOnLogin) {
-        if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
+        if (isLoggedIn)
+          return Response.redirect(new URL("/preparing", nextUrl));
         return true;
       }
 
@@ -37,12 +40,14 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.status = (user as any).status;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
+        (session.user as any).status = token.status;
       }
       return session;
     },

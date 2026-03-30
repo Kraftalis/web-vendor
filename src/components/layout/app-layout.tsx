@@ -133,7 +133,7 @@ export default function AppLayout({
       </header>
 
       {/* ─── Page Content ───────────────────────────────── */}
-      <main className="flex-1">
+      <main className="flex-1 overflow-y-auto">
         {fullWidth ? (
           children
         ) : (

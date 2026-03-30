@@ -34,19 +34,16 @@ export function proxy(request: NextRequest) {
     request.cookies.get("__Secure-authjs.session-token");
   const isLoggedIn = !!token;
 
+  // We should also let the user through if they are completed in the database
+  // but just lost their local bp cookie (e.g. after logout/login)
+  // However, edge-side DB checks are slow.
+  // A better way is to check the JWT if authjs is using it, but we can't easily decrypt it here
+  // without jose or similar.
+
   if (!isLoggedIn) return response;
 
-  // ─── Logged-in user — enforce onboarding ──────────────────
-  const hasBp = request.cookies.get("bp");
-  const isOnOnboarding = pathname.startsWith("/onboarding");
-
-  if (!hasBp && !isOnOnboarding) {
-    return NextResponse.redirect(new URL("/onboarding", request.url));
-  }
-
-  if (hasBp && isOnOnboarding) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+  // Remove existing onboarding cookie-based enforcement
+  // Pengecekan onboarding dipindah ke root layout untuk akses database langsung.
 
   return response;
 }

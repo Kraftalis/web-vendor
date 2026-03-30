@@ -178,26 +178,6 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto overflow-x-hidden mini-calendar-section scrollbar-hide">
-            <div className="p-4 border-b border-gray-100 mb-2">
-              <div className="flex flex-wrap gap-2">
-                {legendItems.map((item) => (
-                  <div
-                    key={item.type}
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 border border-gray-100"
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor: item.color || "#3b82f6",
-                      }}
-                    />
-                    <span className="text-[10px] font-medium text-gray-600">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
             <MiniCalendar events={events} />
             <EventList events={events} selectedDate={currentDate} />
           </div>
@@ -254,13 +234,33 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
                 <MainCalendar
                   events={events}
                   calendarEvents={events.flatMap((ev) =>
-                    (ev.schedules || []).map((s) => ({
-                      id: `${ev.id}-${s.id}`,
-                      title: s.label || ev.clientName || "Untitled",
-                      start: new Date(`${s.date}T${s.startTime || "00:00:00"}`),
-                      end: new Date(`${s.date}T${s.endTime || "23:59:59"}`),
-                      resource: ev,
-                    })),
+                    (ev.schedules || []).map((s) => {
+                      const startTime = s.startTime || "00:00";
+                      const endTime =
+                        s.endTime ||
+                        (s.startTime
+                          ? dayjs(`2000-01-01 ${s.startTime}`)
+                              .add(1, "hour")
+                              .format("HH:mm")
+                          : "23:59");
+
+                      const startDate = dayjs(s.date)
+                        .set("hour", parseInt(startTime.split(":")[0]))
+                        .set("minute", parseInt(startTime.split(":")[1]))
+                        .toDate();
+                      const endDate = dayjs(s.date)
+                        .set("hour", parseInt(endTime.split(":")[0]))
+                        .set("minute", parseInt(endTime.split(":")[1]))
+                        .toDate();
+
+                      return {
+                        id: `${ev.id}-${s.id}`,
+                        title: s.label || ev.clientName || "Untitled",
+                        start: startDate,
+                        end: endDate,
+                        resource: ev,
+                      };
+                    }),
                   )}
                   legendItems={legendItems}
                 />

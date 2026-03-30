@@ -5,6 +5,8 @@ import { useMemo } from "react";
 import { useDictionary } from "@/i18n";
 import type { ScheduleEvent } from "./types";
 import DefaultBadge from "@/components/ui/badge";
+import Link from "next/link";
+import { IconChevronRight, IconEye } from "@/components/icons";
 
 interface EventListProps {
   events: ScheduleEvent[];
@@ -88,13 +90,19 @@ export function EventList({ events, selectedDate }: EventListProps) {
                         ?.find(
                           (s) => dayjs(s.date).format("YYYY-MM-DD") === dateStr,
                         )
-                        ?.startTime?.slice(0, 5) || "--:--"}
+                        ?.startTime?.slice(0, 5) || "--:--"}{" "}
+                      -{" "}
+                      {ev.schedules
+                        ?.find(
+                          (s) => dayjs(s.date).format("YYYY-MM-DD") === dateStr,
+                        )
+                        ?.endTime?.slice(0, 5) || "--:--"}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5 mb-2">
                     <span className="text-[11px] font-medium text-gray-500">
-                      {ev.eventCategoryName}
+                      {ev.eventCategoryName} - {ev.eventLocation}
                     </span>
                   </div>
 
@@ -105,6 +113,14 @@ export function EventList({ events, selectedDate }: EventListProps) {
                     >
                       {eventStatusMap[ev.eventStatus] || ev.eventStatus}
                     </DefaultBadge>
+
+                    <Link
+                      href={`/event/${ev.id}`}
+                      className="ml-auto w-7 h-7 rounded-full flex items-center gap-1 text-[11px] font-bold text-gray-600 bg-gray-50 px-2 py-0.5 hover:bg-blue-100 transition"
+                      aria-label={`Lihat detail acara ${ev.clientName}`}
+                    >
+                      <IconChevronRight />
+                    </Link>
                   </div>
                 </div>
               </div>

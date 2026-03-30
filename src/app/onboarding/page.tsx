@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import OnboardingTemplate from "@/templates/onboarding/onboarding-template";
+import { redirect } from "next/navigation";
+import { isOnboardingCompleted } from "@/repositories/user/onboarding-check";
 
 export default async function OnboardingPage() {
   const session = await auth();
@@ -9,7 +10,12 @@ export default async function OnboardingPage() {
     redirect("/login");
   }
 
-  // The middleware handles redirecting completed users away from /onboarding
-  // via the `bp` cookie. This page simply renders the onboarding wizard.
+  if (session?.user?.id) {
+    const isCompleted = await isOnboardingCompleted(session.user.id);
+    if (isCompleted) {
+      redirect("/");
+    }
+  }
+
   return <OnboardingTemplate />;
 }
