@@ -93,7 +93,10 @@ export default function ClientEventFields({ control, labels }: Props) {
                   <Input
                     label={labels.eventDate ?? "Date"}
                     type="date"
-                    {...f}
+                    value={f.value ?? ""}
+                    onChange={(e) =>
+                      f.onChange((e.target as HTMLInputElement).value)
+                    }
                   />
                 )}
               />
@@ -104,7 +107,10 @@ export default function ClientEventFields({ control, labels }: Props) {
                   <Input
                     label={labels.startTime ?? "Start Time"}
                     type="time"
-                    {...f}
+                    value={f.value ?? ""}
+                    onChange={(e) =>
+                      f.onChange((e.target as HTMLInputElement).value)
+                    }
                   />
                 )}
               />
@@ -115,7 +121,10 @@ export default function ClientEventFields({ control, labels }: Props) {
                   <Input
                     label={labels.endTime ?? "End Time"}
                     type="time"
-                    {...f}
+                    value={f.value ?? ""}
+                    onChange={(e) =>
+                      f.onChange((e.target as HTMLInputElement).value)
+                    }
                   />
                 )}
               />

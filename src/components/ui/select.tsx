@@ -106,18 +106,55 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
       return () => window.removeEventListener("scroll", handleClose, true);
     }, [open, handleClose]);
 
-    /* calculate position */
+    /* calculate position - flip up if dropdown would overflow below viewport */
+    const DROPDOWN_MAX_HEIGHT = 200; // Reduced height to ensure content fits better
     const calculatePosition = useCallback(() => {
-      if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+
+      const gap = 4; // px gap between trigger and dropdown
+      const spaceBelow = window.innerHeight - rect.bottom - gap;
+      const spaceAbove = rect.top - gap;
+
+      // Threshold to determine if space is really tight below
+      const TIGHT_SPACE_THRESHOLD = 180;
+
+      const preferAbove =
+        spaceBelow < TIGHT_SPACE_THRESHOLD && spaceAbove > spaceBelow;
+
+      const clampedLeft = Math.max(8, rect.left);
+
+      if (preferAbove) {
+        // Upward opening logic: height is content-dependent but capped
         setStyle({
           position: "fixed",
-          top: rect.bottom + 4, // 4px gap
-          left: rect.left,
+          bottom: window.innerHeight - rect.top + gap,
+          left: clampedLeft,
           width: rect.width,
+          maxHeight: Math.min(
+            DROPDOWN_MAX_HEIGHT,
+            Math.max(120, spaceAbove - 8),
+          ),
+          display: "flex",
+          flexDirection: "column",
+        });
+      } else {
+        // Downward opening logic: height is content-dependent but capped
+        setStyle({
+          position: "fixed",
+          top: rect.bottom + gap,
+          bottom: "auto",
+          left: clampedLeft,
+          width: rect.width,
+          maxHeight: Math.min(
+            DROPDOWN_MAX_HEIGHT,
+            Math.max(120, spaceBelow - 8),
+          ),
+          display: "flex",
+          flexDirection: "column",
         });
       }
-    }, []);
+    }, [DROPDOWN_MAX_HEIGHT]);
 
     const handleTriggerClick = () => {
       if (disabled) return;
@@ -134,6 +171,18 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
         searchRef.current.focus();
       }
     }, [open, searchable]);
+
+    /* recalculate position when opened, and on resize/orientation changes */
+    useEffect(() => {
+      if (!open) return;
+      calculatePosition();
+      window.addEventListener("resize", calculatePosition);
+      window.addEventListener("orientationchange", calculatePosition);
+      return () => {
+        window.removeEventListener("resize", calculatePosition);
+        window.removeEventListener("orientationchange", calculatePosition);
+      };
+    }, [open, calculatePosition]);
 
     /* keyboard navigation */
     const handleKeyDown = useCallback(
@@ -273,7 +322,10 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
             )}
 
             {/* Options list */}
-            <ul role="listbox" className="max-h-60 overflow-y-auto py-1">
+            <ul
+              role="listbox"
+              className="flex-1 overflow-y-auto py-1 scrollbar-hide"
+            >
               {filtered.length === 0 && (
                 <li className="px-3 py-2 text-sm text-gray-400">No results</li>
               )}
