@@ -66,8 +66,8 @@ export default function PaymentSection({ control, setValue, labels }: Props) {
               <CurrencyInput
                 label={labels.paymentAmountLabel ?? "Payment Amount"}
                 placeholder="0"
-                value={field.value}
-                onValueChange={(val) => field.onChange(val)}
+                value={field.value ?? ""}
+                onValueChange={(val) => field.onChange(val.value)}
               />
             )}
           />
