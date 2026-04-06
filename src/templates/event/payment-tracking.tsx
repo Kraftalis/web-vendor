@@ -259,8 +259,16 @@ function PaymentRow({
           <p className="mt-0.5 text-[10px] text-gray-400">{payment.note}</p>
         )}
       </td>
-      <td className="px-3 py-2.5 font-medium text-gray-900">
-        {formatCurrency(payment.amount)}
+      <td className="px-3 py-2.5 font-medium">
+        {payment.paymentType === "REFUND" ? (
+          <span className="text-red-600">
+            -{formatCurrency(payment.amount)}
+          </span>
+        ) : (
+          <span className="text-gray-900">
+            {formatCurrency(payment.amount)}
+          </span>
+        )}
       </td>
       <td className="px-3 py-2.5 text-gray-500">
         {formatDate(payment.createdAt)}

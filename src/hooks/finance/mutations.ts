@@ -56,6 +56,8 @@ export function useCreateTransaction() {
       createTransaction(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: financeKeys.all });
+      // Also invalidate transactions lists to ensure event-specific lists refresh
+      qc.invalidateQueries({ queryKey: financeKeys.transactions() });
     },
   });
 }
@@ -82,6 +84,7 @@ export function useDeleteTransaction() {
     mutationFn: (id: string) => deleteTransaction(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: financeKeys.all });
+      qc.invalidateQueries({ queryKey: financeKeys.transactions() });
     },
   });
 }

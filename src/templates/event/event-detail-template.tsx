@@ -22,6 +22,7 @@ import {
   IconPackage,
   IconDocument,
   IconX,
+  IconCash,
 } from "@/components/icons";
 import { useDictionary } from "@/i18n";
 import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
@@ -40,6 +41,11 @@ import {
   useAddPayment,
   useVerifyPayment,
 } from "@/hooks/event";
+import {
+  useTransactions,
+  useCreateTransaction,
+  useDeleteTransaction,
+} from "@/hooks/finance";
 import { EventDetailView } from "./event-detail-view";
 import { EventDetailEdit } from "./event-detail-edit";
 import type { ScheduleRow } from "./event-detail-edit";
@@ -53,6 +59,7 @@ import {
   AddPaymentForm,
 } from "./payment-tracking";
 import { BriefTab } from "./brief-tab";
+import { CostTracking, CostForm } from "./cost-tracking";
 
 // ─── Orchestrator ───────────────────────────────────────────
 
@@ -76,6 +83,15 @@ export default function EventDetailTemplate({
   const updateEvent = useUpdateEvent();
   const addPaymentMut = useAddPayment(eventId);
   const verifyPaymentMut = useVerifyPayment(eventId);
+
+  // Cost tracking hooks
+  const { data: transactionData } = useTransactions({
+    eventId,
+    type: "EXPENSE",
+  });
+
+  const createTransactionMut = useCreateTransaction();
+  const deleteTransactionMut = useDeleteTransaction();
 
   const { data: eventCategoriesData } = useEventCategories();
   const eventCategories = useMemo(
@@ -110,18 +126,27 @@ export default function EventDetailTemplate({
     type: string;
   } | null>(null);
 
-  // Memoised calculations
-  const totalPaid = useMemo(() => {
-    const payments = eventData?.payments ?? [];
-    return payments
-      .filter((p) => p.isVerified)
-      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
-  }, [eventData?.payments]);
+  // Cost tracking modal
+  const [showAddCost, setShowAddCost] = useState(false);
+  const [isSubmittingCost, setIsSubmittingCost] = useState(false);
 
+  // Memoised calculations
   const totalAmount = useMemo(
     () => (eventData?.amount ? parseFloat(eventData.amount) : 0),
     [eventData],
   );
+
+  // totalPaid = sum of verified payments (excluding refunds) minus verified refunds
+  const totalPaid = useMemo(() => {
+    const payments = eventData?.payments ?? [];
+    const positives = payments
+      .filter((p) => p.isVerified && p.paymentType !== "REFUND")
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    const refunds = payments
+      .filter((p) => p.isVerified && p.paymentType === "REFUND")
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    return positives - refunds;
+  }, [eventData?.payments]);
 
   const remaining = useMemo(
     () => Math.max(totalAmount - totalPaid, 0),
@@ -251,6 +276,73 @@ export default function EventDetailTemplate({
     navigator.clipboard.writeText(url);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
+  }
+
+  // ─── Cost Tracking Handlers ──────────────────────────────────
+
+  async function handleAddCost(data: {
+    label: string;
+    amount: string;
+    transactionDate: string;
+    receiptFile: File | null;
+  }) {
+    setIsSubmittingCost(true);
+    let receiptUrl: string | null = null;
+    let receiptName: string | null = null;
+
+    if (data.receiptFile) {
+      try {
+        const formData = new FormData();
+        formData.append("file", data.receiptFile);
+        formData.append("folder", "receipts");
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.data?.publicUrl) {
+          receiptUrl = uploadData.data.publicUrl;
+          receiptName = uploadData.data.fileName;
+        }
+      } catch (err) {
+        console.error("Receipt upload failed:", err);
+      }
+    }
+
+    createTransactionMut.mutate(
+      {
+        description: data.label,
+        amount: parseFloat(data.amount),
+        transactionDate: data.transactionDate,
+        type: "EXPENSE",
+        category: "Event Cost",
+        eventId,
+        receiptUrl,
+        receiptName,
+      },
+      {
+        onSuccess: () => {
+          setIsSubmittingCost(false);
+          setShowAddCost(false);
+          setMessage(
+            dict.eventDetail.costAdded ?? "Cost recorded successfully.",
+          );
+          setTimeout(() => setMessage(null), 3000);
+        },
+        onError: () => {
+          setIsSubmittingCost(false);
+        },
+      },
+    );
+  }
+
+  function handleDeleteCost(id: string) {
+    deleteTransactionMut.mutate(id, {
+      onSuccess: () => {
+        setMessage("Cost deleted.");
+        setTimeout(() => setMessage(null), 3000);
+      },
+    });
   }
 
   function handleVerifyPayment(paymentId: string) {
@@ -459,6 +551,9 @@ export default function EventDetailTemplate({
           </Tab>
           <Tab id="package-payments" icon={<IconPackage size={16} />}>
             {dict.eventDetail.tabPackagePayments}
+          </Tab>
+          <Tab id="cost-tracking" icon={<IconCash size={16} />}>
+            {dict.eventDetail.tabCost}
           </Tab>
           <Tab id="brief" icon={<IconDocument size={16} />}>
             {dict.eventDetail.tabBrief}
@@ -880,7 +975,61 @@ export default function EventDetailTemplate({
             formatDate={formatDate}
           />
         </TabPanel>
+
+        {/* ═══ Tab 4: Cost Tracking ═══ */}
+        <TabPanel id="cost-tracking">
+          <CostTracking
+            eventId={eventId}
+            transactions={transactionData?.data ?? []}
+            onAddCost={() => setShowAddCost(true)}
+            onDeleteCost={handleDeleteCost}
+            onViewReceipt={(receipt) => setReceiptModal(receipt)}
+            labels={{
+              addCost: dict.eventDetail.addCost,
+              costRecords: dict.eventDetail.costRecords,
+              noCostRecords: dict.eventDetail.noCostsYet,
+              noCostRecordsDesc: dict.eventDetail.noCostsDesc,
+              costCategory: dict.eventDetail.costCategory,
+              costCategoryPlaceholder: dict.eventDetail.costCategory,
+              costDescription: dict.eventDetail.costDescription,
+              costDescriptionPlaceholder: dict.eventDetail.costDescription,
+              costAmount: dict.eventDetail.costAmount,
+              costAmountPlaceholder: dict.eventDetail.costAmount,
+              costDate: dict.eventDetail.costDate,
+              costReceipt: dict.eventDetail.receiptLabel,
+              saveCost: dict.eventDetail.saveChanges,
+              cancel: dict.common.cancel,
+              deleting: "Deleting...",
+              deleteConfirm: dict.eventDetail.briefDeleteConfirm,
+            }}
+          />
+        </TabPanel>
       </Tabs>
+
+      {/* Add Cost Modal */}
+      <Modal
+        open={showAddCost}
+        onClose={() => setShowAddCost(false)}
+        title={dict.eventDetail.addCost}
+      >
+        <CostForm
+          onSubmit={handleAddCost}
+          isSubmitting={isSubmittingCost}
+          onCancel={() => setShowAddCost(false)}
+          labels={{
+            costCategory: dict.eventDetail.costCategory,
+            costCategoryPlaceholder: dict.eventDetail.costCategory,
+            costDescription: dict.eventDetail.costDescription,
+            costDescriptionPlaceholder: dict.eventDetail.costDescription,
+            costAmount: dict.eventDetail.costAmount,
+            costAmountPlaceholder: dict.eventDetail.costAmount,
+            costDate: dict.eventDetail.costDate,
+            costReceipt: dict.eventDetail.receiptLabel,
+            saveCost: dict.eventDetail.saveChanges,
+            cancel: dict.common.cancel,
+          }}
+        />
+      </Modal>
 
       {/* Add Payment Modal */}
       <Modal

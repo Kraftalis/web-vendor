@@ -44,6 +44,7 @@ export interface TransactionQueryParams {
   type?: TransactionType;
   category?: string;
   accountId?: string;
+  eventId?: string;
   startDate?: string;
   endDate?: string;
   sortBy?: "transactionDate" | "amount" | "createdAt";

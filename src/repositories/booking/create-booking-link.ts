@@ -69,6 +69,7 @@ export async function createBookingLink(
             endTime: s.endTime ?? null,
             label: s.label ?? null,
             sortOrder: idx,
+            updated_at: new Date(),
           })),
         });
       }
@@ -279,6 +280,7 @@ export async function updateBookingLinkById(
             endTime: s.endTime ?? null,
             label: s.label ?? null,
             sortOrder: idx,
+            updated_at: new Date(),
           })),
         });
       }

@@ -35,6 +35,11 @@ export async function GET(request: NextRequest) {
           limit: 20,
           sortBy: "transactionDate" as const,
           sortDir: "desc" as const,
+          // Preserve eventId & type even when other params fail validation
+          ...(params.eventId ? { eventId: params.eventId } : {}),
+          ...(params.type && ["INCOME", "EXPENSE"].includes(params.type)
+            ? { type: params.type as "INCOME" | "EXPENSE" }
+            : {}),
         };
 
     const result = await findTransactionsByBusiness(businessProfileId, filter);

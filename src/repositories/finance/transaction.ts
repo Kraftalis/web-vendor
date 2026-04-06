@@ -17,6 +17,7 @@ function buildWhere(
   if (filter.type) where.type = filter.type;
   if (filter.category) where.category = filter.category;
   if (filter.accountId) where.accountId = filter.accountId;
+  if (filter.eventId) where.eventId = filter.eventId;
 
   if (filter.startDate || filter.endDate) {
     where.transactionDate = {};
@@ -86,7 +87,7 @@ export async function createTransaction(
   return prisma.financeTransaction.create({
     data: {
       businessProfileId,
-      accountId: input.accountId,
+      accountId: input.accountId!,
       type: input.type,
       category: input.category,
       description: input.description,

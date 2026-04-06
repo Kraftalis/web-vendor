@@ -46,6 +46,7 @@ export const transactionFilterSchema = z.object({
   type: z.enum(["INCOME", "EXPENSE"]).optional(),
   category: z.string().optional(),
   accountId: z.string().uuid().optional(),
+  eventId: z.string().uuid().optional(),
   startDate: z.string().optional(), // ISO date
   endDate: z.string().optional(), // ISO date
   sortBy: z
