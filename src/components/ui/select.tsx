@@ -99,11 +99,21 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
       return () => document.removeEventListener("mousedown", handleClick);
     }, [handleClose]);
 
-    /* close on scroll */
+    /* close on scroll (but not inside dropdown) */
     useEffect(() => {
       if (!open) return;
-      window.addEventListener("scroll", handleClose, true);
-      return () => window.removeEventListener("scroll", handleClose, true);
+      const handleScroll = (e: Event) => {
+        // Don't close if scrolling inside the dropdown container
+        if (
+          containerRef.current &&
+          containerRef.current.contains(e.target as Node)
+        ) {
+          return;
+        }
+        handleClose();
+      };
+      window.addEventListener("scroll", handleScroll, true);
+      return () => window.removeEventListener("scroll", handleScroll, true);
     }, [open, handleClose]);
 
     /* calculate position - flip up if dropdown would overflow below viewport */
