@@ -18,7 +18,7 @@ import type { Package, AddOn } from "./types";
 import type { PackageFormPayload } from "./package-modal";
 import type { AddOnFormPayload } from "./addon-modal";
 
-export function usePricingState() {
+export const usePricingState = () => {
   // ─── Filters ──────────────────────────────────────────────
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "price" | "status">("name");
@@ -132,6 +132,16 @@ export function usePricingState() {
 
   const addonDelete = useConfirmDelete((id) => deleteAddon.mutate(id));
 
+  // ─── HeroUI v3 modal open-change handlers ─────────────────
+
+  const handlePkgOpenChange = (open: boolean) => {
+    if (!open) closePkgModal();
+  };
+
+  const handleAddonOpenChange = (open: boolean) => {
+    if (!open) closeAddonModal();
+  };
+
   return {
     // Filters
     query,
@@ -158,6 +168,8 @@ export function usePricingState() {
     // Package modal
     pkgModalOpen,
     editingPkg,
+    pkgMode: (editingPkg ? "edit" : "create") as "create" | "edit",
+    handlePkgOpenChange,
     openAddPkg,
     openEditPkg,
     closePkgModal,
@@ -167,6 +179,8 @@ export function usePricingState() {
     // Add-on modal
     addonModalOpen,
     editingAddon,
+    addonMode: (editingAddon ? "edit" : "create") as "create" | "edit",
+    handleAddonOpenChange,
     openAddAddon,
     openEditAddon,
     closeAddonModal,
@@ -174,4 +188,4 @@ export function usePricingState() {
     isSavingAddon: createAddon.isPending || updateAddon.isPending,
     addonDelete,
   };
-}
+};

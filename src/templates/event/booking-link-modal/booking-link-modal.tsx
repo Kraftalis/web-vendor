@@ -1,47 +1,62 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Modal } from "@/components/ui";
+import {
+  Modal,
+  ModalBackdrop,
+  ModalContainer,
+  ModalDialog,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@heroui/react";
 import { BookingLinkForm } from "@/templates/event/booking-link-form";
 import type { BookingLinkItem } from "@/services/booking";
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   editingLink?: BookingLinkItem | null;
   defaultEventDate?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  labels: Record<string, any>;
 }
 
-export default function BookingLinkModal({
-  open,
-  onClose,
+export const BookingLinkModal = ({
+  isOpen,
+  onOpenChange,
   editingLink,
   defaultEventDate,
-  labels,
-}: Props) {
-  const title = editingLink
-    ? (labels.editTitle ?? "Edit Booking Link")
-    : (labels.configTitle ?? "Create Booking Link");
-
+}: Props) => {
+  const title = editingLink ? "Edit Tautan Booking" : "Buat Tautan Booking";
   const [footer, setFooter] = useState<ReactNode>(null);
+  const onClose = () => onOpenChange(false);
+
+  const labels = {
+    title: "Buat Tautan Booking",
+    editTitle: "Edit Tautan Booking",
+    expiresIn: "Berakhir dalam",
+    hours: "jam",
+    submit: "Buat Tautan",
+    close: "Tutup",
+  };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={title}
-      className="max-w-2xl"
-      footer={footer}
-    >
-      <BookingLinkForm
-        onClose={onClose}
-        editingLink={editingLink ?? undefined}
-        defaultEventDate={defaultEventDate}
-        labels={labels}
-        renderFooter={setFooter}
-      />
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <ModalBackdrop isDismissable />
+      <ModalContainer size="2xl">
+        <ModalDialog>
+          <ModalHeader>{title}</ModalHeader>
+          <ModalBody>
+            <BookingLinkForm
+              onClose={onClose}
+              editingLink={editingLink ?? undefined}
+              defaultEventDate={defaultEventDate}
+              labels={labels}
+              renderFooter={setFooter}
+            />
+          </ModalBody>
+          {footer && <ModalFooter>{footer}</ModalFooter>}
+        </ModalDialog>
+      </ModalContainer>
     </Modal>
   );
-}
+};

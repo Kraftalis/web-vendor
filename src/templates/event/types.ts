@@ -224,3 +224,25 @@ export const EVENT_STATUS_COLORS: Record<string, string> = {
   COMPLETED: "bg-slate-400",
   CANCELED: "bg-red-500",
 };
+
+export const EVENT_STATUS_LABELS: Record<string, string> = {
+  INQUIRY: "Pertanyaan",
+  WAITING_CONFIRMATION: "Menunggu Konfirmasi",
+  BOOKED: "Terkonfirmasi",
+  ONGOING: "Sedang Berlangsung",
+  COMPLETED: "Selesai",
+  CANCELED: "Dibatalkan",
+};
+
+export const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  UNPAID: "Belum Terbayar",
+  DP_PAID: "DP Terbayar",
+  PAID: "Terbayar",
+};
+
+export const formatDate = (dateStr: string): string =>
+  new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });

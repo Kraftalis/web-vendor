@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deletePackage } from "@/services/pricing";
-import { pricingKeys } from "./keys";
+import { pricingKeys } from "@/constants/query-key";
 
-export function useDeletePackage() {
+export const useDeletePackage = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -11,4 +11,4 @@ export function useDeletePackage() {
       queryClient.invalidateQueries({ queryKey: pricingKeys.all });
     },
   });
-}
+};

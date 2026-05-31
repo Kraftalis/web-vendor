@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/layout";
 import {
   Card,
@@ -12,16 +13,15 @@ import {
 } from "@/components/ui";
 import UserAvatar from "@/components/user-avatar";
 import {
-  IconUser,
-  IconMail,
-  IconShield,
-  IconCamera,
-  IconEdit,
-  IconCheck,
-  IconCalendar,
-} from "@/components/icons";
-import { updateProfile } from "./actions";
-import { useDictionary } from "@/i18n";
+  User,
+  Mail,
+  Shield,
+  Camera,
+  Edit,
+  Check,
+  Calendar,
+} from "lucide-react";
+import { useUpdateProfile } from "@/hooks/user";
 
 /**
  * User data shape for the profile page.
@@ -41,31 +41,35 @@ interface ProfileTemplateProps {
   user: ProfileUser;
 }
 
-export default function ProfileTemplate({ user }: ProfileTemplateProps) {
+export const ProfileTemplate = ({ user }: ProfileTemplateProps) => {
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name ?? "");
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const { dict, locale } = useDictionary();
+  const { mutate: updateProfile, isPending } = useUpdateProfile();
 
   const handleSave = () => {
     setMessage(null);
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.set("name", name);
-      const result = await updateProfile(formData);
-      if (result.error) {
-        setMessage({ type: "error", text: result.error });
-      } else {
-        setMessage({ type: "success", text: dict.profile.profileUpdated });
-        setEditing(false);
-        // Clear success message after 3 seconds
-        setTimeout(() => setMessage(null), 3000);
-      }
-    });
+    updateProfile(
+      { name },
+      {
+        onSuccess: () => {
+          setMessage({ type: "success", text: "Profil berhasil diperbarui" });
+          setEditing(false);
+          router.refresh();
+          setTimeout(() => setMessage(null), 3000);
+        },
+        onError: () => {
+          setMessage({
+            type: "error",
+            text: "Gagal memperbarui profil. Coba lagi.",
+          });
+        },
+      },
+    );
   };
 
   const handleCancel = () => {
@@ -75,14 +79,11 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
   };
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString(
-      locale === "id" ? "id-ID" : "en-US",
-      {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      },
-    );
+    return new Date(date).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
   const statusVariant = (status: string) => {
@@ -107,15 +108,17 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
   return (
     <AppLayout
       user={topbarUser}
-      title={dict.profile.title}
+      title="Profil"
       contentContainerClassName="max-w-6xl pb-20"
     >
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          {dict.profile.title}
+          Profil
         </h1>
-        <p className="mt-1 text-sm text-gray-500">{dict.profile.subtitle}</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Kelola informasi profil Anda
+        </p>
       </div>
 
       {/* Status Message */}
@@ -128,9 +131,9 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
           }`}
         >
           {message.type === "success" ? (
-            <IconCheck size={16} />
+            <Check size={16} />
           ) : (
-            <IconShield size={16} />
+            <Shield size={16} />
           )}
           {message.text}
         </div>
@@ -151,16 +154,16 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
                 />
                 <button
                   className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                  aria-label={dict.profile.changePhoto}
-                  title={dict.profile.changePhoto}
+                  aria-label="Ubah Foto"
+                  title="Ubah Foto"
                 >
-                  <IconCamera size={24} className="text-white" />
+                  <Camera size={24} className="text-white" />
                 </button>
               </div>
 
               {/* Name & Email */}
               <h2 className="text-lg font-semibold text-slate-900">
-                {user.name || dict.profileDropdown.user}
+                {user.name || "Pengguna"}
               </h2>
               <p className="mt-0.5 text-sm text-slate-500">{user.email}</p>
 
@@ -174,10 +177,8 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
 
               {/* Joined Date */}
               <div className="mt-6 flex items-center gap-2 text-xs text-slate-400">
-                <IconCalendar size={14} />
-                <span>
-                  {dict.profile.joined} {formatDate(user.createdAt)}
-                </span>
+                <Calendar size={14} />
+                <span>Bergabung pada {formatDate(user.createdAt)}</span>
               </div>
             </CardBody>
           </Card>
@@ -188,7 +189,7 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
           {/* Personal Information */}
           <Card>
             <CardHeader
-              title={dict.profile.personalInfo}
+              title="Informasi Pribadi"
               action={
                 !editing ? (
                   <Button
@@ -196,8 +197,8 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
                     size="sm"
                     onClick={() => setEditing(true)}
                   >
-                    <IconEdit size={14} />
-                    {dict.common.edit}
+                    <Edit size={14} />
+                    Edit
                   </Button>
                 ) : null
               }
@@ -210,22 +211,22 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
                       htmlFor="profile-name"
                       className="mb-1.5 block text-sm font-medium text-slate-700"
                     >
-                      {dict.profile.fullName}
+                      Nama Lengkap
                     </label>
                     <Input
                       id="profile-name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder={dict.profile.enterFullName}
+                      placeholder="Masukkan nama lengkap Anda"
                     />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                      {dict.profile.emailAddress}
+                      Alamat Email
                     </label>
                     <Input value={user.email ?? ""} disabled />
                     <p className="mt-1 text-xs text-slate-400">
-                      {dict.profile.emailCannotChange}
+                      Email tidak dapat diubah
                     </p>
                   </div>
                   <div className="flex items-center gap-3 pt-2">
@@ -234,7 +235,7 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
                       isLoading={isPending}
                       size="sm"
                     >
-                      {dict.profile.saveChanges}
+                      Simpan Perubahan
                     </Button>
                     <Button
                       variant="ghost"
@@ -242,37 +243,37 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
                       onClick={handleCancel}
                       disabled={isPending}
                     >
-                      {dict.common.cancel}
+                      Batalkan
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <InfoRow
-                    icon={<IconUser size={16} className="text-slate-400" />}
-                    label={dict.profile.fullName}
+                    icon={<User size={16} className="text-slate-400" />}
+                    label="Nama Lengkap"
                     value={user.name || "—"}
                   />
                   <InfoRow
-                    icon={<IconMail size={16} className="text-slate-400" />}
-                    label={dict.profile.emailAddress}
+                    icon={<Mail size={16} className="text-slate-400" />}
+                    label="Alamat Email"
                     value={user.email || "—"}
                     extra={
                       user.emailVerified ? (
                         <span className="inline-flex items-center gap-1 text-xs text-green-600">
-                          <IconCheck size={12} />
-                          {dict.profile.verified}
+                          <Check size={12} />
+                          Terverifikasi
                         </span>
                       ) : (
                         <span className="text-xs text-amber-600">
-                          {dict.profile.notVerified}
+                          Tidak Terverifikasi
                         </span>
                       )
                     }
                   />
                   <InfoRow
-                    icon={<IconShield size={16} className="text-slate-400" />}
-                    label={dict.profile.role}
+                    icon={<Shield size={16} className="text-slate-400" />}
+                    label="Peran"
                     value={user.role}
                   />
                 </div>
@@ -282,33 +283,33 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
 
           {/* Account Security */}
           <Card>
-            <CardHeader title={dict.profile.accountSecurity} />
+            <CardHeader title="Keamanan Akun" />
             <CardBody>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-slate-900">
-                      {dict.profile.password}
+                      Kata Sandi
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">
-                      {dict.profile.passwordDesc}
+                      Ubah kata sandi Anda untuk keamanan akun
                     </p>
                   </div>
                   <Button variant="outline" size="sm" disabled>
-                    {dict.profile.changePassword}
+                    Ubah Kata Sandi
                   </Button>
                 </div>
                 <div className="border-t border-slate-100" />
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-slate-900">
-                      {dict.profile.twoFactor}
+                      Autentikasi Dua Faktor
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">
-                      {dict.profile.twoFactorDesc}
+                      Tambahkan lapisan keamanan tambahan untuk akun Anda
                     </p>
                   </div>
-                  <Badge variant="default">{dict.common.comingSoon}</Badge>
+                  <Badge variant="default">Segera Hadir</Badge>
                 </div>
               </div>
             </CardBody>
@@ -316,19 +317,17 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
 
           {/* Danger Zone */}
           <Card>
-            <CardHeader title={dict.profile.dangerZone} />
+            <CardHeader title="Zona Berbahaya" />
             <CardBody>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-red-600">
-                    {dict.profile.deleteAccount}
-                  </p>
+                  <p className="text-sm font-medium text-red-600">Hapus Akun</p>
                   <p className="mt-0.5 text-xs text-slate-500">
-                    {dict.profile.deleteAccountDesc}
+                    Hapus akun Anda secara permanen
                   </p>
                 </div>
                 <Button variant="danger" size="sm" disabled>
-                  {dict.profile.deleteAccount}
+                  Hapus Akun
                 </Button>
               </div>
             </CardBody>
@@ -337,11 +336,10 @@ export default function ProfileTemplate({ user }: ProfileTemplateProps) {
       </div>
     </AppLayout>
   );
-}
+};
 
-/* ─── Helper: Info Row ──────────────────────────────────────── */
-
-function InfoRow({
+// Support component — pure JSX only, no logic
+const InfoRow = ({
   icon,
   label,
   value,
@@ -351,19 +349,17 @@ function InfoRow({
   label: string;
   value: string;
   extra?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="mt-0.5">{icon}</div>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-          {label}
-        </p>
-        <div className="mt-0.5 flex items-center gap-2">
-          <p className="text-sm text-slate-900">{value}</p>
-          {extra}
-        </div>
+}) => (
+  <div className="flex items-start gap-3">
+    <div className="mt-0.5">{icon}</div>
+    <div className="min-w-0 flex-1">
+      <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+        {label}
+      </p>
+      <div className="mt-0.5 flex items-center gap-2">
+        <p className="text-sm text-slate-900">{value}</p>
+        {extra}
       </div>
     </div>
-  );
-}
+  </div>
+);

@@ -1,10 +1,10 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { IconTrendUp, IconTrendDown } from "@/components/icons";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 /**
- * StatCard — Google Workspace-style metric card with clean design.
+ * StatCard — Modern SaaS-style metric card.
  */
 
 interface StatCardProps {
@@ -27,38 +27,47 @@ export default function StatCard({
 }: StatCardProps) {
   return (
     <div
-      className={`rounded-lg border border-(--border) bg-white p-5 transition-shadow hover:shadow-sm ${className}`}
+      className={`group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-md ${className}`}
     >
-      {/* Icon */}
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-light text-accent">
-        {icon}
+      <div className="flex items-start justify-between">
+        <div>
+          {/* Title */}
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            {title}
+          </p>
+          {/* Value */}
+          <h3 className="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+            {value}
+          </h3>
+        </div>
+
+        {/* Icon Container */}
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+          {icon}
+        </div>
       </div>
 
-      {/* Title */}
-      <p className="text-xs font-medium text-(--text-secondary)">{title}</p>
-
-      {/* Value + Trend */}
-      <div className="mt-1 flex items-end gap-2">
-        <span className="text-2xl font-bold tracking-tight text-foreground">
-          {value}
-        </span>
-        {trend && (
-          <span
-            className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold ${
+      {trend && (
+        <div className="mt-4 flex items-center gap-1.5">
+          <div
+            className={`flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold ${
               trend.direction === "up"
-                ? "bg-accent-light text-accent-dark"
-                : "bg-red-50 text-red-600"
+                ? "bg-emerald-50 text-emerald-600"
+                : "bg-rose-50 text-rose-600"
             }`}
           >
             {trend.direction === "up" ? (
-              <IconTrendUp size={12} />
+              <TrendingUp size={12} strokeWidth={2.5} />
             ) : (
-              <IconTrendDown size={12} />
+              <TrendingDown size={12} strokeWidth={2.5} />
             )}
             {trend.value}
+          </div>
+          <span className="text-[10px] font-medium text-gray-400">
+            vs bulan lalu
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

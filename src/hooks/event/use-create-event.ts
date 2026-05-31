@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createEvent } from "@/services/event";
 import type { CreateEventPayload } from "@/services/event";
-import { eventKeys } from "./keys";
+import { eventKeys } from "@/constants/query-key";
 
 export function useCreateEvent() {
   const queryClient = useQueryClient();

@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateAddOn } from "@/services/pricing";
 import type { UpdateAddOnPayload } from "@/services/pricing";
-import { pricingKeys } from "./keys";
+import { pricingKeys } from "@/constants/query-key";
 
-export function useUpdateAddOn() {
+export const useUpdateAddOn = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -18,4 +18,4 @@ export function useUpdateAddOn() {
       queryClient.invalidateQueries({ queryKey: pricingKeys.all });
     },
   });
-}
+};

@@ -14,6 +14,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
+  onPress?: (event: React.MouseEvent<HTMLButtonElement>) => void; // Alias for onClick
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -43,6 +44,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className = "",
       disabled,
       children,
+      onPress,
       ...props
     },
     ref,
@@ -52,6 +54,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={`inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+        onClick={onPress}
         {...props}
       >
         {isLoading && (

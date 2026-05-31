@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Button, Input, SkeletonCard } from "@/components/ui";
-import { IconSearch } from "@/components/icons";
-import PricingControls from "./pricing-controls";
-import PackageGridCard from "./package-grid-card";
-import PackageListItem from "./package-list-item";
+import { Search } from "lucide-react";
+import { PricingControls } from "./pricing-controls";
+import { PackageGridCard } from "./package-grid-card";
+import { PackageListItem } from "./package-list-item";
 import type { Package } from "./types";
 
 interface SelectOption {
@@ -33,11 +33,9 @@ interface Props {
   onEdit: (pkg: Package) => void;
   onDelete: (id: string) => void;
   deletingPkgId: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dict: Record<string, any>;
 }
 
-export default function PackageSection({
+export const PackageSection = ({
   packages,
   isLoading,
   query,
@@ -57,8 +55,7 @@ export default function PackageSection({
   onEdit,
   onDelete,
   deletingPkgId,
-  dict,
-}: Props) {
+}: Props) => {
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
@@ -74,13 +71,13 @@ export default function PackageSection({
       {/* Filters + Search + View Toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
         <div className="relative flex-1 min-w-48">
-          <IconSearch
+          <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
           />
           <Input
             type="text"
-            placeholder="Search packages..."
+            placeholder="Cari paket..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9 w-full"
@@ -121,7 +118,6 @@ export default function PackageSection({
               onEdit={onEdit}
               onDelete={onDelete}
               isDeleting={deletingPkgId === pkg.id}
-              dict={dict}
             />
           ))}
         </div>
@@ -139,7 +135,6 @@ export default function PackageSection({
               onEdit={onEdit}
               onDelete={onDelete}
               isDeleting={deletingPkgId === pkg.id}
-              dict={dict}
             />
           ))}
         </div>
@@ -178,4 +173,4 @@ export default function PackageSection({
       )}
     </section>
   );
-}
+};

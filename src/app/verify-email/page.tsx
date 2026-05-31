@@ -1,91 +1,69 @@
-import Link from "next/link";
-import { cookies } from "next/headers";
+"use client";
+
+import { useState, useEffect, use } from "react";
 import {
-  findValidVerificationToken,
-  deleteVerificationToken,
-} from "@/repositories/auth";
-import { findUserByEmail, verifyUserEmail } from "@/repositories/user";
-import { createAuditLog } from "@/repositories/audit";
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
+import Link from "next/link";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { defaultLocale, type Locale, locales } from "@/i18n/config";
+import { Button } from "@/components/ui";
 
-export const metadata = {
-  title: "Verify Email — Kraftalis",
-  description: "Verify your email address",
-};
-
-interface VerifyEmailPageProps {
-  searchParams: Promise<{ token?: string }>;
-}
-
-export default async function VerifyEmailPage({
+export default function VerifyEmailPage({
   searchParams,
-}: VerifyEmailPageProps) {
-  const { token } = await searchParams;
+}: {
+  searchParams: Promise<{ token: string }>;
+}) {
+  const { token } = use(searchParams);
+  const dict = use(getDictionary("id"));
+  const [status, setStatus] = useState<
+    "loading" | "success" | "expired" | "invalid"
+  >("loading");
 
-  // Load dictionary for server component
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("NEXT_LOCALE")?.value;
-  const locale: Locale = locales.includes(localeCookie as Locale)
-    ? (localeCookie as Locale)
-    : defaultLocale;
-  const dict = await getDictionary(locale);
-
-  let status: "success" | "expired" | "invalid" = "invalid";
-
-  if (token) {
-    const record = await findValidVerificationToken(token);
-
-    if (record) {
-      const user = await findUserByEmail(record.email);
-
-      if (user) {
-        // Mark user email as verified and activate account
-        await verifyUserEmail(user.id);
-
-        // Clean up the token
-        await deleteVerificationToken(token);
-
-        // Audit log
-        await createAuditLog({
-          userId: user.id,
-          action: "REGISTER",
-          metadata: { event: "email_verified" },
+  useEffect(() => {
+    async function verify() {
+      try {
+        const res = await fetch("/api/auth/verify-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
         });
 
-        status = "success";
+        if (res.ok) {
+          setStatus("success");
+        } else if (res.status === 410) {
+          setStatus("expired");
+        } else {
+          setStatus("invalid");
+        }
+      } catch (error) {
+        console.error(error);
+        setStatus("invalid");
       }
-    } else {
-      // Token was expired (already cleaned up by findValidVerificationToken)
-      status = "expired";
     }
-  }
+
+    if (token) {
+      verify();
+    } else {
+      setStatus("invalid");
+    }
+  }, [token]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md text-center">
-        {/* Logo */}
-        <h1 className="mb-8 text-3xl font-bold tracking-tight text-slate-900">
-          {dict.common.appName}
+        <h1 className="mb-8 text-3xl font-extrabold tracking-tight text-slate-900">
+          KRAFTALIS
         </h1>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           {status === "success" && (
             <>
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-                <svg
-                  className="h-7 w-7 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <CheckCircle2 className="h-7 w-7 text-green-600" />
               </div>
               <h2 className="mb-2 text-xl font-bold text-slate-900">
                 {dict.verifyEmail.emailVerified}
@@ -93,31 +71,19 @@ export default async function VerifyEmailPage({
               <p className="mb-6 text-sm text-slate-500">
                 {dict.verifyEmail.emailVerifiedDesc}
               </p>
-              <Link
-                href="/login"
-                className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                {dict.verifyEmail.signInToAccount}
-              </Link>
+              <Button asChild className="w-full">
+                <Link href="/login">
+                  {dict.verifyEmail.signInToAccount}
+                  <ArrowRight size={16} className="ml-2" />
+                </Link>
+              </Button>
             </>
           )}
 
           {status === "expired" && (
             <>
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
-                <svg
-                  className="h-7 w-7 text-amber-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                  />
-                </svg>
+                <AlertCircle className="h-7 w-7 text-amber-600" />
               </div>
               <h2 className="mb-2 text-xl font-bold text-slate-900">
                 {dict.verifyEmail.linkExpired}
@@ -125,53 +91,43 @@ export default async function VerifyEmailPage({
               <p className="mb-6 text-sm text-slate-500">
                 {dict.verifyEmail.linkExpiredDesc}
               </p>
-              <Link
-                href="/signup"
-                className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                {dict.verifyEmail.signUpAgain}
-              </Link>
+              <Button asChild className="w-full">
+                <Link href="/signup">
+                  {dict.verifyEmail.signUpAgain}
+                </Link>
+              </Button>
             </>
           )}
 
           {status === "invalid" && (
             <>
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-                <svg
-                  className="h-7 w-7 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <XCircle className="h-7 w-7 text-red-600" />
               </div>
               <h2 className="mb-2 text-xl font-bold text-slate-900">
-                {dict.verifyEmail.invalidLink}
+                {dict.verifyEmail.invalidToken}
               </h2>
               <p className="mb-6 text-sm text-slate-500">
-                {dict.verifyEmail.invalidLinkDesc}
+                {dict.verifyEmail.invalidTokenDesc}
               </p>
-              <Link
-                href="/signup"
-                className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                {dict.verifyEmail.signUpAgain}
-              </Link>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/login">
+                  {dict.verifyEmail.backToLogin}
+                </Link>
+              </Button>
             </>
           )}
-        </div>
 
-        {/* Footer */}
-        <p className="mt-6 text-center text-xs text-slate-400">
-          {dict.common.copyright}
-        </p>
+          {status === "loading" && (
+            <div className="flex flex-col items-center py-4">
+              <Loader2 className="mb-4 h-10 w-10 animate-spin text-blue-600" />
+              <p className="text-sm font-medium text-slate-600">
+                {dict.verifyEmail.verifying}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

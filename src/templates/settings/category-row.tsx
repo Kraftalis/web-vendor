@@ -7,7 +7,7 @@ interface Props {
   cat: Category;
 }
 
-export default function CategoryRow({ cat }: Props) {
+export const CategoryRow = ({ cat }: Props) => {
   return (
     <Card>
       <CardBody className="p-0">
@@ -25,4 +25,4 @@ export default function CategoryRow({ cat }: Props) {
       </CardBody>
     </Card>
   );
-}
+};

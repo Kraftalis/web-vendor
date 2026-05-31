@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import dayjs from "dayjs";
 import { useScheduleStore } from "@/stores/schedule-store";
-import { IconChevronLeft, IconChevronRight } from "@/components/icons";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ScheduleEvent } from "./types";
 
 interface MiniCalendarProps {
@@ -59,7 +59,7 @@ export function MiniCalendar({ events }: MiniCalendarProps) {
             }
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <IconChevronLeft size={16} className="text-gray-500" />
+            <ChevronLeft size={16} className="text-gray-500" />
           </button>
           <button
             onClick={() =>
@@ -67,7 +67,7 @@ export function MiniCalendar({ events }: MiniCalendarProps) {
             }
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <IconChevronRight size={16} className="text-gray-500" />
+            <ChevronRight size={16} className="text-gray-500" />
           </button>
         </div>
       </div>

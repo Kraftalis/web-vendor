@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardBody, Badge, Button } from "@/components/ui";
-import { IconEdit, IconCheck, IconChevronDown } from "@/components/icons";
+import { Check, Edit2, ChevronDown } from "lucide-react";
 import type { Package } from "./types";
 import { formatCurrency, getDisplayPrice } from "./helpers";
 
@@ -12,20 +12,16 @@ interface Props {
   onEdit: (pkg: Package) => void;
   onDelete: (id: string) => void;
   isDeleting: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dict: Record<string, any>;
 }
 
-export default function PackageListItem({
+export const PackageListItem = ({
   pkg,
   isExpanded,
   onToggle,
   onEdit,
   onDelete,
   isDeleting,
-  dict,
-}: Props) {
-  const pricing = dict.pricing;
+}: Props) => {
   const display = getDisplayPrice(pkg);
 
   return (
@@ -49,7 +45,7 @@ export default function PackageListItem({
               variant={pkg.isActive ? "success" : "default"}
               className="shrink-0"
             >
-              {pkg.isActive ? pricing.active : pricing.archived}
+              {pkg.isActive ? "Aktif" : "Arsip"}
             </Badge>
             <button
               type="button"
@@ -59,7 +55,7 @@ export default function PackageListItem({
                 isExpanded ? "-rotate-180" : ""
               }`}
             >
-              <IconChevronDown size={16} />
+              <ChevronDown size={16} />
             </button>
           </div>
         </div>
@@ -70,7 +66,7 @@ export default function PackageListItem({
             {pkg.items.length > 0 && (
               <div className="space-y-1.5">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  {pricing.variationsTitle}
+                  Variasi
                 </p>
                 <ul className="space-y-1">
                   {pkg.items.map((v) => (
@@ -79,10 +75,7 @@ export default function PackageListItem({
                       className="flex items-center justify-between gap-2 rounded-md bg-gray-50 px-2.5 py-1.5"
                     >
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <IconCheck
-                          size={12}
-                          className="shrink-0 text-green-500"
-                        />
+                        <Check size={12} className="shrink-0 text-green-500" />
                         <div className="min-w-0">
                           <p className="text-xs font-medium text-gray-700 truncate">
                             {v.label}
@@ -106,12 +99,12 @@ export default function PackageListItem({
             {pkg.inclusions && pkg.inclusions.length > 0 && (
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  {pricing.inclusionsTitle || "Includes"}
+                  Paket Termasuk
                 </p>
                 <ul className="mt-1 space-y-1">
                   {pkg.inclusions.map((inc, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <IconCheck
+                      <Check
                         size={14}
                         className="text-green-500 shrink-0 mt-0.5"
                       />
@@ -127,18 +120,18 @@ export default function PackageListItem({
         {/* Actions */}
         <div className="flex gap-2 pt-1">
           <Button variant="outline" size="sm" onClick={() => onEdit(pkg)}>
-            <IconEdit size={14} />
-            <span className="ml-1">{dict.common.edit}</span>
+            <Edit2 size={14} />
+            <span className="ml-1">Ubah</span>
           </Button>
           <Button
             variant={isDeleting ? "danger" : "outline"}
             size="sm"
             onClick={() => onDelete(pkg.id)}
           >
-            {isDeleting ? pricing.confirmDelete : dict.common.delete}
+            {isDeleting ? "Yakin hapus?" : "Hapus"}
           </Button>
         </div>
       </CardBody>
     </Card>
   );
-}
+};

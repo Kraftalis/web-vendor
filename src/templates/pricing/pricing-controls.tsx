@@ -27,7 +27,7 @@ interface Props {
  * Inline filter selects + view toggle for the pricing page.
  * Renders as a flat row — the parent owns the flex container.
  */
-export default function PricingControls({
+export const PricingControls = ({
   sortBy,
   setSortBy,
   sortDir,
@@ -39,7 +39,7 @@ export default function PricingControls({
   categoryOptions,
   viewMode,
   setViewMode,
-}: Props) {
+}: Props) => {
   return (
     <>
       <Select
@@ -104,4 +104,4 @@ export default function PricingControls({
       </div>
     </>
   );
-}
+};

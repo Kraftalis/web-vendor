@@ -7,25 +7,19 @@ import type { EventCategory } from "@/services/event-category/types";
 interface Props {
   categories: EventCategory[];
   isLoading: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dict: Record<string, any>;
 }
 
-export default function EventCategoryList({
-  categories,
-  isLoading,
-  dict,
-}: Props) {
-  const s = dict.settings;
-
+export const EventCategoryList = ({ categories, isLoading }: Props) => {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            {s.eventCategoriesTitle}
+            Kategori Acara
           </h2>
-          <p className="text-sm text-gray-500">{s.eventCategoriesSubtitle}</p>
+          <p className="text-sm text-gray-500">
+            Kelola kategori acara yang Anda tawarkan
+          </p>
         </div>
       </div>
 
@@ -50,10 +44,10 @@ export default function EventCategoryList({
           <CardBody className="py-12 text-center">
             <IconCalendar size={40} className="mx-auto mb-3 text-gray-300" />
             <p className="text-sm font-medium text-gray-500">
-              {s.noEventCategories}
+              Belum ada kategori acara
             </p>
             <p className="mt-1 text-xs text-gray-400">
-              {s.noEventCategoriesDesc}
+              Buat kategori acara untuk menyesuaikan penawaran Anda
             </p>
           </CardBody>
         </Card>
@@ -85,4 +79,4 @@ export default function EventCategoryList({
       )}
     </section>
   );
-}
+};

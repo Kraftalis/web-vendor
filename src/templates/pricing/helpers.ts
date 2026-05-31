@@ -1,6 +1,6 @@
 import type { Package } from "./types";
 
-export function formatCurrency(amount: string | number, currency = "IDR") {
+export const formatCurrency = (amount: string | number, currency = "IDR") => {
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
   if (isNaN(num)) return "-";
   return new Intl.NumberFormat("id-ID", {
@@ -9,12 +9,14 @@ export function formatCurrency(amount: string | number, currency = "IDR") {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(num);
-}
+};
 
-export function getDisplayPrice(pkg: Package): {
+export const getDisplayPrice = (
+  pkg: Package,
+): {
   label: string;
   isRange: boolean;
-} {
+} => {
   if (pkg.items.length === 0) {
     return {
       label: formatCurrency(pkg.price, pkg.currency),
@@ -37,4 +39,4 @@ export function getDisplayPrice(pkg: Package): {
     label: `${formatCurrency(min, pkg.currency)} – ${formatCurrency(max, pkg.currency)}`,
     isRange: true,
   };
-}
+};

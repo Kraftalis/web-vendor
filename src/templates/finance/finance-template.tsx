@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { AppLayout } from "@/components/layout";
-import { IconPricing, IconWallet, IconChartBar } from "@/components/icons";
-import { useDictionary } from "@/i18n";
-import PricingTab from "./pricing-tab";
-import TransactionsTab from "./transactions-tab";
-import ReportsTab from "./reports-tab";
+import { PackageOpen, Wallet, BarChart3 } from "lucide-react";
+import { PricingTab } from "./packages";
+import { TransactionsTab } from "./transactions";
+import { ReportsTab } from "./reports";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -22,27 +21,24 @@ interface FinanceTemplateProps {
 
 // ─── Component ──────────────────────────────────────────────
 
-export default function FinanceTemplate({ user }: FinanceTemplateProps) {
-  const { dict } = useDictionary();
-  const f = dict.finance;
-
+export const FinanceTemplate = ({ user }: FinanceTemplateProps) => {
   const [activeTab, setActiveTab] = useState<TabKey>("packages");
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     {
       key: "packages",
-      label: f.tabPackages,
-      icon: <IconPricing size={16} />,
+      label: "Paket & Add-on",
+      icon: <PackageOpen size={16} />,
     },
     {
       key: "transactions",
-      label: f.tabTransactions,
-      icon: <IconWallet size={16} />,
+      label: "Transaksi",
+      icon: <Wallet size={16} />,
     },
     {
       key: "reports",
-      label: f.tabReports,
-      icon: <IconChartBar size={16} />,
+      label: "Laporan",
+      icon: <BarChart3 size={16} />,
     },
   ];
 
@@ -52,9 +48,11 @@ export default function FinanceTemplate({ user }: FinanceTemplateProps) {
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            {f.title}
+            Keuangan
           </h1>
-          <p className="mt-1 text-sm text-gray-500">{f.subtitle}</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Kelola paket, transaksi, dan laporan keuangan bisnis Anda
+          </p>
         </div>
 
         {/* Tab bar */}
@@ -85,4 +83,4 @@ export default function FinanceTemplate({ user }: FinanceTemplateProps) {
       </div>
     </AppLayout>
   );
-}
+};

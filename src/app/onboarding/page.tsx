@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import OnboardingTemplate from "@/templates/onboarding/onboarding-template";
+import { OnboardingTemplate } from "@/templates/onboarding";
 import { redirect } from "next/navigation";
 import { isOnboardingCompleted } from "@/repositories/user/onboarding-check";
 

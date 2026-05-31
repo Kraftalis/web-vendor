@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import SettingsTemplate from "@/templates/settings/settings-template";
+import { SettingsTemplate } from "@/templates/settings";
 
 export default async function SettingsPage() {
   const session = await auth();

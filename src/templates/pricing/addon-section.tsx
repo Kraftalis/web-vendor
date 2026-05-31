@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  Card,
-  CardBody,
-  Badge,
-  Button,
-  Skeleton,
-  SkeletonTableRow,
-} from "@/components/ui";
-import { IconPlus, IconEdit, IconPricing } from "@/components/icons";
+import { Card, CardBody, Badge, Button, Skeleton } from "@/components/ui";
+import { Plus, Edit2, PackageOpen, Tag, Trash2 } from "lucide-react";
 import type { AddOn } from "./types";
 import { formatCurrency } from "./helpers";
 
@@ -19,147 +12,157 @@ interface Props {
   onEdit: (addon: AddOn) => void;
   onDelete: (id: string) => void;
   deletingAddonId: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dict: Record<string, any>;
 }
 
-export default function AddOnSection({
+export const AddOnSection = ({
   addOns,
   isLoading,
   onAdd,
   onEdit,
   onDelete,
   deletingAddonId,
-  dict,
-}: Props) {
-  const pricing = dict.pricing;
-
+}: Props) => {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {pricing.addOnsTitle}
-        </h2>
-        <Button variant="primary" size="sm" onClick={onAdd}>
-          <IconPlus size={16} />
-          <span className="ml-1">{pricing.addAddOn}</span>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Add-on (Ekstra)
+          </h2>
+          <p className="text-sm text-gray-500">
+            Layanan tambahan di luar paket utama
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={onAdd}
+          className="hidden sm:inline-flex rounded-full"
+        >
+          <Plus size={16} />
+          <span className="ml-1">Tambah Add-on</span>
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={onAdd}
+          className="sm:hidden rounded-full px-2"
+        >
+          <Plus size={16} />
         </Button>
       </div>
 
       {/* Loading skeleton */}
       {isLoading && (
-        <Card>
-          <CardBody className="-mx-1 overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-gray-500">
-                  <th className="px-3 py-2">
-                    <Skeleton className="h-4 w-16" />
-                  </th>
-                  <th className="px-3 py-2">
-                    <Skeleton className="h-4 w-24" />
-                  </th>
-                  <th className="px-3 py-2">
-                    <Skeleton className="h-4 w-16" />
-                  </th>
-                  <th className="px-3 py-2">
-                    <Skeleton className="h-4 w-14" />
-                  </th>
-                  <th className="px-3 py-2">
-                    <Skeleton className="h-4 w-20" />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <SkeletonTableRow key={i} cols={5} />
-                ))}
-              </tbody>
-            </table>
-          </CardBody>
-        </Card>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardBody className="p-4 space-y-3">
+                <div className="flex justify-between">
+                  <Skeleton className="h-5 w-1/2" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-1/3" />
+              </CardBody>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Empty state */}
       {!isLoading && addOns.length === 0 && (
-        <Card>
-          <CardBody className="py-12 text-center">
-            <IconPricing size={40} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-sm font-medium text-gray-500">
-              {pricing.noAddOns}
+        <Card className="border-dashed shadow-none bg-gray-50/50">
+          <CardBody className="py-12 text-center flex flex-col items-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100/50 text-blue-600 mb-4">
+              <PackageOpen size={24} />
+            </div>
+            <p className="text-sm font-medium text-gray-900">
+              Belum ada add-on
             </p>
-            <p className="mt-1 text-xs text-gray-400">{pricing.noAddOnsDesc}</p>
+            <p className="mt-1 text-xs text-gray-500 max-w-sm mb-4">
+              Buat add-on untuk menawarkan layanan ekstra (seperti dekorasi atau
+              lensa khusus) kepada klien Anda.
+            </p>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onAdd}
+              className="rounded-full"
+            >
+              <Plus size={16} /> Tambah Add-on Pertama
+            </Button>
           </CardBody>
         </Card>
       )}
 
-      {/* Table */}
+      {/* Grid view (Mobile & Desktop) */}
       {!isLoading && addOns.length > 0 && (
-        <Card>
-          <CardBody className="-mx-1 overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-gray-500">
-                  <th className="px-3 py-2 font-medium">{pricing.colName}</th>
-                  <th className="px-3 py-2 font-medium">
-                    {pricing.colDescription}
-                  </th>
-                  <th className="px-3 py-2 font-medium">{pricing.colPrice}</th>
-                  <th className="px-3 py-2 font-medium">{pricing.colStatus}</th>
-                  <th className="px-3 py-2 font-medium">
-                    {pricing.colActions}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {addOns.map((addon) => (
-                  <tr
-                    key={addon.id}
-                    className="border-b border-gray-100 last:border-0"
-                  >
-                    <td className="px-3 py-2 font-medium text-gray-900">
-                      {addon.name}
-                    </td>
-                    <td className="px-3 py-2 text-gray-500">
-                      {addon.description || "-"}
-                    </td>
-                    <td className="px-3 py-2 text-gray-900">
-                      {formatCurrency(addon.price, addon.currency)}
-                    </td>
-                    <td className="px-3 py-2">
-                      <Badge variant={addon.isActive ? "success" : "default"}>
-                        {addon.isActive ? pricing.active : pricing.archived}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEdit(addon)}
-                        >
-                          <IconEdit size={14} />
-                        </Button>
-                        <Button
-                          variant={
-                            deletingAddonId === addon.id ? "danger" : "outline"
-                          }
-                          size="sm"
-                          onClick={() => onDelete(addon.id)}
-                        >
-                          {deletingAddonId === addon.id
-                            ? pricing.confirmDelete
-                            : dict.common.delete}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardBody>
-        </Card>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {addOns.map((addon) => (
+            <Card
+              key={addon.id}
+              className="group relative overflow-hidden transition-all hover:shadow-md border-gray-200/80"
+            >
+              <CardBody className="p-5 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={addon.isActive ? "success" : "default"}
+                      size="sm"
+                      className="font-medium"
+                    >
+                      {addon.isActive ? "Aktif" : "Tidak Aktif"}
+                    </Badge>
+                  </div>
+                  <div className="flex opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(addon)}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(addon.id)}
+                      disabled={deletingAddonId === addon.id}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <h3
+                  className="text-base font-bold text-gray-900 line-clamp-1 mb-1"
+                  title={addon.name}
+                >
+                  {addon.name}
+                </h3>
+
+                <p
+                  className="text-sm text-gray-500 line-clamp-2 mb-4 flex-grow"
+                  title={addon.description || ""}
+                >
+                  {addon.description || (
+                    <span className="italic text-gray-400">
+                      Tanpa deskripsi
+                    </span>
+                  )}
+                </p>
+
+                <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-blue-700 font-semibold">
+                    <Tag size={16} className="text-blue-500" />
+                    {formatCurrency(addon.price, addon.currency)}
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
       )}
     </section>
   );
-}
+};

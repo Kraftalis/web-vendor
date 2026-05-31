@@ -1,28 +1,24 @@
 "use client";
 
 import { Card, CardBody, Button, Skeleton } from "@/components/ui";
-import { IconSettings } from "@/components/icons";
-import CategoryRow from "./category-row";
+import { Settings } from "lucide-react";
+import { CategoryRow } from "./category-row";
 import type { Category } from "@/services/pricing";
 
 interface Props {
   categories: Category[];
   isLoading: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dict: Record<string, any>;
 }
 
-export default function CategoryList({ categories, isLoading, dict }: Props) {
-  const s = dict.settings;
-
+export const CategoryList = ({ categories, isLoading }: Props) => {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            {s.categoriesTitle}
+            Kategori Layanan
           </h2>
-          <p className="text-sm text-gray-500">{s.categoriesSubtitle}</p>
+          <p className="text-sm text-gray-500">Kelola kategori layanan Anda</p>
         </div>
       </div>
 
@@ -45,11 +41,13 @@ export default function CategoryList({ categories, isLoading, dict }: Props) {
       ) : categories.length === 0 ? (
         <Card>
           <CardBody className="py-12 text-center">
-            <IconSettings size={40} className="mx-auto mb-3 text-gray-300" />
+            <Settings size={40} className="mx-auto mb-3 text-gray-300" />
             <p className="text-sm font-medium text-gray-500">
-              {s.noCategories}
+              Belum ada kategori
             </p>
-            <p className="mt-1 text-xs text-gray-400">{s.noCategoriesDesc}</p>
+            <p className="mt-1 text-xs text-gray-400">
+              Buat kategori layanan untuk mengorganisir paket Anda
+            </p>
           </CardBody>
         </Card>
       ) : (
@@ -61,4 +59,4 @@ export default function CategoryList({ categories, isLoading, dict }: Props) {
       )}
     </section>
   );
-}
+};

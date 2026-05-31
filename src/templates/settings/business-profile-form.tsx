@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { Button, Input, Skeleton } from "@/components/ui";
 import {
@@ -14,11 +13,7 @@ import {
   IconWhatsApp,
   IconCheck,
 } from "@/components/icons";
-import { useDictionary } from "@/i18n";
-import { useBusinessProfile, useUpsertBusinessProfile } from "@/hooks/user";
-import type { UpsertBusinessProfilePayload } from "@/hooks/user";
-
-// ─── Social link config ─────────────────────────────────────
+import { useBusinessProfileForm } from "./use-business-profile-form";
 
 const socialConfig = [
   {
@@ -53,129 +48,29 @@ const socialConfig = [
   },
 ];
 
-// ─── Component ──────────────────────────────────────────────
+export const BusinessProfileForm = () => {
+  const {
+    isLoading,
+    businessName,
+    setBusinessName,
+    tagline,
+    setTagline,
+    logoPreview,
+    email,
+    setEmail,
+    phoneNumber,
+    setPhoneNumber,
+    socialLinks,
+    uploading,
+    error,
+    success,
+    isPending,
+    handleLogoChange,
+    handleSocialChange,
+    handleSubmit,
+  } = useBusinessProfileForm();
 
-export default function BusinessProfileForm() {
-  const { dict } = useDictionary();
-  const o = dict.onboarding;
-  const s = dict.settings;
-
-  const profileQuery = useBusinessProfile();
-  const upsert = useUpsertBusinessProfile();
-
-  // Form state
-  const [businessName, setBusinessName] = useState("");
-  const [tagline, setTagline] = useState("");
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({
-    instagram: "",
-    tiktok: "",
-    facebook: "",
-    linkedin: "",
-    whatsapp: "",
-  });
-
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-
-  // Pre-fill form with existing data
-  useEffect(() => {
-    const p = profileQuery.data;
-    if (!p) return;
-    setBusinessName(p.businessName ?? "");
-    setTagline(p.tagline ?? "");
-    setLogoUrl(p.logoUrl ?? null);
-    setLogoPreview(p.logoUrl ?? null);
-    setEmail(p.email ?? "");
-    setPhoneNumber(p.phoneNumber ?? "");
-    setSocialLinks({
-      instagram: "",
-      tiktok: "",
-      facebook: "",
-      linkedin: "",
-      whatsapp: "",
-      ...(p.socialLinks ?? {}),
-    });
-  }, [profileQuery.data]);
-
-  // ─── Photo upload ─────────────────────────────────────
-  const handleLogoChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onloadend = () => setLogoPreview(reader.result as string);
-      reader.readAsDataURL(file);
-
-      setUploading(true);
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("folder", "logos");
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error ?? "Upload failed");
-
-        setLogoUrl(json.data.publicUrl);
-      } catch (err) {
-        console.error("[Settings] Logo upload error:", err);
-      } finally {
-        setUploading(false);
-      }
-    },
-    [],
-  );
-
-  // ─── Social link change ───────────────────────────────
-  const handleSocialChange = (key: string, value: string) => {
-    setSocialLinks((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // ─── Submit ───────────────────────────────────────────
-  const handleSubmit = async () => {
-    setError(null);
-    setSuccess(false);
-
-    if (!businessName.trim()) {
-      setError(o.businessNameRequired);
-      return;
-    }
-
-    const filteredSocials: Record<string, string> = {};
-    for (const [key, val] of Object.entries(socialLinks)) {
-      if (val.trim()) filteredSocials[key] = val.trim();
-    }
-
-    const payload: UpsertBusinessProfilePayload = {
-      businessName: businessName.trim(),
-      tagline: tagline.trim() || null,
-      logoUrl,
-      email: email.trim() || null,
-      phoneNumber: phoneNumber.trim() || null,
-      socialLinks:
-        Object.keys(filteredSocials).length > 0 ? filteredSocials : null,
-    };
-
-    try {
-      await upsert.mutateAsync(payload);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch {
-      setError(o.saveError);
-    }
-  };
-
-  // ─── Loading skeleton ─────────────────────────────────
-  if (profileQuery.isLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex justify-center">
@@ -223,30 +118,32 @@ export default function BusinessProfileForm() {
           className="hidden"
           onChange={handleLogoChange}
         />
-        <p className="mt-2 text-xs text-(--text-tertiary)">{o.uploadLogo}</p>
+        <p className="mt-2 text-xs text-(--text-tertiary)">
+          Unggah logo bisnis Anda
+        </p>
       </div>
 
       {/* Business Name */}
       <div>
         <label className="mb-1.5 block text-sm font-medium text-foreground">
-          {o.businessNameLabel} <span className="text-red-500">*</span>
+          Nama Bisnis <span className="text-red-500">*</span>
         </label>
         <Input
           value={businessName}
           onChange={(e) => setBusinessName(e.target.value)}
-          placeholder={o.businessNamePlaceholder}
+          placeholder="Nama bisnis Anda"
         />
       </div>
 
       {/* Tagline */}
       <div>
         <label className="mb-1.5 block text-sm font-medium text-foreground">
-          {o.taglineLabel}
+          Tagline
         </label>
         <Input
           value={tagline}
           onChange={(e) => setTagline(e.target.value)}
-          placeholder={o.taglinePlaceholder}
+          placeholder="Deskripsi singkat bisnis Anda"
         />
       </div>
 
@@ -255,33 +152,31 @@ export default function BusinessProfileForm() {
         <div>
           <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
             <IconMail size={14} className="text-(--text-tertiary)" />
-            {o.emailLabel}
+            Email
           </label>
           <Input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={o.emailPlaceholder}
+            placeholder="email@bisnis.com"
           />
         </div>
         <div>
           <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
             <IconPhone size={14} className="text-(--text-tertiary)" />
-            {o.phoneLabel}
+            Nomor Telepon
           </label>
           <Input
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder={o.phonePlaceholder}
+            placeholder="+62812..."
           />
         </div>
       </div>
 
       {/* Social Links */}
       <div>
-        <p className="mb-3 text-sm font-medium text-foreground">
-          {o.socialLinksLabel}
-        </p>
+        <p className="mb-3 text-sm font-medium text-foreground">Media Sosial</p>
         <div className="space-y-3">
           {socialConfig.map(({ key, icon: Icon, placeholder }) => (
             <div key={key} className="flex items-center gap-3">
@@ -308,7 +203,7 @@ export default function BusinessProfileForm() {
       {success && (
         <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
           <IconCheck size={16} className="text-green-600" />
-          {s.profileUpdated}
+          Profil bisnis berhasil diperbarui
         </div>
       )}
 
@@ -316,20 +211,20 @@ export default function BusinessProfileForm() {
       <Button
         variant="primary"
         onClick={handleSubmit}
-        disabled={upsert.isPending || uploading}
+        disabled={isPending || uploading}
       >
         {upsert.isPending ? (
           <span className="flex items-center gap-2">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            {o.saving}
+            Menyimpan...
           </span>
         ) : (
           <span className="flex items-center gap-2">
             <IconCheck size={16} />
-            {s.saveProfile}
+            Simpan Profil
           </span>
         )}
       </Button>
     </div>
   );
-}
+};

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui";
-import { IconEye, IconClock, IconMapPin, IconPhone } from "@/components/icons";
+import { Eye, Clock, MapPin, Phone } from "lucide-react";
 import type { EventItem } from "./types";
 import {
   paymentStatusVariant,
@@ -17,8 +17,6 @@ interface KanbanBoardProps {
   events: EventItem[];
   eventStatusLabel: Record<string, string>;
   paymentStatusLabel: Record<string, string>;
-  noEventsLabel: string;
-  viewLabel: string;
   formatDate: (dateStr: string) => string;
 }
 
@@ -26,8 +24,6 @@ export function KanbanBoard({
   events,
   eventStatusLabel,
   paymentStatusLabel,
-  noEventsLabel,
-  viewLabel,
   formatDate,
 }: KanbanBoardProps) {
   const columns = EVENT_STATUSES.map((status) => ({
@@ -47,8 +43,6 @@ export function KanbanBoard({
           count={col.events.length}
           events={col.events}
           paymentStatusLabel={paymentStatusLabel}
-          noEventsLabel={noEventsLabel}
-          viewLabel={viewLabel}
           formatDate={formatDate}
         />
       ))}
@@ -64,8 +58,6 @@ interface KanbanColumnProps {
   count: number;
   events: EventItem[];
   paymentStatusLabel: Record<string, string>;
-  noEventsLabel: string;
-  viewLabel: string;
   formatDate: (dateStr: string) => string;
 }
 
@@ -75,8 +67,6 @@ function KanbanColumn({
   count,
   events,
   paymentStatusLabel,
-  noEventsLabel,
-  viewLabel,
   formatDate,
 }: KanbanColumnProps) {
   return (
@@ -97,7 +87,7 @@ function KanbanColumn({
       >
         {events.length === 0 ? (
           <div className="py-8 text-center">
-            <p className="text-xs text-slate-400">{noEventsLabel}</p>
+            <p className="text-xs text-slate-400">Tidak ada acara</p>
           </div>
         ) : (
           events.map((event) => (
@@ -105,7 +95,6 @@ function KanbanColumn({
               key={event.id}
               event={event}
               paymentStatusLabel={paymentStatusLabel}
-              viewLabel={viewLabel}
               formatDate={formatDate}
             />
           ))
@@ -120,14 +109,12 @@ function KanbanColumn({
 interface KanbanCardProps {
   event: EventItem;
   paymentStatusLabel: Record<string, string>;
-  viewLabel: string;
   formatDate: (dateStr: string) => string;
 }
 
 function KanbanCard({
   event,
   paymentStatusLabel,
-  viewLabel,
   formatDate,
 }: KanbanCardProps) {
   return (
@@ -155,7 +142,7 @@ function KanbanCard({
       {/* Date & time */}
       <div className="mb-2 space-y-1">
         <p className="flex items-center gap-1.5 text-xs text-slate-500">
-          <IconClock size={12} className="shrink-0" />
+          <Clock size={12} className="shrink-0" />
           {event.schedules?.[0]
             ? formatDate(event.schedules[0].date)
             : "No date"}
@@ -164,12 +151,12 @@ function KanbanCard({
         </p>
         {event.eventLocation && (
           <p className="flex items-center gap-1.5 text-xs text-slate-500">
-            <IconMapPin size={12} className="shrink-0" />
+            <MapPin size={12} className="shrink-0" />
             <span className="truncate">{event.eventLocation}</span>
           </p>
         )}
         <p className="flex items-center gap-1.5 text-xs text-slate-400">
-          <IconPhone size={12} className="shrink-0" />
+          <Phone size={12} className="shrink-0" />
           {event.clientPhone}
         </p>
       </div>
@@ -187,8 +174,8 @@ function KanbanCard({
           {paymentStatusLabel[event.paymentStatus] ?? event.paymentStatus}
         </Badge>
         <span className="flex items-center gap-1 text-xs font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
-          <IconEye size={12} />
-          {viewLabel}
+          <Eye size={12} />
+          Lihat
         </span>
       </div>
     </Link>

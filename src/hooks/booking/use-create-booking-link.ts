@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createBookingLink } from "@/services/booking";
-import { bookingKeys } from "./keys";
+import { bookingKeys } from "@/constants/query-key";
 import { useToast } from "@/components/ui/toast";
 
 export function useCreateBookingLink() {

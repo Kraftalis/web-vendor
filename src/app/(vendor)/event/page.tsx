@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import EventListTemplate from "@/templates/event/event-list-template";
+import { EventListTemplate } from "@/templates/event";
 
 export default async function EventPage() {
   const session = await auth();

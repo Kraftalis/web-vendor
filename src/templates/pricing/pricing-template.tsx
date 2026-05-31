@@ -2,13 +2,12 @@
 
 import { AppLayout } from "@/components/layout";
 import { Button } from "@/components/ui";
-import { IconPlus } from "@/components/icons";
-import { useDictionary } from "@/i18n";
+import { Plus } from "lucide-react";
 import { usePricingState } from "./use-pricing-state";
-import PackageSection from "./package-section";
-import AddOnSection from "./addon-section";
-import PackageModal from "./package-modal";
-import AddOnModal from "./addon-modal";
+import { PackageSection } from "./package-section";
+import { AddOnSection } from "./addon-section";
+import { PackageModal } from "./package-modal";
+import { AddOnModal } from "./addon-modal";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -22,9 +21,7 @@ interface PricingTemplateProps {
 
 // ─── Component ──────────────────────────────────────────────
 
-export default function PricingTemplate({ user }: PricingTemplateProps) {
-  const { dict } = useDictionary();
-  const pricing = dict.pricing;
+export const PricingTemplate = ({ user }: PricingTemplateProps) => {
   const s = usePricingState();
 
   return (
@@ -34,15 +31,15 @@ export default function PricingTemplate({ user }: PricingTemplateProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              {pricing.packagesTitle}
+              Paket Layanan
             </h1>
             <p className="mt-1 text-sm text-gray-500">
-              Manage your packages and add-ons
+              Kelola paket dan add-on Anda
             </p>
           </div>
           <Button size="md" onClick={s.openAddPkg}>
-            <IconPlus size={16} />
-            {pricing.addPackage}
+            <Plus size={16} />
+            Tambah Paket
           </Button>
         </div>
 
@@ -67,7 +64,6 @@ export default function PricingTemplate({ user }: PricingTemplateProps) {
           onEdit={s.openEditPkg}
           onDelete={s.pkgDelete.handleDelete}
           deletingPkgId={s.pkgDelete.pendingId}
-          dict={dict}
         />
 
         {/* Add-ons */}
@@ -78,33 +74,32 @@ export default function PricingTemplate({ user }: PricingTemplateProps) {
           onEdit={s.openEditAddon}
           onDelete={s.addonDelete.handleDelete}
           deletingAddonId={s.addonDelete.pendingId}
-          dict={dict}
         />
       </div>
 
       {/* Package Modal */}
       <PackageModal
         key={s.editingPkg?.id ?? "new"}
-        open={s.pkgModalOpen}
+        isOpen={s.pkgModalOpen}
+        onOpenChange={s.handlePkgOpenChange}
+        mode={s.pkgMode}
         editingPkg={s.editingPkg}
         categories={s.categories}
         eventCategories={s.eventCategories}
-        onClose={s.closePkgModal}
         onSave={s.handleSavePackage}
         isSaving={s.isSavingPkg}
-        dict={dict}
       />
 
       {/* Add-on Modal */}
       <AddOnModal
         key={s.editingAddon?.id ?? "new-addon"}
-        open={s.addonModalOpen}
+        isOpen={s.addonModalOpen}
+        onOpenChange={s.handleAddonOpenChange}
+        mode={s.addonMode}
         editingAddon={s.editingAddon}
-        onClose={s.closeAddonModal}
         onSave={s.handleSaveAddOn}
         isSaving={s.isSavingAddon}
-        dict={dict}
       />
     </AppLayout>
   );
-}
+};

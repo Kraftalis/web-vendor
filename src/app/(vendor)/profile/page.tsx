@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { findUserById } from "@/repositories/user";
 import { redirect } from "next/navigation";
-import ProfileTemplate from "@/templates/profile/profile-template";
+import { ProfileTemplate } from "@/templates/profile";
 
 export default async function ProfilePage() {
   const session = await auth();

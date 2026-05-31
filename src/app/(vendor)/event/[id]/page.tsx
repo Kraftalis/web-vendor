@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import EventDetailTemplate from "@/templates/event/event-detail-template";
+import { EventDetailTemplate } from "@/templates/event-detail";
 
 interface EventDetailPageProps {
   params: Promise<{ id: string }>;

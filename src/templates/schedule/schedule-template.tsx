@@ -2,19 +2,12 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { AppLayout } from "@/components/layout";
-import {
-  IconCalendar,
-  IconChevronLeft,
-  IconChevronRight,
-  IconPlus,
-} from "@/components/icons";
-import { useDictionary } from "@/i18n";
+import { Calendar, ChevronLeft, ChevronRight, Plus, List } from "lucide-react";
 import { useEvents } from "@/hooks/event";
 import type { ScheduleEvent, ScheduleTemplateProps, ViewMode } from "./types";
 import { AgendaView } from "./agenda-view";
 import { BookingLinkModal } from "@/templates/event/event-modals";
 import "dayjs/locale/id";
-import { dayjsLocalizer, Views } from "react-big-calendar";
 import dayjs from "dayjs";
 import "./calendar.css";
 import { useScheduleStore } from "@/stores/schedule-store";
@@ -25,19 +18,15 @@ import { MainCalendar } from "./main-calendar";
 export type { ScheduleEvent, ScheduleTemplateProps };
 
 export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
-  const { dict } = useDictionary();
-  const sched = dict.schedule;
-  const eventDict = dict.event;
+  const { currentDate, viewMode, setViewMode, navigate } = useScheduleStore();
 
   const eventStatusMap: Record<string, string> = {
-    INQUIRY: eventDict.statusInquiry,
-    WAITING_CONFIRMATION: eventDict.statusWaitingConfirmation,
-    BOOKED: eventDict.statusBooked,
-    ONGOING: eventDict.statusOngoing,
-    COMPLETED: eventDict.statusCompleted,
+    INQUIRY: "Pertanyaan",
+    WAITING_CONFIRMATION: "Menunggu Konfirmasi",
+    BOOKED: "Terkonfirmasi",
+    ONGOING: "Sedang Berlangsung",
+    COMPLETED: "Selesai",
   };
-
-  const { currentDate, viewMode, setViewMode, navigate } = useScheduleStore();
 
   // Fetch events client-side
   const { data: rawEvents = [] } = useEvents();
@@ -79,9 +68,9 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   }, [currentDate]);
 
   const paymentStatusMap: Record<string, string> = {
-    UNPAID: eventDict.paymentUnpaid,
-    DP_PAID: eventDict.paymentDpPaid,
-    PAID: eventDict.paymentPaid,
+    UNPAID: "Belum Terbayar",
+    DP_PAID: "DP Terbayar",
+    PAID: "Terbayar",
   };
 
   const paymentStatusVariant = {
@@ -129,13 +118,13 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
       const diff = Math.round(
         (d.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24),
       );
-      if (diff === 0) return sched.today;
-      if (diff === 1) return sched.tomorrow;
-      if (diff === -1) return sched.yesterday;
-      if (diff > 0) return `${diff} ${sched.daysAway}`;
-      return `${Math.abs(diff)} ${sched.daysAgo}`;
+      if (diff === 0) return "Hari ini";
+      if (diff === 1) return "Besok";
+      if (diff === -1) return "Kemarin";
+      if (diff > 0) return `${diff} hari lagi`;
+      return `${Math.abs(diff)} hari lalu`;
     },
-    [now, sched],
+    [now],
   );
 
   const legendItems = useMemo(() => {
@@ -164,7 +153,7 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
   }, [events]);
 
   return (
-    <AppLayout title={sched.title} user={user} fullWidth>
+    <AppLayout title="Jadwal" user={user} fullWidth>
       <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-white relative">
         {/* Left Sidebar - Hidden on mobile, shown as sidebar on desktop */}
         <aside className="hidden lg:flex w-72 border-r border-gray-100 flex-col h-full bg-white transition-all shrink-0">
@@ -174,9 +163,9 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
               className="w-full bg-blue-600 text-white px-4 py-2 h-11 rounded-lg text-sm font-bold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
             >
               <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110">
-                <IconPlus />
+                <Plus size={18} />
               </div>
-              {dict.bookingLink.configTitle}
+              Buat Tautan Booking
             </button>
           </div>
           <div className="flex-1 overflow-y-auto overflow-x-hidden mini-calendar-section scrollbar-hide">
@@ -189,9 +178,9 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
         <button
           onClick={() => setShowLinkModal(true)}
           className="fixed bottom-22 right-6 z-50 flex h-14 w-14 lg:hidden items-center justify-center rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 active:scale-95 transition-all"
-          aria-label={dict.bookingLink.configTitle}
+          aria-label="Buat Tautan Booking"
         >
-          <IconPlus size={24} />
+          <Plus size={24} />
         </button>
 
         {/* Main Content (Big Calendar) */}
@@ -206,28 +195,24 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
                   onClick={() => navigate("PREV")}
                   className="p-1.5 text-gray-500 hover:bg-white hover:text-blue-600 hover:shadow-sm rounded-lg transition-all"
                 >
-                  <IconChevronLeft size={18} />
+                  <ChevronLeft size={18} />
                 </button>
                 <button
                   onClick={() => navigate("TODAY")}
                   className="px-3 py-1 text-sm font-bold text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition-all"
                 >
-                  {sched.today}
+                  Hari ini
                 </button>
                 <button
                   onClick={() => navigate("NEXT")}
                   className="p-1.5 text-gray-500 hover:bg-white hover:text-blue-600 hover:shadow-sm rounded-lg transition-all"
                 >
-                  <IconChevronRight size={18} />
+                  <ChevronRight size={18} />
                 </button>
               </div>
             </div>
 
-            <ViewToggle
-              viewMode={viewMode}
-              onChangeView={setViewMode}
-              labels={sched}
-            />
+            <ViewToggle viewMode={viewMode} onChangeView={setViewMode} />
           </div>
 
           <div className="flex-1 min-w-0 relative">
@@ -276,15 +261,7 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
                   paymentStatusMap={paymentStatusMap}
                   onSelectEvent={(item) => setSelectedEventId(item.event.id)}
                   paymentStatusVariant={paymentStatusVariant}
-                  viewLabel={eventDict.view}
-                  bookingDict={dict.booking}
                   relativeDayLabel={relativeDayLabel}
-                  labels={{
-                    upcoming: sched.upcoming,
-                    past: sched.past,
-                    noUpcoming: sched.noUpcoming,
-                    noUpcomingDesc: sched.noUpcomingDesc,
-                  }}
                 />
               </div>
             )}
@@ -293,10 +270,11 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
       </div>
 
       <BookingLinkModal
-        open={showLinkModal}
-        onClose={() => setShowLinkModal(false)}
+        isOpen={showLinkModal}
+        onOpenChange={(open) => {
+          if (!open) setShowLinkModal(false);
+        }}
         defaultEventDate={selectedDateISO}
-        labels={dict.bookingLink}
       />
 
       {/* Optional: Event Details Modal/Sheet */}
@@ -315,31 +293,25 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex flex-col gap-1">
-                  <span className="text-gray-500">
-                    {eventDict.colEventType}:
-                  </span>
+                  <span className="text-gray-500">Jenis Acara:</span>
                   <span className="font-bold text-gray-900">
                     {selectedEvent.eventType || "-"}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-gray-500">{eventDict.colPackage}:</span>
+                  <span className="text-gray-500">Paket:</span>
                   <span className="font-bold text-gray-900">
                     {selectedEvent.packageName || "-"}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-gray-500">
-                    {dict.booking.eventLocation}:
-                  </span>
+                  <span className="text-gray-500">Lokasi Acara:</span>
                   <span className="font-bold text-gray-900 line-clamp-2">
                     {selectedEvent.eventLocation || "-"}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-gray-500">
-                    {eventDict.colEventStatus}:
-                  </span>
+                  <span className="text-gray-500">Status Acara:</span>
                   <div className="inline-flex mt-0.5 font-bold text-gray-900">
                     {eventStatusMap[selectedEvent.eventStatus] ||
                       selectedEvent.eventStatus}
@@ -351,7 +323,7 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
               onClick={() => setSelectedEventId(null)}
               className="mt-6 w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg font-medium transition-colors"
             >
-              Close
+              Tutup
             </button>
           </div>
         </div>
@@ -363,11 +335,9 @@ export default function ScheduleTemplate({ user }: ScheduleTemplateProps) {
 function ViewToggle({
   viewMode,
   onChangeView,
-  labels,
 }: {
   viewMode: ViewMode;
   onChangeView: (mode: ViewMode) => void;
-  labels: { calendarView: string; listView: string };
 }) {
   return (
     <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
@@ -380,8 +350,8 @@ function ViewToggle({
         }`}
       >
         <span className="flex items-center gap-1.5">
-          <IconCalendar size={14} />
-          {labels.calendarView}
+          <Calendar size={14} />
+          Kalender
         </span>
       </button>
       <button
@@ -393,19 +363,8 @@ function ViewToggle({
         }`}
       >
         <span className="flex items-center gap-1.5">
-          <svg
-            width={14}
-            height={14}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.007v.008H3.75V6.75zm0 5.25h.007v.008H3.75V12zm0 5.25h.007v.008H3.75v-.008z" />
-          </svg>
-          {labels.listView}
+          <List size={14} />
+          Daftar
         </span>
       </button>
     </div>

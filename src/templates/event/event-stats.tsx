@@ -1,27 +1,15 @@
 "use client";
 
 import { Card, CardBody } from "@/components/ui";
-import {
-  IconCalendar,
-  IconClock,
-  IconCheck,
-  IconDollar,
-} from "@/components/icons";
+import { Calendar, Clock, CheckCircle2, DollarSign } from "lucide-react";
 import type { EventItem } from "./types";
 import { formatCurrency } from "./types";
 
 interface EventStatsProps {
   events: EventItem[];
-  labels: {
-    totalEvents: string;
-    upcoming: string;
-    booked: string;
-    revenue: string;
-    thisMonth: string;
-  };
 }
 
-export function EventStats({ events, labels }: EventStatsProps) {
+export const EventStats = ({ events }: EventStatsProps) => {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
@@ -50,30 +38,30 @@ export function EventStats({ events, labels }: EventStatsProps) {
 
   const stats = [
     {
-      label: labels.totalEvents,
+      label: "Total Acara",
       value: events.length.toString(),
-      icon: IconCalendar,
+      icon: Calendar,
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
     {
-      label: labels.upcoming,
+      label: "Mendatang",
       value: upcomingCount.toString(),
-      icon: IconClock,
+      icon: Clock,
       color: "text-amber-600",
       bg: "bg-amber-50",
     },
     {
-      label: labels.booked,
+      label: "Terkonfirmasi",
       value: confirmedCount.toString(),
-      icon: IconCheck,
+      icon: CheckCircle2,
       color: "text-green-600",
       bg: "bg-green-50",
     },
     {
-      label: labels.revenue,
+      label: "Pendapatan",
       value: formatCurrency(totalRevenue.toString(), currency),
-      icon: IconDollar,
+      icon: DollarSign,
       color: "text-violet-600",
       bg: "bg-violet-50",
     },
@@ -100,4 +88,4 @@ export function EventStats({ events, labels }: EventStatsProps) {
       ))}
     </div>
   );
-}
+};

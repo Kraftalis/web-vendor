@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import SignUpForm from "@/templates/signup/signup-form";
+import { SignupTemplate } from "@/templates/signup";
 
 export const metadata = {
   title: "Sign Up — Kraftalis",
@@ -14,5 +14,5 @@ export default async function SignUpPage() {
     redirect("/");
   }
 
-  return <SignUpForm />;
+  return <SignupTemplate />;
 }

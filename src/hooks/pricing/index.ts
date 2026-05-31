@@ -1,4 +1,4 @@
-export { pricingKeys } from "./keys";
+export { pricingKeys } from "@/constants/query-key";
 export { usePricing } from "./use-pricing";
 export { useAddOns } from "./use-addons";
 export { useCategories } from "./use-categories";

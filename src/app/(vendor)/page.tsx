@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import HomeTemplate from "@/templates/home/home-template";
+import { HomeTemplate } from "@/templates/home";
 
 export default async function VendorDashboardPage() {
   const session = await auth();

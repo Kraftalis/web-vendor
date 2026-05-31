@@ -3,17 +3,16 @@
 import { useState, useMemo } from "react";
 import { Card, CardHeader, CardBody, Badge } from "@/components/ui";
 import {
-  IconLink,
-  IconUser,
-  IconCalendar,
-  IconMapPin,
-  IconClock,
-  IconEdit,
-  IconTrash,
-  IconCopy,
-  IconWhatsApp,
-  IconEye,
-} from "@/components/icons";
+  Link as LinkIcon,
+  User,
+  Calendar,
+  MapPin,
+  Clock,
+  Edit3,
+  Trash2,
+  Copy,
+  Eye,
+} from "lucide-react";
 import type { BookingLinkItem, PackageSnapshot } from "@/services/booking";
 import { useDeleteBookingLink } from "@/hooks/booking";
 import { useConfirmDelete } from "@/hooks";
@@ -21,34 +20,12 @@ import { getBookingUrl } from "@/lib/booking-url";
 
 // ─── Types ──────────────────────────────────────────────────
 
+import { IconWhatsApp } from "@/components/icons";
+
 interface ActiveOfferingsSectionProps {
   links: BookingLinkItem[];
   isLoading: boolean;
   onEdit: (link: BookingLinkItem) => void;
-  labels: {
-    title: string;
-    subtitle: string;
-    noOfferings: string;
-    noOfferingsDesc: string;
-    expiresIn: string;
-    expired: string;
-    days: string;
-    hours: string;
-    minutes: string;
-    copyLink: string;
-    copied: string;
-    editOffer: string;
-    deleteOffer: string;
-    shareWhatsApp: string;
-    viewLink: string;
-    packageLabel: string;
-    addOnsLabel: string;
-    totalLabel: string;
-    confirmDeleteTitle: string;
-    confirmDeleteDesc: string;
-    deleteLabel: string;
-    cancelLabel: string;
-  };
 }
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -74,14 +51,11 @@ function getTimeRemaining(expiresAt: string) {
   return { expired: false, days, hours, minutes };
 }
 
-function formatTimeRemaining(
-  tr: ReturnType<typeof getTimeRemaining>,
-  labels: { days: string; hours: string; minutes: string },
-) {
+function formatTimeRemaining(tr: ReturnType<typeof getTimeRemaining>) {
   if (tr.expired) return "";
-  if (tr.days > 0) return `${tr.days} ${labels.days}`;
-  if (tr.hours > 0) return `${tr.hours} ${labels.hours}`;
-  return `${tr.minutes} ${labels.minutes}`;
+  if (tr.days > 0) return `${tr.days} hari`;
+  if (tr.hours > 0) return `${tr.hours} jam`;
+  return `${tr.minutes} menit`;
 }
 
 // ─── Component ──────────────────────────────────────────────
@@ -90,7 +64,6 @@ export function ActiveOfferingsSection({
   links,
   isLoading,
   onEdit,
-  labels,
 }: ActiveOfferingsSectionProps) {
   // Filter to only active (no event, not expired)
   const activeLinks = useMemo(() => {
@@ -120,40 +93,35 @@ export function ActiveOfferingsSection({
         <CardHeader>
           <div>
             <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-              <IconLink size={16} className="text-blue-500" />
-              {labels.title}
+              <LinkIcon size={16} className="text-blue-500" />
+              Penawaran Aktif
               {activeLinks.length > 0 && (
                 <Badge variant="primary">{activeLinks.length}</Badge>
               )}
             </h2>
-            <p className="mt-0.5 text-xs text-gray-500">{labels.subtitle}</p>
+            <p className="mt-0.5 text-xs text-gray-500">
+              Tautan booking Anda yang sedang aktif
+            </p>
           </div>
         </CardHeader>
         <CardBody className="p-0">
           {activeLinks.length === 0 && expiredLinks.length === 0 ? (
             <div className="py-8 text-center">
-              <IconLink size={32} className="mx-auto mb-2 text-gray-200" />
+              <LinkIcon size={32} className="mx-auto mb-2 text-gray-200" />
               <p className="text-sm font-medium text-gray-500">
-                {labels.noOfferings}
+                Belum ada tautan booking
               </p>
-              <p className="text-xs text-gray-400">{labels.noOfferingsDesc}</p>
+              <p className="text-xs text-gray-400">
+                Buat tautan booking untuk mulai menerima pesanan
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
               {activeLinks.map((link) => (
-                <OfferingCard
-                  key={link.id}
-                  link={link}
-                  onEdit={onEdit}
-                  labels={labels}
-                />
+                <OfferingCard key={link.id} link={link} onEdit={onEdit} />
               ))}
               {expiredLinks.map((link) => (
-                <ExpiredOfferingCard
-                  key={link.id}
-                  link={link}
-                  labels={labels}
-                />
+                <ExpiredOfferingCard key={link.id} link={link} />
               ))}
             </div>
           )}
@@ -168,11 +136,9 @@ export function ActiveOfferingsSection({
 function OfferingCard({
   link,
   onEdit,
-  labels,
 }: {
   link: BookingLinkItem;
   onEdit: (link: BookingLinkItem) => void;
-  labels: ActiveOfferingsSectionProps["labels"];
 }) {
   const [copied, setCopied] = useState(false);
   const deleteMutation = useDeleteBookingLink();
@@ -181,7 +147,7 @@ function OfferingCard({
   });
 
   const timeRemaining = getTimeRemaining(link.expiresAt);
-  const timeStr = formatTimeRemaining(timeRemaining, labels);
+  const timeStr = formatTimeRemaining(timeRemaining);
 
   const bookingUrl = getBookingUrl(link.token);
 
@@ -213,7 +179,7 @@ function OfferingCard({
         <div className="flex flex-wrap items-center gap-2">
           {link.clientName ? (
             <span className="flex items-center gap-1 text-sm font-semibold text-gray-900">
-              <IconUser size={14} className="text-gray-400" />
+              <User size={14} className="text-gray-400" />
               {link.clientName}
             </span>
           ) : (
@@ -228,7 +194,7 @@ function OfferingCard({
                   : "danger"
             }
           >
-            {labels.expiresIn} {timeStr}
+            Kadaluarsa dalam {timeStr}
           </Badge>
         </div>
 
@@ -236,7 +202,7 @@ function OfferingCard({
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
           {link.eventDate && (
             <span className="flex items-center gap-1">
-              <IconCalendar size={12} />
+              <Calendar size={12} />
               {new Date(link.eventDate).toLocaleDateString("id-ID", {
                 day: "numeric",
                 month: "short",
@@ -246,13 +212,13 @@ function OfferingCard({
           )}
           {link.eventTime && (
             <span className="flex items-center gap-1">
-              <IconClock size={12} />
+              <Clock size={12} />
               {link.eventTime}
             </span>
           )}
           {link.eventLocation && (
             <span className="flex items-center gap-1">
-              <IconMapPin size={12} />
+              <MapPin size={12} />
               <span className="max-w-50 truncate">{link.eventLocation}</span>
             </span>
           )}
@@ -262,18 +228,16 @@ function OfferingCard({
         <div className="flex flex-wrap items-center gap-3 text-xs">
           {pkg && (
             <span className="rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-700">
-              {labels.packageLabel}: {pkg.name}
+              Paket: {pkg.name}
               {pkg.variationLabel && ` (${pkg.variationLabel})`}
             </span>
           )}
           {addOns.length > 0 && (
-            <span className="text-gray-400">
-              +{addOns.length} {labels.addOnsLabel.toLowerCase()}
-            </span>
+            <span className="text-gray-400">+{addOns.length} add-on</span>
           )}
           {link.totalAmount && (
             <span className="font-semibold text-gray-700">
-              {labels.totalLabel}: {formatCurrency(link.totalAmount)}
+              Total: {formatCurrency(link.totalAmount)}
             </span>
           )}
         </div>
@@ -284,20 +248,20 @@ function OfferingCard({
         <button
           onClick={handleCopy}
           className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          title={labels.copyLink}
+          title="Salin Tautan"
         >
           {copied ? (
             <span className="text-xs font-medium text-green-600">
-              {labels.copied}
+              Sudah Disalin
             </span>
           ) : (
-            <IconCopy size={16} />
+            <Copy size={16} />
           )}
         </button>
         <button
           onClick={handleShare}
           className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-green-50 hover:text-green-600"
-          title={labels.shareWhatsApp}
+          title="Bagikan di WhatsApp"
         >
           <IconWhatsApp size={16} />
         </button>
@@ -306,16 +270,16 @@ function OfferingCard({
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
-          title={labels.viewLink}
+          title="Lihat"
         >
-          <IconEye size={16} />
+          <Eye size={16} />
         </a>
         <button
           onClick={() => onEdit(link)}
           className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
-          title={labels.editOffer}
+          title="Edit"
         >
-          <IconEdit size={16} />
+          <Edit3 size={16} />
         </button>
         <button
           onClick={() => handleDelete(link.id)}
@@ -324,11 +288,9 @@ function OfferingCard({
               ? "bg-red-100 text-red-600"
               : "text-gray-400 hover:bg-red-50 hover:text-red-600"
           }`}
-          title={
-            isDeletePending ? labels.confirmDeleteTitle : labels.deleteOffer
-          }
+          title={isDeletePending ? "Hapus Tautan Booking?" : "Hapus"}
         >
-          <IconTrash size={16} />
+          <Trash2 size={16} />
         </button>
       </div>
     </div>
@@ -337,13 +299,7 @@ function OfferingCard({
 
 // ─── Expired Offering Card ──────────────────────────────────
 
-function ExpiredOfferingCard({
-  link,
-  labels,
-}: {
-  link: BookingLinkItem;
-  labels: ActiveOfferingsSectionProps["labels"];
-}) {
+function ExpiredOfferingCard({ link }: { link: BookingLinkItem }) {
   const deleteMutation = useDeleteBookingLink();
   const { pendingId, handleDelete } = useConfirmDelete((id) => {
     deleteMutation.mutate(id);
@@ -359,7 +315,7 @@ function ExpiredOfferingCard({
           <span className="text-sm text-gray-500">
             {link.clientName || "—"}
           </span>
-          <Badge variant="danger">{labels.expired}</Badge>
+          <Badge variant="danger">Kadaluarsa</Badge>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-400">
           {pkg && <span>{pkg.name}</span>}
@@ -373,9 +329,9 @@ function ExpiredOfferingCard({
             ? "bg-red-100 text-red-600"
             : "text-gray-400 hover:bg-red-50 hover:text-red-600"
         }`}
-        title={isDeletePending ? labels.confirmDeleteTitle : labels.deleteOffer}
+        title={isDeletePending ? "Hapus Tautan Booking?" : "Hapus"}
       >
-        <IconTrash size={16} />
+        <Trash2 size={16} />
       </button>
     </div>
   );

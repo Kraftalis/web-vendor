@@ -24,16 +24,8 @@ interface AgendaViewProps {
   eventStatusMap: Record<string, string>;
   paymentStatusMap: Record<string, string>;
   paymentStatusVariant: Record<string, BadgeVariant>;
-  viewLabel: string;
-  bookingDict: Record<string, string>;
   relativeDayLabel: (dateStr: string) => string;
   onSelectEvent?: (item: AgendaItem) => void;
-  labels: {
-    upcoming: string;
-    past: string;
-    noUpcoming: string;
-    noUpcomingDesc: string;
-  };
 }
 
 export function AgendaView({
@@ -42,10 +34,8 @@ export function AgendaView({
   eventStatusMap,
   paymentStatusMap,
   paymentStatusVariant,
-  viewLabel,
-  bookingDict,
   relativeDayLabel,
-  labels,
+  onSelectEvent,
 }: AgendaViewProps) {
   return (
     <div className="space-y-8">
@@ -53,7 +43,7 @@ export function AgendaView({
       <section>
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
           <span className="h-2 w-2 rounded-full bg-blue-500" />
-          {labels.upcoming}
+          Acara Mendatang
           <span className="text-sm font-normal text-gray-400">
             ({upcomingEvents.length})
           </span>
@@ -64,10 +54,10 @@ export function AgendaView({
             <CardBody className="py-12 text-center">
               <IconCalendar size={40} className="mx-auto mb-3 text-gray-300" />
               <p className="text-sm font-medium text-gray-500">
-                {labels.noUpcoming}
+                Tidak ada acara mendatang
               </p>
               <p className="mt-1 text-xs text-gray-400">
-                {labels.noUpcomingDesc}
+                Semua acara Anda ditampilkan di kalender
               </p>
             </CardBody>
           </Card>
@@ -81,8 +71,6 @@ export function AgendaView({
                 eventStatusMap={eventStatusMap}
                 paymentStatusMap={paymentStatusMap}
                 paymentStatusVariant={paymentStatusVariant}
-                viewLabel={viewLabel}
-                bookingDict={bookingDict}
               />
             ))}
           </div>
@@ -94,7 +82,7 @@ export function AgendaView({
         <section>
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
             <span className="h-2 w-2 rounded-full bg-gray-400" />
-            {labels.past}
+            Acara Sebelumnya
             <span className="text-sm font-normal text-gray-400">
               ({pastEvents.length})
             </span>
@@ -108,8 +96,6 @@ export function AgendaView({
                 eventStatusMap={eventStatusMap}
                 paymentStatusMap={paymentStatusMap}
                 paymentStatusVariant={paymentStatusVariant}
-                viewLabel={viewLabel}
-                bookingDict={bookingDict}
               />
             ))}
           </div>
@@ -127,8 +113,6 @@ interface AgendaRowProps {
   eventStatusMap: Record<string, string>;
   paymentStatusMap: Record<string, string>;
   paymentStatusVariant: Record<string, BadgeVariant>;
-  viewLabel: string;
-  bookingDict: Record<string, string>;
 }
 
 function AgendaRow({
@@ -137,16 +121,12 @@ function AgendaRow({
   eventStatusMap,
   paymentStatusMap,
   paymentStatusVariant,
-  viewLabel,
-  bookingDict,
 }: AgendaRowProps) {
   const { event } = item;
   const date = new Date(item.date);
 
-  // Event type label from booking dict or event category name
-  const typeKey = `type${event.eventType}` as keyof typeof bookingDict;
-  const typeLabel =
-    event.eventCategoryName ?? bookingDict[typeKey] ?? event.eventType;
+  // Event type label from event category name
+  const typeLabel = event.eventCategoryName ?? event.eventType;
 
   const displayTitle = item.label
     ? `${event.clientName} (${item.label})`
@@ -202,7 +182,7 @@ function AgendaRow({
             <Link href={`/event/${event.id}`} className="shrink-0">
               <Button variant="outline" size="sm">
                 <IconEye size={14} />
-                <span className="ml-1 hidden sm:inline">{viewLabel}</span>
+                <span className="ml-1 hidden sm:inline">Lihat</span>
               </Button>
             </Link>
           </div>

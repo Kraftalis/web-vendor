@@ -5,13 +5,7 @@ import {
   deleteBriefApi,
 } from "@/services/event/briefs";
 import type { CreateBriefPayload } from "@/services/event/briefs";
-import { eventKeys } from "./keys";
-
-// ─── Query keys ─────────────────────────────────────────────
-
-export const briefKeys = {
-  list: (eventId: string) => [...eventKeys.detail(eventId), "briefs"] as const,
-};
+import { briefKeys } from "@/constants/query-key";
 
 // ─── Hooks ──────────────────────────────────────────────────
 

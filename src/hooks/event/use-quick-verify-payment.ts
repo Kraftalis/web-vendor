@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-client";
 import type { ApiResponse } from "@/lib/api/types";
-import { eventKeys } from "./keys";
+import { eventKeys } from "@/constants/query-key";
 
 /**
  * Verify/reject a payment from any context (e.g. the event list page).

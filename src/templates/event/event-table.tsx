@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { Card, CardBody, Badge, Button } from "@/components/ui";
 import {
-  IconEvent,
-  IconEye,
-  IconClock,
-  IconMapPin,
-  IconPhone,
-  IconCheck,
-  IconDollar,
-  IconImage,
-} from "@/components/icons";
+  Calendar,
+  Eye,
+  Clock,
+  MapPin,
+  Phone,
+  CheckCircle2,
+  DollarSign,
+  Image as ImageIcon,
+} from "lucide-react";
 import type { EventItem } from "./types";
 import {
   eventStatusVariant,
@@ -26,32 +26,10 @@ interface EventTableProps {
   paymentStatusLabel: Record<string, string>;
   viewLabel: string;
   formatDate: (dateStr: string) => string;
-  columns: {
-    colEventDate: string;
-    colClientName: string;
-    colEventType: string;
-    colPackage: string;
-    colPaymentStatus: string;
-    colEventStatus: string;
-    colActions: string;
-    colAmount: string;
-  };
-  emptyLabels: {
-    noEvents: string;
-    noEventsDesc: string;
-    noMatchingEvents: string;
-    noMatchingEventsDesc: string;
-  };
   /** Quick-verify handler for pending client payments */
   onQuickVerify?: (eventId: string, paymentId: string) => void;
   /** Whether the quick-verify mutation is loading */
   isVerifying?: boolean;
-  /** Labels for the quick verify action */
-  quickVerifyLabels?: {
-    verifyPayment: string;
-    pendingPayment: string;
-    viewReceipt: string;
-  };
 }
 
 export function EventTable({
@@ -60,10 +38,8 @@ export function EventTable({
   eventStatusLabel,
   paymentStatusLabel,
   viewLabel,
-  emptyLabels,
   onQuickVerify,
   isVerifying,
-  quickVerifyLabels,
 }: EventTableProps) {
   if (events.length === 0) {
     return (
@@ -71,17 +47,17 @@ export function EventTable({
         <CardBody>
           <div className="flex flex-col items-center py-16">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
-              <IconEvent size={32} className="text-slate-400" />
+              <Calendar size={32} className="text-slate-400" />
             </div>
             <p className="text-sm font-medium text-slate-600">
               {allEventsCount === 0
-                ? emptyLabels.noEvents
-                : emptyLabels.noMatchingEvents}
+                ? "Tidak ada acara yang sesuai"
+                : "Tidak ada acara yang sesuai"}
             </p>
             <p className="mt-1 text-xs text-slate-400">
               {allEventsCount === 0
-                ? emptyLabels.noEventsDesc
-                : emptyLabels.noMatchingEventsDesc}
+                ? "Buat tautan booking untuk mulai menerima acara"
+                : "Cobalah ubah filter pencarian Anda"}
             </p>
           </div>
         </CardBody>
@@ -100,7 +76,6 @@ export function EventTable({
           viewLabel={viewLabel}
           onQuickVerify={onQuickVerify}
           isVerifying={isVerifying}
-          quickVerifyLabels={quickVerifyLabels}
         />
       ))}
     </div>
@@ -116,11 +91,6 @@ interface EventCardProps {
   viewLabel: string;
   onQuickVerify?: (eventId: string, paymentId: string) => void;
   isVerifying?: boolean;
-  quickVerifyLabels?: {
-    verifyPayment: string;
-    pendingPayment: string;
-    viewReceipt: string;
-  };
 }
 
 function EventCard({
@@ -130,7 +100,6 @@ function EventCard({
   viewLabel,
   onQuickVerify,
   isVerifying,
-  quickVerifyLabels,
 }: EventCardProps) {
   const firstSchedule = event.schedules?.[0];
   const eventDate = firstSchedule ? new Date(firstSchedule.date) : null;
@@ -182,7 +151,7 @@ function EventCard({
               {/* Row 2: event type + package */}
               <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
                 <span className="inline-flex items-center gap-1">
-                  <IconEvent size={12} className="text-slate-400" />
+                  <Calendar size={12} className="text-slate-400" />
                   {event.eventCategoryName ?? event.eventType}
                 </span>
                 {event.packageName && (
@@ -196,20 +165,20 @@ function EventCard({
               <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
                 {firstSchedule?.startTime && (
                   <div className="flex items-center gap-1">
-                    <IconClock size={12} className="shrink-0" />
+                    <Clock size={12} className="shrink-0" />
                     <span>{firstSchedule.startTime}</span>
                   </div>
                 )}
                 {event.eventLocation && (
                   <span className="inline-flex items-center gap-1 truncate">
-                    <IconMapPin size={12} />
+                    <MapPin size={12} />
                     <span className="truncate max-w-50">
                       {event.eventLocation}
                     </span>
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1">
-                  <IconPhone size={12} />
+                  <Phone size={12} />
                   {event.clientPhone}
                 </span>
               </div>
@@ -227,22 +196,22 @@ function EventCard({
               href={`/event/${event.id}`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50 hover:border-blue-200"
             >
-              <IconEye size={14} />
+              <Eye size={14} />
               {viewLabel}
             </Link>
           </div>
         </div>
 
         {/* Quick-verify banner for pending client payment */}
-        {event.latestPendingPayment && quickVerifyLabels && (
+        {event.latestPendingPayment && (
           <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
             <div className="flex items-center gap-2 min-w-0">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                <IconDollar size={14} className="text-amber-600" />
+                <DollarSign size={14} className="text-amber-600" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-amber-800">
-                  {quickVerifyLabels.pendingPayment}
+                  Menunggu Pembayaran
                 </p>
                 <p className="text-xs text-amber-600">
                   {formatCurrency(
@@ -264,8 +233,8 @@ function EventCard({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
                 >
-                  <IconImage size={12} />
-                  {quickVerifyLabels.viewReceipt}
+                  <ImageIcon size={12} />
+                  Lihat Bukti
                 </a>
               )}
               <Button
@@ -277,8 +246,8 @@ function EventCard({
                 }
                 className="px-2.5! py-1! text-xs! rounded-md!"
               >
-                <IconCheck size={12} />
-                {quickVerifyLabels.verifyPayment}
+                <CheckCircle2 size={12} />
+                Verifikasi Pembayaran
               </Button>
             </div>
           </div>

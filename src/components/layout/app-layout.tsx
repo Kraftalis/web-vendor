@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  IconCalendar,
-  IconEvent,
-  IconHome,
-  IconPricing,
-  IconSettings,
-  KraftalisLogo,
-} from "@/components/icons";
+  Home,
+  Calendar,
+  Briefcase,
+  BadgeDollarSign,
+  Settings,
+} from "lucide-react";
+import { KraftalisLogo } from "@/components/icons";
 import {
   LanguageSwitcher,
   NotificationDropdown,
@@ -19,8 +19,8 @@ import { usePathname } from "next/navigation";
 import { type ReactNode } from "react";
 
 /**
- * AppLayout — Google Workspace-inspired authenticated app shell.
- * Clean top navigation bar (desktop) + bottom tab bar (mobile PWA).
+ * AppLayout — Modern SaaS app shell.
+ * Clean top navigation bar (desktop) + bottom tab bar (mobile).
  */
 
 interface AppLayoutProps {
@@ -40,15 +40,15 @@ interface AppLayoutProps {
 interface NavItem {
   labelKey: "home" | "schedule" | "event" | "pricingPackage" | "settings";
   href: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: any;
 }
 
 const navItems: NavItem[] = [
-  { labelKey: "home", href: "/", icon: IconHome },
-  { labelKey: "schedule", href: "/schedule", icon: IconCalendar },
-  { labelKey: "event", href: "/event", icon: IconEvent },
-  { labelKey: "pricingPackage", href: "/finance", icon: IconPricing },
-  { labelKey: "settings", href: "/settings", icon: IconSettings },
+  { labelKey: "home", href: "/", icon: Home },
+  { labelKey: "schedule", href: "/schedule", icon: Calendar },
+  { labelKey: "event", href: "/event", icon: Briefcase },
+  { labelKey: "pricingPackage", href: "/finance", icon: BadgeDollarSign },
+  { labelKey: "settings", href: "/settings", icon: Settings },
 ];
 
 export default function AppLayout({

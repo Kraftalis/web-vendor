@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteEvent } from "@/services/event";
-import { eventKeys } from "./keys";
+import { eventKeys } from "@/constants/query-key";
 
 export function useDeleteEvent() {
   const queryClient = useQueryClient();

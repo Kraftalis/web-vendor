@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getBookingLinks } from "@/services/booking";
-import { bookingKeys } from "./keys";
+import { bookingKeys } from "@/constants/query-key";
 
 export function useBookingLinks() {
   return useQuery({

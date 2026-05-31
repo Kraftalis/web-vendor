@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteAddOn } from "@/services/pricing";
-import { pricingKeys } from "./keys";
+import { pricingKeys } from "@/constants/query-key";
 
-export function useDeleteAddOn() {
+export const useDeleteAddOn = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -11,4 +11,4 @@ export function useDeleteAddOn() {
       queryClient.invalidateQueries({ queryKey: pricingKeys.all });
     },
   });
-}
+};

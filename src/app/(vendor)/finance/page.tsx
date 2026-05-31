@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import FinanceTemplate from "@/templates/finance/finance-template";
+import { FinanceTemplate } from "@/templates/finance/finance-template";
 
 // ─── Page ───────────────────────────────────────────────────
 
